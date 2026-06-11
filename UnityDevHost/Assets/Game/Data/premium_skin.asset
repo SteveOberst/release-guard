@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c56cc9eab75b47b1a599591b7c44286e, type: 3}
+  m_Name: premium_skin
+  m_EditorClassIdentifier:
+  itemId: premium_skin
+  displayName: Premium Skin
+  description: Cosmetic character skin distributed through limited-time offers.
+  softCurrencyPrice: 900
+  premiumOnly: 1

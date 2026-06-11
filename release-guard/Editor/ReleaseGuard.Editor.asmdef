@@ -1,0 +1,11 @@
+{
+  "name": "ReleaseGuard.Editor",
+  "rootNamespace": "ReleaseGuard.Editor",
+  "references": [
+    "GUID:d5e83145bd1a41d6860cd95780dcf5b5"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "autoReferenced": true
+}

@@ -1,0 +1,72 @@
+name: Release Please
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs['release-guard--release_created'] }}
+      tag_name: ${{ steps.release.outputs['release-guard--tag_name'] }}
+      version: ${{ steps.release.outputs['release-guard--version'] }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+      - name: Sync root CHANGELOG.md
+        if: steps.release.outputs['release-guard--release_created'] == 'true'
+        run: |
+          cp release-guard/CHANGELOG.md CHANGELOG.md
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: sync root CHANGELOG.md"
+            git push
+          fi
+
+  # Build and attach the UPM tarball when a release is created.
+  # Runs in the same workflow so the tag_name output is immediately available.
+  pack:
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name }}
+
+      - name: Set up Node.js (for npm pack)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Pack Unity package
+        id: pack
+        working-directory: release-guard
+        run: |
+          # npm pack reads version from package.json -- no hardcoding needed.
+          npm pack
+          TARBALL=$(ls *.tgz)
+          echo "tarball=release-guard/${TARBALL}" >> "$GITHUB_OUTPUT"
+
+      - name: Attach tarball to GitHub release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload \
+            "${{ needs.release-please.outputs.tag_name }}" \
+            "${{ steps.pack.outputs.tarball }}" \
+            --clobber

@@ -1,0 +1,10 @@
+{
+  "defaultTargetFrameRate": 60,
+  "qualityPresets": {
+    "windows": "high",
+    "android": "medium",
+    "webgl": "low"
+  },
+  "textureStreamingBudgetMb": 256,
+  "allowBackgroundDownloads": true
+}

@@ -1,0 +1,5 @@
+{
+  "name": "ReleaseGuard.Runtime",
+  "rootNamespace": "ReleaseGuard",
+  "autoReferenced": true
+}

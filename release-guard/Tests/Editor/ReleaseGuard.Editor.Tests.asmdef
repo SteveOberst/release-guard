@@ -1,0 +1,26 @@
+{
+    "name": "ReleaseGuard.Editor.Tests",
+    "rootNamespace": "ReleaseGuard.Editor.Tests",
+    "references": [
+        "ReleaseGuard.Editor",
+        "ReleaseGuard.Runtime",
+        "ReleaseGuard.Editor.TestFixtures",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

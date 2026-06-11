@@ -1,0 +1,18 @@
+{
+  "catalogId": "live_shop_catalog",
+  "refreshSeconds": 900,
+  "entries": [
+    {
+      "sku": "founder_pack",
+      "placement": "featured",
+      "currency": "soft",
+      "price": 1200
+    },
+    {
+      "sku": "premium_skin",
+      "placement": "cosmetics",
+      "currency": "soft",
+      "price": 900
+    }
+  ]
+}

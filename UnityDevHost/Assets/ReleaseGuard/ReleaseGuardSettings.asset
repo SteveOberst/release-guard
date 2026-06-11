@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8fb39805dad47c59a48a199c5e73401, type: 3}
+  m_Name: ReleaseGuardSettings
+  m_EditorClassIdentifier: ReleaseGuard.Editor::ReleaseGuard.Editor.Config.ReleaseGuardSettings
+  general:
+    enabled: 1
+    skipOnDevelopmentBuilds: 1
+    failureThreshold: 2
+    verboseLogging: 0
+    profileOverrides:
+    - buildProfileName: 
+      enabled: 0
+      failureThreshold: 0
+  auditors:
+    requireIl2Cpp: 1
+    forbidDevelopmentBuild: 1
+    forbidScriptDebugging: 1
+    forbidProfilerConnection: 1
+    minManagedStrippingLevel: 2
+    forbidBroadPreserve: 1
+    autoDiscoverAuditors: 1
+    disabledAuditorIds: []
+    excludedAssetPaths:
+      patterns: []
+    releaseForbiddenExcludedAssemblies: []
+    suppressedAdvisoryIds: []
+  postProcessors:
+    debugSymbolSweepEnabled: 1
+    debugSymbolSweepDelete: 0
+    debugSymbolSweepExtraPatterns: []
+    writeBuildManifest: 0
+    autoDiscoverPostProcessors: 1
+    disabledPostProcessorIds: []
+  transformers:
+    autoDiscoverTransformers: 1
+    disabledTransformerIds: []
+  plugins:
+    autoDiscoverPlugins: 1
+    disabledPluginIds: []

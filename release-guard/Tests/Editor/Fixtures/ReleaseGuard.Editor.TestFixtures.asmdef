@@ -1,0 +1,19 @@
+{
+    "name": "ReleaseGuard.Editor.TestFixtures",
+    "rootNamespace": "ReleaseGuard.Editor.Tests",
+    "references": [
+        "ReleaseGuard.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,20 @@
+{
+  "seasonId": "season_01",
+  "dailyRewards": [
+    {
+      "day": 1,
+      "itemId": "health_potion",
+      "quantity": 2
+    },
+    {
+      "day": 3,
+      "itemId": "iron_sword",
+      "quantity": 1
+    },
+    {
+      "day": 7,
+      "itemId": "health_potion",
+      "quantity": 5
+    }
+  ]
+}

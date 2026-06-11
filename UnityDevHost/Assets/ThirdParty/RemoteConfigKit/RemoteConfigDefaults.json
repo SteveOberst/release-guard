@@ -1,0 +1,17 @@
+{
+  "shop_refresh_cost": 25,
+  "daily_reward_multiplier": 1.0,
+  "matchmaking_timeout_seconds": 30,
+  "feature_prestige_system": false,
+  "feature_ranked_mode": false,
+  "max_inventory_slots": 50,
+  "max_party_size": 4,
+  "event_season": "season_02",
+  "pricing_tier": "default",
+  "ab_cohort": "control",
+  "loot_table_version": 3,
+  "enemy_level_scale": 1.0,
+  "boss_spawn_rate": 0.05,
+  "premium_currency_bonus_pct": 0,
+  "first_purchase_bonus": true
+}

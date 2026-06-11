@@ -1,0 +1,12 @@
+{
+  "name": "ExamplePlugin",
+  "rootNamespace": "ExamplePlugin",
+  "references": [
+    "GUID:047a15478eee43ada453963398045965",
+    "GUID:d5e83145bd1a41d6860cd95780dcf5b5"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "autoReferenced": false
+}

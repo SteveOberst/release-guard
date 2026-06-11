@@ -1,0 +1,114 @@
+# =============================================================================
+# Release Guard -- .gitignore
+# =============================================================================
+# This repo is the Unity package itself (Editor/, Runtime/, Tests/,
+# Documentation~/) at the root. The root is also openable as a Unity project
+# for IDE support, and UnityDevHost/ is a throwaway Unity project that consumes
+# the package via "file:../.." to compile and run its tests.
+#
+# Rules below:
+#   1. Ignore all Unity/IDE-generated output anywhere in the tree.
+#   2. Ignore the root Unity-project scaffolding (Assets/, ProjectSettings/,
+#      Packages/) -- it is not package content and is regenerated on open.
+#      UnityDevHost/ is the canonical dev/test project and IS tracked.
+#   3. .meta files for package content ARE tracked (Unity requires stable
+#      GUIDs across package updates). Only scaffolding/tooling metas are ignored.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Unity generated output (any project, any depth)
+# -----------------------------------------------------------------------------
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+# Anchored to repo root: a bare "[Bb]uild/" would also ignore the package's
+# legitimate Editor/Build/ source folder.
+/[Bb]uild/
+/[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+[Mm]emoryCaptures/
+[Rr]ecordings/
+.consulo/
+sysinfo.txt
+crashlytics-build.properties
+
+# Loose Unity / tooling log files (the Logs/ dirs are already covered above)
+*.log
+
+# Unity asset import / artifact databases
+/[Aa]ssets/AssetStoreTools*
+*.apk
+*.aab
+*.unitypackage
+*.app
+
+# -----------------------------------------------------------------------------
+# IDE / editor generated solution and project files
+# -----------------------------------------------------------------------------
+*.csproj
+*.sln
+*.suo
+*.user
+*.userprefs
+*.unityproj
+*.pidb
+*.booproj
+*.svd
+*.tmp
+
+# JetBrains Rider
+.idea/
+*.DotSettings.user
+
+# Visual Studio / VS Code
+.vs/
+.vscode/
+
+# -----------------------------------------------------------------------------
+# Root Unity-project scaffolding (anchored to repo root only).
+# The package lives at the root; these are NOT package content. UnityDevHost/
+# is the tracked dev project, so equivalent paths there are unaffected.
+# -----------------------------------------------------------------------------
+/Assets/
+/Assets.meta
+/ProjectSettings/
+/ProjectSettings.meta
+/Packages/
+/Packages.meta
+/Logs.meta
+/UserSettings.meta
+
+# Unity may generate a meta for the root release-please config when scanned; the
+# repo root is not a package, so this is never tracked.
+/release-please-config.json.meta
+
+# -----------------------------------------------------------------------------
+# UnityDevHost: keep the project definition, drop generated output
+# -----------------------------------------------------------------------------
+UnityDevHost/[Ll]ibrary/
+UnityDevHost/[Tt]emp/
+UnityDevHost/[Oo]bj/
+UnityDevHost/[Bb]uild/
+UnityDevHost/[Ll]ogs/
+UnityDevHost/[Uu]ser[Ss]ettings/
+
+# -----------------------------------------------------------------------------
+# npm / Node (CI uses `npm pack` to produce the UPM tarball)
+# -----------------------------------------------------------------------------
+node_modules/
+*.tgz
+npm-debug.log*
+package-lock.json
+
+# -----------------------------------------------------------------------------
+# OS cruft
+# -----------------------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini

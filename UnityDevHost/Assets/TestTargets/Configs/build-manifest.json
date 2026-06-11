@@ -1,0 +1,11 @@
+{
+  "contentRevision": "2026.06.08",
+  "addressableProfile": "ReleaseLike",
+  "cdnRoot": "https://cdn.example.invalid/game/live",
+  "environments": [
+    "dev",
+    "staging",
+    "live"
+  ],
+  "featureConfigAsset": "Assets/Game/Configs/feature_flags.asset"
+}

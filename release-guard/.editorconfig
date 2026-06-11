@@ -1,0 +1,11 @@
+# Release Guard package -- IDE inspection configuration.
+root = true
+
+[*.cs]
+# Release Guard is editor/build-time tooling, never runtime hot-path code, so Rider/ReSharper's
+# Unity "performance critical context" inspections are false positives across this package. The
+# main offender is "Expensive method invocation" (e.g. Debug.Log via ReleaseGuardLogger), which
+# propagates up through every context.Error/Warning/Info call site. Disable that family here.
+resharper_unity_performance_critical_code_invocation_highlighting = none
+resharper_unity_performance_critical_code_null_comparison_highlighting = none
+resharper_unity_performance_critical_code_camera_main_highlighting = none

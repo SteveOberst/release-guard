@@ -1,0 +1,20 @@
+{
+    "name": "AttackSurfaceFixture.Game.Editor",
+    "rootNamespace": "AttackSurfaceFixture.Game.Editor",
+    "references": [
+        "AttackSurfaceFixture.Game",
+        "AnalyticsLite",
+        "RemoteConfigKit"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
