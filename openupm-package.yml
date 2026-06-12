@@ -1,0 +1,11 @@
+name: org.researchy.release-guard
+displayName: Release Guard
+description: Configurable, build-time release hygiene auditor for Unity with an extensible API.
+repoUrl: https://github.com/SteveOberst/release-guard
+packageFolder: release-guard
+licenseSpdxId: MIT
+topics:
+  - build-tools
+  - security
+  - auditing
+hunter: SteveOberst
