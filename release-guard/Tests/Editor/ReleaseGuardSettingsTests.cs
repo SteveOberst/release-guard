@@ -22,7 +22,10 @@ namespace ReleaseGuard.Editor.Tests
                 Assert.IsTrue(s.auditors.forbidProfilerConnection);
                 Assert.IsTrue(s.auditors.forbidBroadPreserve);
             }
-            finally { Object.DestroyImmediate(s); }
+            finally
+            {
+                Object.DestroyImmediate(s);
+            }
         }
 
         [Test]
@@ -35,7 +38,10 @@ namespace ReleaseGuard.Editor.Tests
                 Assert.IsTrue(s.IsAuditorDisabled("scripting_backend"));
                 Assert.IsFalse(s.IsAuditorDisabled("managed_stripping"));
             }
-            finally { Object.DestroyImmediate(s); }
+            finally
+            {
+                Object.DestroyImmediate(s);
+            }
         }
 
         [Test]
@@ -56,7 +62,10 @@ namespace ReleaseGuard.Editor.Tests
                 Assert.IsFalse(found.enabled);
                 Assert.AreEqual(ReleaseIssueSeverity.Warning, found.failureThreshold);
             }
-            finally { Object.DestroyImmediate(s); }
+            finally
+            {
+                Object.DestroyImmediate(s);
+            }
         }
 
         [Test]
@@ -70,7 +79,10 @@ namespace ReleaseGuard.Editor.Tests
                 Assert.IsNull(s.GetProfileOverride(null));
                 Assert.IsNull(s.GetProfileOverride(""));
             }
-            finally { Object.DestroyImmediate(s); }
+            finally
+            {
+                Object.DestroyImmediate(s);
+            }
         }
 
         // -- Advisory suppression
@@ -85,7 +97,10 @@ namespace ReleaseGuard.Editor.Tests
                 s.auditors.suppressedAdvisoryIds.Add("advisory.foo");
                 Assert.IsTrue(s.IsAdvisorySuppressed("advisory.foo"));
             }
-            finally { Object.DestroyImmediate(s); }
+            finally
+            {
+                Object.DestroyImmediate(s);
+            }
         }
 
         [Test]
@@ -98,7 +113,10 @@ namespace ReleaseGuard.Editor.Tests
                 Assert.IsFalse(s.IsAdvisorySuppressed("advisory.baz"),
                     "An unsuppressed id must not be reported as suppressed.");
             }
-            finally { Object.DestroyImmediate(s); }
+            finally
+            {
+                Object.DestroyImmediate(s);
+            }
         }
 
         [Test]
@@ -110,7 +128,10 @@ namespace ReleaseGuard.Editor.Tests
                 Assert.IsFalse(s.IsAdvisorySuppressed(null));
                 Assert.IsFalse(s.IsAdvisorySuppressed(""));
             }
-            finally { Object.DestroyImmediate(s); }
+            finally
+            {
+                Object.DestroyImmediate(s);
+            }
         }
 
         // -- Post-processor disabled
@@ -125,7 +146,10 @@ namespace ReleaseGuard.Editor.Tests
                 Assert.IsTrue(s.IsPostProcessorDisabled("debug_symbol_sweep"));
                 Assert.IsFalse(s.IsPostProcessorDisabled("build_manifest"));
             }
-            finally { Object.DestroyImmediate(s); }
+            finally
+            {
+                Object.DestroyImmediate(s);
+            }
         }
 
         [Test]
@@ -147,7 +171,10 @@ namespace ReleaseGuard.Editor.Tests
                 Assert.IsFalse(s.IsAuditorDisabled("managed_stripping"),
                     "Blank and comment lines must not disable unrelated ids.");
             }
-            finally { Object.DestroyImmediate(s); }
+            finally
+            {
+                Object.DestroyImmediate(s);
+            }
         }
 
         // -- Plugin disabled
@@ -162,7 +189,10 @@ namespace ReleaseGuard.Editor.Tests
                 Assert.IsTrue(s.IsPluginDisabled("com.example.my-plugin"));
                 Assert.IsFalse(s.IsPluginDisabled("com.example.other-plugin"));
             }
-            finally { Object.DestroyImmediate(s); }
+            finally
+            {
+                Object.DestroyImmediate(s);
+            }
         }
 
         // -- ReleaseForbidden assembly exclusions
@@ -181,7 +211,10 @@ namespace ReleaseGuard.Editor.Tests
                 Assert.IsFalse(s.IsAssemblyExcludedFromReleaseForbidden("SomeOther.Assembly"),
                     "Non-excluded assembly must return false.");
             }
-            finally { Object.DestroyImmediate(s); }
+            finally
+            {
+                Object.DestroyImmediate(s);
+            }
         }
     }
 }

@@ -3,9 +3,9 @@ using System;
 namespace ReleaseGuard.Editor.Core.Config.Attributes
 {
     [AttributeUsage(AttributeTargets.Field)]
-    public sealed class SettingsConditionalWarningAttribute : Attribute
+    public sealed class ConditionalWarning : Attribute
     {
-        public SettingsConditionalWarningAttribute(string message)
+        public ConditionalWarning(string message)
         {
             Message = message;
         }

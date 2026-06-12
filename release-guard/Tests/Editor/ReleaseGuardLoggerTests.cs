@@ -18,7 +18,8 @@ namespace ReleaseGuard.Editor.Tests
                 "Assets/Test.cs",
                 "Fix it.");
 
-            LogAssert.Expect(LogType.Warning, "[ReleaseGuard] [Warning] Something went wrong.\n  Asset: Assets/Test.cs\n  Fix: Fix it.");
+            LogAssert.Expect(LogType.Warning,
+                "[ReleaseGuard] [Warning] Something went wrong.\n  Asset: Assets/Test.cs\n  Fix: Fix it.");
 
             new ReleaseGuardLogger(false).LogIssue(issue);
         }
@@ -35,7 +36,8 @@ namespace ReleaseGuard.Editor.Tests
             LogAssert.Expect(LogType.Warning, "[ReleaseGuard] [Warning] Warning message");
             LogAssert.Expect(LogType.Error, "[ReleaseGuard] [Error] Error message");
             LogAssert.Expect(LogType.Log, "[ReleaseGuard] 1 error(s), 1 warning(s), 0 info.");
-            LogAssert.Expect(LogType.Error, "[ReleaseGuard] 1 issue(s) at or above the failure threshold (Error); the build will be blocked.");
+            LogAssert.Expect(LogType.Error,
+                "[ReleaseGuard] 1 issue(s) at or above the failure threshold (Error); the build will be blocked.");
 
             new ReleaseGuardLogger(false).LogReport(report, ReleaseIssueSeverity.Error);
         }

@@ -8,9 +8,11 @@ output is what the post-processor pipeline (cleanup, manifest writing, and so on
 then operates on.
 
 No built-in transformers ship with Release Guard - this is the base type for
-advanced, project-specific build hardening beyond the auditor checks. Exceptions
-are caught by the executor and turned into warnings, so one bad transformer never
-silently prevents others from running. Keep implementations non-destructive by
+advanced, project-specific build hardening beyond the auditor checks. A transformer only runs
+after you either register it through a plugin or enable transformer auto-discovery in Project
+Settings. Auto-discovery is off by default; explicit plugin registration is the recommended
+production path. Exceptions are caught by the executor and recorded as transform errors, so one bad
+transformer never silently prevents others from running. Keep implementations non-destructive by
 default; make any irreversible modification opt-in via settings.
 
 See also: [built-in transformers](../reference/built-in-transformers.md),
@@ -69,8 +71,15 @@ Each entry is automatically attributed to the running transformer.
 | `BuildTarget` | `public BuildTarget BuildTarget { get; }` | Always set, regardless of whether a `BuildReport` is present. |
 | `OutputPath` | `public string OutputPath { get; }` | Always set. Path to the built product, e.g. `Builds/Windows/MyGame.exe`. |
 
-On platforms that output a folder (Android APK, WebGL) `OutputPath` is the product
-file or folder itself. `Settings` is a
+**No `Configuration` property.** Unlike the audit context, the transform context exposes only
+`Settings` (the raw settings asset), not the profile-resolved `Configuration`. Read the raw
+settings fields directly, or use `DI.Resolve<ReleaseGuardEnvironment>().ResolveConfiguration(BuildReport)`
+if you need the fully resolved runtime state.
+
+For file outputs, use `Path.GetDirectoryName(context.OutputPath)` to get the
+containing output folder. For folder outputs (for example WebGL), `OutputPath` is
+the product folder itself. Check `Directory.Exists(context.OutputPath)` before
+falling back to `Path.GetDirectoryName`. `Settings` is a
 `ReleaseGuard.Editor.Config.ReleaseGuardSettings`; `BuildReport` and `BuildTarget`
 come from `UnityEditor.Build.Reporting` / `UnityEditor`.
 
@@ -110,7 +119,7 @@ public sealed class StripPdbTransformer : ReleaseTransformer
 
     public override void Transform(ReleaseTransformContext context)
     {
-        var dir = Path.GetDirectoryName(context.OutputPath);
+        var dir = ResolveOutputFolder(context.OutputPath);
         if (string.IsNullOrEmpty(dir) || !Directory.Exists(dir))
         {
             context.Warning("Could not resolve the build output directory.");
@@ -126,6 +135,9 @@ public sealed class StripPdbTransformer : ReleaseTransformer
 
         context.Info($"Removed {count} loose .pdb file(s).");
     }
+
+    private static string ResolveOutputFolder(string outputPath) =>
+        Directory.Exists(outputPath) ? outputPath : Path.GetDirectoryName(outputPath);
 }
 ```
 
@@ -147,5 +159,5 @@ destructive behavior behind a plugin settings flag - see
   context.ReleaseGuard.Registries.Transformers.Register(new MyTransformer());
   ```
 
-Disable a discovered transformer by adding its `Id` to
+Disable a registered or discovered transformer by adding its `Id` to
 `Transformers > Discovery > Disabled Transformer Ids`.

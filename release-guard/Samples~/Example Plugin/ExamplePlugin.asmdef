@@ -1,0 +1,12 @@
+{
+  "name": "ReleaseGuard.ExamplePlugin",
+  "rootNamespace": "ReleaseGuard.ExamplePlugin",
+  "references": [
+    "ReleaseGuard.Editor",
+    "ReleaseGuard.Runtime"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "autoReferenced": false
+}

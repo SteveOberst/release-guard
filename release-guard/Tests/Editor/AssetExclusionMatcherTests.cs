@@ -115,7 +115,7 @@ namespace ReleaseGuard.Editor.Tests
         public void TrailingSlash_MatchesDirectoryAndContents()
         {
             var m = Match("Assets/Samples/");
-            Assert.IsTrue(m.IsExcluded("Assets/Samples"));            // the folder asset itself
+            Assert.IsTrue(m.IsExcluded("Assets/Samples")); // the folder asset itself
             Assert.IsTrue(m.IsExcluded("Assets/Samples/Demo/Y.cs")); // and everything under it
             Assert.IsFalse(m.IsExcluded("Assets/SamplesOther/Y.cs"));
         }

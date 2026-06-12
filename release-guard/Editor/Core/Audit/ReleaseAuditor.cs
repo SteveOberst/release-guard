@@ -3,8 +3,8 @@ using ReleaseGuard.Editor.Core.Registries;
 namespace ReleaseGuard.Editor.Core.Audit
 {
     /// <summary>
-    /// Base class for a single release check. Derive from this in any Editor assembly and the
-    /// auditor is discovered and run automatically - no registration, no asmdef changes needed.
+    /// Base class for a single release check. Derive from this in an Editor assembly and
+    /// register it through a plugin, or enable auditor auto-discovery in settings.
     ///
     /// <para><b>Quick start:</b></para>
     /// <code>
@@ -35,8 +35,9 @@ namespace ReleaseGuard.Editor.Core.Audit
     /// <c>Register()</c> method.</para>
     ///
     /// <para><b>Assembly note:</b> <c>ReleaseGuard.Editor</c> is <c>autoReferenced: true</c>, so
-    /// every Editor assembly in the project already sees <see cref="ReleaseAuditor"/> without
-    /// adding an explicit asmdef reference.</para>
+    /// every Editor assembly in the project can see <see cref="ReleaseAuditor"/>. Add an explicit
+    /// asmdef reference when using an <c>[InitializeOnLoad]</c> plugin loader so Unity initializes
+    /// Release Guard first.</para>
     /// </summary>
     public abstract class ReleaseAuditor : IReleaseGuardRegistryItem
     {

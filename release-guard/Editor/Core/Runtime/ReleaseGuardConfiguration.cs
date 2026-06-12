@@ -46,7 +46,7 @@ namespace ReleaseGuard.Editor.Core.Runtime
             var enabled = settings.general.enabled;
             var threshold = settings.general.failureThreshold;
 
-            // Per-Build-Profile override (e.g. a "Staging" profile may use a looser threshold).
+            // Per-Build-Profile override (e.g. a "Staging" profile may use a stricter threshold).
             var profileOverride = settings.GetProfileOverride(profileName);
             if (profileOverride != null)
             {

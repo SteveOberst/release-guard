@@ -3,9 +3,9 @@ using System;
 namespace ReleaseGuard.Editor.Core.Config.Attributes
 {
     [AttributeUsage(AttributeTargets.Field)]
-    public sealed class SettingsHeaderAttribute : Attribute
+    public sealed class SettingsHeader : Attribute
     {
-        public SettingsHeaderAttribute(string header)
+        public SettingsHeader(string header)
         {
             Header = header;
         }

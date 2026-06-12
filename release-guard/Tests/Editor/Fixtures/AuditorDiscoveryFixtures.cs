@@ -12,17 +12,23 @@ namespace ReleaseGuard.Editor.Tests
     [TestAuditorFixture]
     internal sealed class LowPriorityTestAuditor : ReleaseAuditor
     {
-        public override string Id       => "test_discovery_low";
-        public override int    Priority => -50;
-        public override void Evaluate(ReleaseAuditContext context) { }
+        public override string Id => "test_discovery_low";
+        public override int Priority => -50;
+
+        public override void Evaluate(ReleaseAuditContext context)
+        {
+        }
     }
 
     [TestAuditorFixture]
     internal sealed class HighPriorityTestAuditor : ReleaseAuditor
     {
-        public override string Id       => "test_discovery_high";
-        public override int    Priority => 50;
-        public override void Evaluate(ReleaseAuditContext context) { }
+        public override string Id => "test_discovery_high";
+        public override int Priority => 50;
+
+        public override void Evaluate(ReleaseAuditContext context)
+        {
+        }
     }
 
     // -- Plugin fixtures
@@ -36,7 +42,10 @@ namespace ReleaseGuard.Editor.Tests
     internal sealed class ProvidedTestAuditor : ReleaseAuditor
     {
         public override string Id => "test_provided";
-        public override void Evaluate(ReleaseAuditContext context) { }
+
+        public override void Evaluate(ReleaseAuditContext context)
+        {
+        }
     }
 
     /// <summary>
@@ -46,8 +55,8 @@ namespace ReleaseGuard.Editor.Tests
     /// </summary>
     internal sealed class TestAuditorPlugin : ReleaseGuardPlugin
     {
-        public override string PluginId     => "test.auditor-plugin";
-        public override string DisplayName  => "Test Auditor Plugin";
+        public override string PluginId => "test.auditor-plugin";
+        public override string DisplayName => "Test Auditor Plugin";
 
         public override void Register(PluginRegistrationContext context)
         {
@@ -66,7 +75,7 @@ namespace ReleaseGuard.Editor.Tests
     {
         public static bool Enabled;
 
-        public override string PluginId    => "test.throwing-plugin";
+        public override string PluginId => "test.throwing-plugin";
         public override string DisplayName => "Throwing Plugin";
 
         public override void Register(PluginRegistrationContext context)
@@ -84,13 +93,16 @@ namespace ReleaseGuard.Editor.Tests
 
     internal sealed class DeduplicatingPlugin : ReleaseGuardPlugin
     {
-        public override string PluginId    => "test.deduplicating-plugin";
+        public override string PluginId => "test.deduplicating-plugin";
         public override string DisplayName => "Deduplicating Plugin";
 
         internal sealed class DupAuditor : ReleaseAuditor
         {
             public override string Id => "test_dup_via_plugin";
-            public override void Evaluate(ReleaseAuditContext context) { }
+
+            public override void Evaluate(ReleaseAuditContext context)
+            {
+            }
         }
 
         public override void Register(PluginRegistrationContext context)

@@ -1,5 +1,7 @@
+using System;
 using ReleaseGuard.Editor.Core.Audit;
 using ReleaseGuard.Editor.Core.PostProcessing;
+using ReleaseGuard.Editor.Core.Runtime;
 using ReleaseGuard.Editor.Core.Transforming;
 
 namespace ReleaseGuard.Editor.Core.Plugins
@@ -9,9 +11,10 @@ namespace ReleaseGuard.Editor.Core.Plugins
     /// contributing custom auditors, post-processors, and transformers from a single,
     /// identifiable entry point.
     ///
-    /// <para>Create a non-abstract subclass in any Editor-included assembly -- Release Guard
-    /// discovers it automatically via TypeCache and calls <see cref="Register"/> once while
-    /// initializing the Editor-domain <see cref="ReleaseGuardEnvironment"/>.</para>
+    /// <para>Create a non-abstract subclass in an Editor-included assembly and register it with
+    /// <see cref="ReleaseGuardEnvironment.RegisterPlugin"/> from an <c>[InitializeOnLoad]</c>
+    /// loader. Auto-discovery via TypeCache is also available when enabled in settings, but it is
+    /// off by default.</para>
     ///
     /// <para><b>When to use a plugin vs. a direct subclass:</b><br/>
     /// Subclassing <see cref="ReleaseAuditor"/>, <see cref="ReleasePostProcessor"/>, or
@@ -52,13 +55,13 @@ namespace ReleaseGuard.Editor.Core.Plugins
         /// Settings sub-page for it automatically.</para>
         /// </summary>
         // ReSharper disable once VirtualMemberNeverOverridden.Global
-        public virtual System.Type SettingsType => null;
+        public virtual Type SettingsType => null;
 
         /// <summary>
         /// Register auditors, transformers, and other contributions.
         ///
         /// <para>Called once per environment initialization -- keep it free of side-effects
-        /// beyond registering contributions in <see cref="PluginRegistrationContext.Environment"/>.</para>
+        /// beyond registering contributions in <see cref="Environment"/>.</para>
         /// </summary>
         public abstract void Register(PluginRegistrationContext context);
 

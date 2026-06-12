@@ -8,7 +8,7 @@ namespace ReleaseGuard.Editor.Core.PostProcessing
     /// attribute from TypeCache scans and plugin contributions.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
-    public sealed class TestPostProcessorFixtureAttribute : Attribute
+    public sealed class TestPostProcessorFixture : Attribute
     {
     }
 }

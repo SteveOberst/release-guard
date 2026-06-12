@@ -2,7 +2,7 @@
   "name": "org.researchy.release-guard",
   "version": "0.1.0",
   "displayName": "Release Guard",
-  "description": "Build-time security auditor for Unity. Blocks release builds failing hardening checks (IL2CPP, stripping, dev-build, forbidden code). Extensible auditor, post-processor, and plugin pipeline.",
+  "description": "Build-time security auditor for Unity. Blocks release builds failing hardening checks (IL2CPP, dev-build flags, debugger/profiler hooks, forbidden code). Extensible auditor, transformer, post-processor, and plugin pipeline.",
   "unity": "2022.3",
   "unityRelease": "0f1",
   "keywords": [
@@ -24,6 +24,13 @@
     "com.unity.test-framework": "1.6.0",
     "com.unity.ext.nunit": "2.0.5"
   },
+  "samples": [
+    {
+      "displayName": "Example Plugin",
+      "description": "A minimal Release Guard plugin with settings and one custom auditor.",
+      "path": "Samples~/Example Plugin"
+    }
+  ],
   "documentationUrl": "https://github.com/SteveOberst/release-guard/blob/main/release-guard/Documentation~/index.md",
   "changelogUrl": "https://github.com/SteveOberst/release-guard/blob/main/release-guard/CHANGELOG.md",
   "licensesUrl": "https://github.com/SteveOberst/release-guard/blob/main/release-guard/LICENSE.md",
@@ -32,6 +39,8 @@
     "Editor.meta",
     "Runtime/",
     "Runtime.meta",
+    "Samples~/",
+    "Samples~.meta",
     "Documentation~/",
     "CHANGELOG.md",
     "LICENSE.md",

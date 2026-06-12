@@ -21,8 +21,8 @@ namespace AttackSurfaceFixture.Game.Runtime
         // -- Public read-only state
 
         public int CurrentHealth { get; private set; }
-        public int MaxHealth     { get; private set; }
-        public int SoftCurrency  { get; private set; }
+        public int MaxHealth { get; private set; }
+        public int SoftCurrency { get; private set; }
 
         /// <summary>
         /// Effective damage multiplier after applying all active damage-boost buffs.
@@ -35,11 +35,11 @@ namespace AttackSurfaceFixture.Game.Runtime
 
         // -- Private state
 
-        private readonly List<string>     _ownedItemIds = new List<string>();
-        private readonly List<ActiveBuff> _activeBuffs  = new List<ActiveBuff>();
+        private readonly List<string> _ownedItemIds = new List<string>();
+        private readonly List<ActiveBuff> _activeBuffs = new List<ActiveBuff>();
 
-        private const float BaseSpeed  = 5f;
-        private const float BaseDamage = 1f;   // multiplier baseline
+        private const float BaseSpeed = 5f;
+        private const float BaseDamage = 1f; // multiplier baseline
 
         // -- Unity lifecycle
 
@@ -159,19 +159,19 @@ namespace AttackSurfaceFixture.Game.Runtime
         /// </summary>
         public PlayerData CaptureData() => new PlayerData
         {
-            softCurrency   = SoftCurrency,
-            currentHealth  = CurrentHealth,
-            maxHealth      = MaxHealth,
-            ownedItemIds   = new List<string>(_ownedItemIds)
+            softCurrency = SoftCurrency,
+            currentHealth = CurrentHealth,
+            maxHealth = MaxHealth,
+            ownedItemIds = new List<string>(_ownedItemIds)
         };
 
         // -- Private helpers
 
         private void ApplyPlayerData(PlayerData data)
         {
-            MaxHealth     = data.maxHealth;
+            MaxHealth = data.maxHealth;
             CurrentHealth = data.currentHealth;
-            SoftCurrency  = data.softCurrency;
+            SoftCurrency = data.softCurrency;
 
             _ownedItemIds.Clear();
             if (data.ownedItemIds != null)
@@ -180,9 +180,9 @@ namespace AttackSurfaceFixture.Game.Runtime
 
         private void ApplyDefaults()
         {
-            MaxHealth     = 100;
+            MaxHealth = 100;
             CurrentHealth = 100;
-            SoftCurrency  = economyConfig != null ? economyConfig.StartingSoftCurrency : 100;
+            SoftCurrency = economyConfig != null ? economyConfig.StartingSoftCurrency : 100;
         }
 
         private void TickBuffs(float deltaTime)
@@ -208,24 +208,28 @@ namespace AttackSurfaceFixture.Game.Runtime
 
         private void RefreshStats()
         {
-            var dmg   = BaseDamage;
+            var dmg = BaseDamage;
             var speed = BaseSpeed;
 
             foreach (var buff in _activeBuffs)
             {
                 if (buff.Type == BuffType.DamageBoost)
-                    dmg   *= buff.Value;
+                    dmg *= buff.Value;
                 else if (buff.Type == BuffType.SpeedBoost)
                     speed += buff.Value;
             }
 
             DamageMultiplier = dmg;
-            MoveSpeed        = speed;
+            MoveSpeed = speed;
         }
 
         // -- Inner types
 
-        private enum BuffType { DamageBoost, SpeedBoost }
+        private enum BuffType
+        {
+            DamageBoost,
+            SpeedBoost
+        }
 
         /// <summary>
         /// Value type tracking one active buff.
@@ -236,14 +240,14 @@ namespace AttackSurfaceFixture.Game.Runtime
         private struct ActiveBuff
         {
             public BuffType Type;
-            public float    RemainingSeconds;
-            public float    Value;
+            public float RemainingSeconds;
+            public float Value;
 
             public ActiveBuff(BuffType type, float duration, float value)
             {
-                Type             = type;
+                Type = type;
                 RemainingSeconds = duration;
-                Value            = value;
+                Value = value;
             }
         }
     }

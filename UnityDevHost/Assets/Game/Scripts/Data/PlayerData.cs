@@ -27,13 +27,13 @@ namespace AttackSurfaceFixture.Game.Data
     [Serializable]
     public sealed class PlayerData
     {
-        public int   softCurrency          = 100;
-        public int   hardCurrency          = 0;
-        public int   currentHealth         = 100;
-        public int   maxHealth             = 100;
-        public int   totalKills            = 0;
-        public int   highestLevelReached   = 1;
-        public float totalPlaytimeSeconds  = 0f;
+        public int softCurrency = 100;
+        public int hardCurrency = 0;
+        public int currentHealth = 100;
+        public int maxHealth = 100;
+        public int totalKills = 0;
+        public int highestLevelReached = 1;
+        public float totalPlaytimeSeconds = 0f;
 
         /// <summary>Item IDs of consumables and equipment in the player's bag.</summary>
         public List<string> ownedItemIds = new List<string>();
@@ -44,11 +44,11 @@ namespace AttackSurfaceFixture.Game.Data
         /// <summary>Returns a freshly initialised data set for a brand-new player.</summary>
         public static PlayerData CreateDefault() => new PlayerData
         {
-            softCurrency         = 100,
-            hardCurrency         = 0,
-            currentHealth        = 100,
-            maxHealth            = 100,
-            ownedItemIds         = new List<string>(),
+            softCurrency = 100,
+            hardCurrency = 0,
+            currentHealth = 100,
+            maxHealth = 100,
+            ownedItemIds = new List<string>(),
             completedTutorialSteps = new bool[5]
         };
     }

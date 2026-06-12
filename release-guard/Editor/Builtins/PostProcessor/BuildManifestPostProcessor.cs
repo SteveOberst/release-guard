@@ -15,7 +15,7 @@ namespace ReleaseGuard.Editor.Builtins.PostProcessor
     /// <summary>
     /// Writes <c>release-guard-manifest.json</c> next to the build output, recording which
     /// Release Guard configuration produced the build: package version, Unity version, build
-    /// target and GUID, and the auditors and post-processors that were active.
+    /// target and GUID, and the auditors, post-processors, and transformers that were active.
     ///
     /// <para><b>Why opt-in (off by default):</b> this post-processor adds a file to the build
     /// output folder. Anything next to the shipped binaries risks being packaged and shipped by
@@ -27,8 +27,8 @@ namespace ReleaseGuard.Editor.Builtins.PostProcessor
     /// <para><b>What is deliberately NOT recorded:</b> absolute paths (which can embed the build
     /// machine's user name) and VCS revision info (reading it would mean spawning external
     /// processes at build time). If you need a commit hash in the manifest, write your own
-    /// post-processor with a higher priority and amend the file, or stamp the hash elsewhere in
-    /// your CI pipeline.</para>
+    /// post-processor with a priority greater than 100 and amend the file, or stamp the hash
+    /// elsewhere in your CI pipeline.</para>
     ///
     /// <para>Runs at priority 100 so it executes after the built-in sweep and any default-priority
     /// custom post-processors, and therefore records the state the output folder actually shipped in.</para>

@@ -8,7 +8,7 @@ using UnityEditor.Build.Reporting;
 namespace ReleaseGuard.Editor.Core.Runtime
 {
     /// <summary>
-    /// Discovers and runs every auditor, collecting their findings into a single report.
+    /// Runs every registered auditor, collecting their findings into a single report.
     /// One auditor throwing never aborts the run - it is logged and turned into a Warning.
     /// </summary>
     public sealed class ReleaseGuardExecutor
@@ -44,7 +44,7 @@ namespace ReleaseGuard.Editor.Core.Runtime
             var context = new ReleaseAuditContext(settings, configuration, logger, report, buildTarget, issues);
 
             var auditors = _releaseGuard.Registries.Auditors.Items;
-            logger.LogVerbose($"Discovered {auditors.Count} auditor(s) for target {buildTarget}.");
+            logger.LogVerbose($"Registered {auditors.Count} auditor(s) for target {buildTarget}.");
 
             MemberInfoUnityPathResolver.BeginAudit();
             try

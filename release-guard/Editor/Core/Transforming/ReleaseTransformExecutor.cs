@@ -8,7 +8,7 @@ using UnityEditor.Build.Reporting;
 namespace ReleaseGuard.Editor.Core.Transforming
 {
     /// <summary>
-    /// Discovers and runs every transformer after a successful build, before post-processors.
+    /// Runs every registered transformer after a successful build, before post-processors.
     /// Mirrors <see cref="ReleaseGuardExecutor"/> for the transformer pipeline.
     ///
     /// One transformer throwing never aborts the run -- the exception is caught, logged as an
@@ -32,7 +32,7 @@ namespace ReleaseGuard.Editor.Core.Transforming
             var context = ReleaseTransformContext.ForBuild(settings, report, log);
             var transformers = _releaseGuard.Registries.Transformers.Items;
 
-            logger.LogVerbose($"Discovered {transformers.Count} transformer(s) for target {report.summary.platform}.");
+            logger.LogVerbose($"Registered {transformers.Count} transformer(s) for target {report.summary.platform}.");
 
             foreach (var transformer in transformers)
             {

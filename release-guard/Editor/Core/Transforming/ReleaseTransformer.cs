@@ -3,8 +3,9 @@ using ReleaseGuard.Editor.Core.Registries;
 namespace ReleaseGuard.Editor.Core.Transforming
 {
     /// <summary>
-    /// Base class for a build artifact transformer. Derive from this to perform operations
-    /// that modify the build artifacts at a low level -- IL manipulation, binary patching,
+    /// Base class for a build artifact transformer. Derive from this in an Editor assembly and
+    /// register it through a plugin, or enable transformer auto-discovery in settings, to perform
+    /// operations that modify the build artifacts at a low level -- IL manipulation, binary patching,
     /// code obfuscation, native-library processing, and similar. Transformers run after the
     /// build completes and before post-processors, so their output is what the post-processor
     /// pipeline (cleanup, manifest writing, etc.) operates on.
@@ -59,7 +60,7 @@ namespace ReleaseGuard.Editor.Core.Transforming
         /// <summary>
         /// Perform the transformation. Use <c>context.Info</c>, <c>context.Warning</c>, and
         /// <c>context.Error</c> to record what the transformer did. Do not throw -- exceptions
-        /// are caught by the executor and turned into warnings.
+        /// are caught by the executor and recorded as transform errors.
         /// </summary>
         // ReSharper disable once UnusedParameter.Global
         public abstract void Transform(ReleaseTransformContext context);

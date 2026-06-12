@@ -20,7 +20,7 @@ namespace AttackSurfaceFixture.Game.Runtime
     {
         [SerializeField] private float turnIntervalSeconds = 1.5f;
 
-        public bool InCombat             { get; private set; }
+        public bool InCombat { get; private set; }
         public EnemyController ActiveEnemy { get; private set; }
 
         private Coroutine _loop;
@@ -42,7 +42,7 @@ namespace AttackSurfaceFixture.Game.Runtime
             if (InCombat || enemy == null || enemy.IsDead) return;
 
             ActiveEnemy = enemy;
-            InCombat    = true;
+            InCombat = true;
             GameEvents.RaiseCombatStarted(enemy.Definition);
 
             _loop = StartCoroutine(CombatLoop());
@@ -72,7 +72,7 @@ namespace AttackSurfaceFixture.Game.Runtime
                 if (!InCombat) yield break;
 
                 // -- Player's turn
-                var rawDamage    = Mathf.RoundToInt(player.DamageMultiplier * 10f);
+                var rawDamage = Mathf.RoundToInt(player.DamageMultiplier * 10f);
                 var playerDamage = Mathf.Max(1, rawDamage);
                 ActiveEnemy.TakeDamage(playerDamage);
 
@@ -89,8 +89,8 @@ namespace AttackSurfaceFixture.Game.Runtime
                     AnalyticsLite.AnalyticsService.Instance?.TrackEvent("enemy_defeated",
                         new System.Collections.Generic.Dictionary<string, object>
                         {
-                            { "enemy_id",  ActiveEnemy.Definition?.EnemyId ?? "unknown" },
-                            { "reward",    reward }
+                            { "enemy_id", ActiveEnemy.Definition?.EnemyId ?? "unknown" },
+                            { "reward", reward }
                         });
 
                     StopCombat(victorious: true);
@@ -115,9 +115,14 @@ namespace AttackSurfaceFixture.Game.Runtime
 
         private void StopCombat(bool victorious)
         {
-            if (_loop != null) { StopCoroutine(_loop); _loop = null; }
-            InCombat    = false;
-            var enemy   = ActiveEnemy;
+            if (_loop != null)
+            {
+                StopCoroutine(_loop);
+                _loop = null;
+            }
+
+            InCombat = false;
+            var enemy = ActiveEnemy;
             ActiveEnemy = null;
             GameEvents.RaiseCombatEnded(victorious);
         }

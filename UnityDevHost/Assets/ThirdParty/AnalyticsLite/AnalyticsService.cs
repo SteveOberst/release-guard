@@ -57,7 +57,10 @@ namespace AnalyticsLite
                 Flush();
         }
 
-        public void SetUserProperty(string key, string value) { /* stub */ }
+        public void SetUserProperty(string key, string value)
+        {
+            /* stub */
+        }
 
         public void Flush()
         {

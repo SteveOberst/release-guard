@@ -4,9 +4,9 @@ namespace AttackSurfaceFixture.Game.Buffs
     public sealed class DamageBoostBuff : IBuffEffect
     {
         private const float Multiplier = 1.5f;
-        private const float Duration   = 10f;
+        private const float Duration = 10f;
 
-        public string EffectId    => "damage_boost";
+        public string EffectId => "damage_boost";
         public string DisplayName => "Damage Boost";
 
         public void Apply(IBuffTarget target) =>

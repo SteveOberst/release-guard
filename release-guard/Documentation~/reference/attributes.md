@@ -27,7 +27,7 @@ issue is at or above the configured failure threshold.
 Ordering matters: the failure threshold and advisory comparisons rely on the
 numeric order.
 
-## ReleaseForbiddenAttribute
+## ReleaseForbidden
 
 - Assembly: `ReleaseGuard.Runtime`
 - Namespace: `ReleaseGuard`
@@ -44,7 +44,7 @@ such code can ship. See [built-in-auditors](built-in-auditors.md) and
 Constructor:
 
 ```csharp
-public ReleaseForbiddenAttribute(
+public ReleaseForbidden(
     ReleaseIssueSeverity severity = ReleaseIssueSeverity.Error,
     string reason = null)
 ```
@@ -69,90 +69,131 @@ excluded from the compiled release.
 ## Settings attributes
 
 These drive the auto-generated Project Settings UI. All live in
-`ReleaseGuard.Editor`, namespace `ReleaseGuard.Editor.Core.Config`, and are sealed.
-See [api/settings](../api/settings.md).
+`ReleaseGuard.Editor`, namespace `ReleaseGuard.Editor.Core.Config.Attributes`, and are sealed
+unless noted. See [api/settings](../api/settings.md) for the full rendering pipeline.
 
-### SettingsPageAttribute
+### SettingsPage
 
-- Targets: `Field`
-- Marks a settings sub-object field as its own page in the Project Settings tree.
-  One `SettingsProvider` is generated per annotated field.
+- Targets: `Class`
+- Applied to a `ReleaseGuardPluginSettings` subclass (or any settings class). Sets the page
+  title, intro text shown at the top of the page, and the short description shown next to
+  the link on the root overview page.
 
 ```csharp
-public SettingsPageAttribute(int order, string label, string intro, string description = null)
+public SettingsPage(string label, string intro, string description = "")
 ```
 
 | Parameter | Type | Default | Description |
 | --- | --- | --- | --- |
-| `order` | `int` | (required) | Sort order within the parent (lower = higher in the list). |
 | `label` | `string` | (required) | Display name in the Project Settings sidebar. |
 | `intro` | `string` | (required) | One-line description shown at the top of the page. |
-| `description` | `string` | `null` | Short description shown next to the link on the root overview page. |
+| `description` | `string` | `""` | Short description shown next to the link on the root overview page. |
 
-### SettingsSectionAttribute
+### SettingsContainer
 
-- Targets: `Field`
-- A plain section heading drawn before a field (unlike Unity's `[Header]`).
+- Targets: `Class`
+- Base attribute for settings containers. `SettingsPage` derives from it. Use `SettingsPage`
+  for ordinary plugin settings pages. `SettingsContainer` is not applied directly because its
+  constructor is protected; derive your own container attribute from it only when building custom
+  nested settings-container support.
+- Not sealed.
 
 ```csharp
-public SettingsSectionAttribute(string header)
+public class SettingsContainer : Attribute
+{
+    protected SettingsContainer(string label, string description = "")
+}
+```
+
+Properties: `Label` (get) and `Description` (get).
+
+### SettingsHeader
+
+- Targets: `Field`
+- Draws a bold section heading above the annotated field.
+
+```csharp
+public SettingsHeader(string header)
 ```
 
 | Parameter | Type | Default | Description |
 | --- | --- | --- | --- |
 | `header` | `string` | (required) | Heading text. |
 
-### SettingsConditionalWarningAttribute
+### SettingsLabel
 
 - Targets: `Field`
-- Applied to a `bool` field; while the value is `true`, the renderer draws a
-  warning help box beneath the toggle.
+- Overrides the display label for a settings field. Without this attribute the label falls
+  back to `ObjectNames.NicifyVariableName` applied to the field name. Derives from
+  `InjectProperty` and targets `SerializedFieldComponent`.
 
 ```csharp
-public SettingsConditionalWarningAttribute(string message)
+public SettingsLabel(string label)
 ```
 
 | Parameter | Type | Default | Description |
 | --- | --- | --- | --- |
-| `message` | `string` | (required) | Warning text shown while the field is true. |
+| `label` | `string` | (required) | Label text shown in the settings UI. |
 
-### SettingsIntroAttribute
-
-- Targets: `Class`
-- Applied to a settings ScriptableObject class; the text is shown at the top of the
-  auto-generated root overview page.
+Example:
 
 ```csharp
-public SettingsIntroAttribute(string text)
+[SettingsLabel("Require IL2CPP")]
+public bool requireIl2Cpp = true;
+```
+
+### ConditionalWarning
+
+- Targets: `Field`
+- Applied to a `bool` field; while the value is `true`, a warning help box is drawn
+  beneath the toggle. The attribute targets `Field` with no type restriction in C# — it is
+  the developer's responsibility to apply it only to `bool` fields. Applying it to a
+  non-bool field will produce undefined rendering behavior.
+
+```csharp
+public ConditionalWarning(string message)
 ```
 
 | Parameter | Type | Default | Description |
 | --- | --- | --- | --- |
-| `text` | `string` | (required) | Intro text for the overview page. |
+| `message` | `string` | (required) | Warning text shown while the field is `true`. |
 
-### SettingsStatusAttribute
+### InjectProperty
 
-- Targets: `Property`
-- `AllowMultiple`: no (default).
-- Applied to a string-returning property; its value is shown in the "Status"
-  section of the root overview page. Multiple properties appear in declaration
-  order. No constructor parameters.
-
-### SettingsActionAttribute
-
-- Targets: `Method`
-- `AllowMultiple = true`.
-- Applied to a parameterless instance method; the renderer draws a button in the
-  "Actions" section of the overview page.
+- Targets: `Field`, `AllowMultiple = true`
+- Abstract base class for attributes that mutate the primary `SettingsComponent` produced
+  by a field's reader. `SettingsComponentReader` calls `TryApply` after the primary pass,
+  so injection works for builtin and custom readers alike.
+- Not sealed -- derive from it to create custom injection attributes.
 
 ```csharp
-public SettingsActionAttribute(string label, int order = 0)
+public abstract class InjectProperty : Attribute
+{
+    protected virtual Type TargetComponentType => typeof(SettingsComponent);
+    protected abstract void Apply(SettingsComponent component);
+}
 ```
 
-| Parameter | Type | Default | Description |
-| --- | --- | --- | --- |
-| `label` | `string` | (required) | Button label. |
-| `order` | `int` | `0` | Button order within the actions row. |
+`TargetComponentType` restricts which component type receives the injection. `TryApply`
+silently skips components that do not match, so casts inside `Apply` are always safe.
+
+Example -- custom injection attribute:
+
+```csharp
+[AttributeUsage(AttributeTargets.Field)]
+public sealed class MyAttribute : InjectProperty
+{
+    protected override Type TargetComponentType => typeof(SerializedFieldComponent);
+    protected override void Apply(SettingsComponent component)
+    {
+        var sfc = (SerializedFieldComponent)component;
+        // mutate sfc
+    }
+}
+```
+
+No registration is required. Any `InjectProperty` attribute placed on a field is
+applied automatically by `SettingsComponentReader` when that field is read.
 
 ## Test-fixture attributes
 
@@ -163,10 +204,10 @@ types defined in test assemblies.
 
 | Attribute | Namespace | Marks |
 | --- | --- | --- |
-| `TestAuditorFixtureAttribute` | `ReleaseGuard.Editor.Core.Audit` | A `ReleaseAuditor` subclass as a test-only fixture. |
-| `TestPostProcessorFixtureAttribute` | `ReleaseGuard.Editor.Core.PostProcessing` | A `ReleasePostProcessor` subclass as a test-only fixture. |
-| `TestTransformerFixtureAttribute` | `ReleaseGuard.Editor.Core.Transforming` | A `ReleaseTransformer` subclass as a test-only fixture. |
-| `TestReleaseGuardPluginAttribute` | `ReleaseGuard.Editor.Core.Plugins` | A `ReleaseGuardPlugin` subclass as a test-only fixture (the whole plugin is hidden from discovery). |
+| `TestAuditorFixture` | `ReleaseGuard.Editor.Core.Audit` | A `ReleaseAuditor` subclass as a test-only fixture. |
+| `TestPostProcessorFixture` | `ReleaseGuard.Editor.Core.PostProcessing` | A `ReleasePostProcessor` subclass as a test-only fixture. |
+| `TestTransformerFixture` | `ReleaseGuard.Editor.Core.Transforming` | A `ReleaseTransformer` subclass as a test-only fixture. |
+| `TestReleaseGuardPlugin` | `ReleaseGuard.Editor.Core.Plugins` | A `ReleaseGuardPlugin` subclass as a test-only fixture (the whole plugin is hidden from discovery). |
 
 ## See also
 

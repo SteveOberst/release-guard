@@ -7,9 +7,9 @@ namespace ExamplePlugin
 {
     public sealed class ExamplePlugin : ReleaseGuardPlugin
     {
-        public override string PluginId    => "com.example.example-plugin";
+        public override string PluginId => "com.example.example-plugin";
         public override string DisplayName => "Example Plugin";
-        public override string Author      => "Researchy Development";
+        public override string Author => "Researchy Development";
         public override System.Type SettingsType => typeof(ExamplePluginSettings);
 
         public override void Register(PluginRegistrationContext context)

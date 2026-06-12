@@ -9,11 +9,11 @@ namespace ReleaseGuard.Editor.Core.Config.Attributes
     /// field name.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field)]
-    public sealed class SettingsLabelAttribute : InjectPropertyAttribute
+    public sealed class SettingsLabel : InjectProperty
     {
         // ReSharper disable once MemberCanBePrivate.Global
         public string Label { get; }
-        public SettingsLabelAttribute(string label) => Label = label;
+        public SettingsLabel(string label) => Label = label;
 
         protected override Type TargetComponentType => typeof(SerializedFieldComponent);
 

@@ -74,21 +74,26 @@ namespace AttackSurfaceFixture.Game.Core
         // Centralising the null-conditional invoke here means callers never need to
         // perform the null check themselves.
 
-        public static void RaisePlayerHealthChanged(int hp)                              => OnPlayerHealthChanged?.Invoke(hp);
-        public static void RaisePlayerDied()                                             => OnPlayerDied?.Invoke();
-        public static void RaiseBuffApplied(string effectId)                             => OnBuffApplied?.Invoke(effectId);
+        public static void RaisePlayerHealthChanged(int hp) => OnPlayerHealthChanged?.Invoke(hp);
+        public static void RaisePlayerDied() => OnPlayerDied?.Invoke();
+        public static void RaiseBuffApplied(string effectId) => OnBuffApplied?.Invoke(effectId);
 
-        public static void RaiseCurrencyChanged(int balance)                             => OnCurrencyChanged?.Invoke(balance);
-        public static void RaiseItemPurchased(ItemDefinition item, int remainingBalance) => OnItemPurchased?.Invoke(item, remainingBalance);
-        public static void RaiseItemUsed(ItemDefinition item)                            => OnItemUsed?.Invoke(item);
+        public static void RaiseCurrencyChanged(int balance) => OnCurrencyChanged?.Invoke(balance);
 
-        public static void RaiseCombatStarted(EnemyDefinition enemy)                     => OnCombatStarted?.Invoke(enemy);
-        public static void RaiseCombatEnded(bool victorious)                             => OnCombatEnded?.Invoke(victorious);
-        public static void RaiseEnemyDefeated(EnemyDefinition enemy, int reward)         => OnEnemyDefeated?.Invoke(enemy, reward);
+        public static void RaiseItemPurchased(ItemDefinition item, int remainingBalance) =>
+            OnItemPurchased?.Invoke(item, remainingBalance);
 
-        public static void RaiseMainMenuEntered()                                        => OnMainMenuEntered?.Invoke();
-        public static void RaiseShopOpened()                                             => OnShopOpened?.Invoke();
-        public static void RaiseShopClosed()                                             => OnShopClosed?.Invoke();
+        public static void RaiseItemUsed(ItemDefinition item) => OnItemUsed?.Invoke(item);
+
+        public static void RaiseCombatStarted(EnemyDefinition enemy) => OnCombatStarted?.Invoke(enemy);
+        public static void RaiseCombatEnded(bool victorious) => OnCombatEnded?.Invoke(victorious);
+
+        public static void RaiseEnemyDefeated(EnemyDefinition enemy, int reward) =>
+            OnEnemyDefeated?.Invoke(enemy, reward);
+
+        public static void RaiseMainMenuEntered() => OnMainMenuEntered?.Invoke();
+        public static void RaiseShopOpened() => OnShopOpened?.Invoke();
+        public static void RaiseShopClosed() => OnShopClosed?.Invoke();
 
         // -- Teardown
 
@@ -99,17 +104,17 @@ namespace AttackSurfaceFixture.Game.Core
         public static void ClearAll()
         {
             OnPlayerHealthChanged = null;
-            OnPlayerDied          = null;
-            OnBuffApplied         = null;
-            OnCurrencyChanged     = null;
-            OnItemPurchased       = null;
-            OnItemUsed            = null;
-            OnCombatStarted       = null;
-            OnCombatEnded         = null;
-            OnEnemyDefeated       = null;
-            OnMainMenuEntered     = null;
-            OnShopOpened          = null;
-            OnShopClosed          = null;
+            OnPlayerDied = null;
+            OnBuffApplied = null;
+            OnCurrencyChanged = null;
+            OnItemPurchased = null;
+            OnItemUsed = null;
+            OnCombatStarted = null;
+            OnCombatEnded = null;
+            OnEnemyDefeated = null;
+            OnMainMenuEntered = null;
+            OnShopOpened = null;
+            OnShopClosed = null;
         }
     }
 }

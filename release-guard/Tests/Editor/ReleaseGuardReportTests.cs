@@ -56,9 +56,9 @@ namespace ReleaseGuard.Editor.Tests
         public void ShouldFailBuild_RespectsThreshold()
         {
             var warnOnly = Report(ReleaseIssueSeverity.Warning);
-            Assert.IsFalse(warnOnly.ShouldFailBuild(ReleaseIssueSeverity.Error));   // below threshold
-            Assert.IsTrue(warnOnly.ShouldFailBuild(ReleaseIssueSeverity.Warning));  // at threshold
-            Assert.IsTrue(warnOnly.ShouldFailBuild(ReleaseIssueSeverity.Info));     // above threshold
+            Assert.IsFalse(warnOnly.ShouldFailBuild(ReleaseIssueSeverity.Error)); // below threshold
+            Assert.IsTrue(warnOnly.ShouldFailBuild(ReleaseIssueSeverity.Warning)); // at threshold
+            Assert.IsTrue(warnOnly.ShouldFailBuild(ReleaseIssueSeverity.Info)); // above threshold
         }
 
         [Test]

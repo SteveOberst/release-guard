@@ -3,8 +3,8 @@ using ReleaseGuard.Editor.Core.Registries;
 namespace ReleaseGuard.Editor.Core.PostProcessing
 {
     /// <summary>
-    /// Base class for a single post-build output processor. Derive from this in any Editor
-    /// assembly to hook into the post-processor pipeline -- no registration needed.
+    /// Base class for a single post-build output processor. Derive from this in an Editor
+    /// assembly and register it through a plugin, or enable post-processor auto-discovery in settings.
     ///
     /// <para>Post-processors operate on the completed build output: cleaning up debug
     /// artifacts, writing CI metadata, patching manifests, and similar output-folder
@@ -55,7 +55,7 @@ namespace ReleaseGuard.Editor.Core.PostProcessing
         /// <summary>
         /// Perform the post-processing operation. Use <c>context.Info</c>, <c>context.Warning</c>,
         /// and <c>context.Error</c> to record what the post-processor did. Do not throw -- exceptions
-        /// are caught by the executor and turned into warnings.
+        /// are caught by the executor and recorded as post-process errors.
         /// </summary>
         public abstract void PostProcess(ReleasePostProcessContext context);
     }

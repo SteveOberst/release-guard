@@ -43,6 +43,14 @@ Plus any extra patterns from `postProcessors.debugSymbolSweepExtraPatterns`.
 Invalid extra patterns (blank, or containing a path separator or `..`) are
 ignored - patterns match names, not paths.
 
+> **`debugSymbolSweepExtraPatterns` vs `ExclusionList`:** extra sweep patterns are
+> a plain `List<string>` (a multiline text area), not an `ExclusionList`. They do
+> not support the full gitignore syntax (`**`, `!` negation, comments) and do not
+> have a live "Preview matching assets" foldout. They only support `*` as a wildcard
+> and match against top-level file or folder names in the build output directory,
+> not against Unity asset paths. Use the built-in pattern names above as the model
+> for what format works here.
+
 Behavior is controlled by two settings flags:
 
 - Report-only (default): each found artifact is logged as a Warning. Nothing is
@@ -88,8 +96,8 @@ When a `BuildReport` is available it additionally records `buildGuid`,
 `totalBuildSizeBytes`.
 
 Deliberately NOT recorded: absolute paths and VCS revision info. To add a commit
-hash, write your own higher-priority post-processor that amends the file, or stamp
-it elsewhere in CI.
+hash, write your own post-processor with a priority greater than `100` if it must
+amend the built-in manifest, or stamp it elsewhere in CI.
 
 Off by default because the file documents the project's hardening configuration
 and should not ship to players - it is intended as a CI artifact. Enable it only

@@ -11,22 +11,23 @@ namespace AttackSurfaceFixture.Game.UI
     /// </summary>
     public sealed class MainMenuController : MonoBehaviour
     {
-        [Header("UI Elements")]
-        [SerializeField] private Button playButton;
+        [Header("UI Elements")] [SerializeField]
+        private Button playButton;
+
         [SerializeField] private Button quitButton;
-        [SerializeField] private Text   titleLabel;
-        [SerializeField] private Text   versionLabel;
+        [SerializeField] private Text titleLabel;
+        [SerializeField] private Text versionLabel;
 
         private void Start()
         {
-            if (titleLabel   != null) titleLabel.text   = "Attack Surface Demo";
+            if (titleLabel != null) titleLabel.text = "Attack Surface Demo";
             if (versionLabel != null) versionLabel.text = $"v{Application.version}";
 
             if (playButton != null) playButton.onClick.AddListener(OnPlayClicked);
             if (quitButton != null) quitButton.onClick.AddListener(OnQuitClicked);
         }
 
-        private void OnEnable()  => GameEvents.OnMainMenuEntered += HandleMainMenuEntered;
+        private void OnEnable() => GameEvents.OnMainMenuEntered += HandleMainMenuEntered;
         private void OnDisable() => GameEvents.OnMainMenuEntered -= HandleMainMenuEntered;
 
         private void OnPlayClicked()

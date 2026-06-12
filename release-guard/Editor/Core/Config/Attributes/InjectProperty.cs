@@ -16,7 +16,7 @@ namespace ReleaseGuard.Editor.Core.Config.Attributes
     ///
     /// <para>Example:<code>
     /// [AttributeUsage(AttributeTargets.Field)]
-    /// public sealed class MyAttribute : InjectPropertyAttribute
+    /// public sealed class MyAttribute : InjectProperty
     /// {
     ///     protected override Type TargetComponentType => typeof(SerializedFieldComponent);
     ///     protected override void Apply(SettingsComponent c) { /* cast c and mutate */ }
@@ -24,7 +24,7 @@ namespace ReleaseGuard.Editor.Core.Config.Attributes
     /// </code></para>
     /// </summary>
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
-    public abstract class InjectPropertyAttribute : Attribute
+    public abstract class InjectProperty : Attribute
     {
         /// <summary>
         /// Component type this injection targets. <see cref="TryApply"/> skips the component when

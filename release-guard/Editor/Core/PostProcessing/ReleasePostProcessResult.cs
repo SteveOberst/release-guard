@@ -11,8 +11,8 @@ namespace ReleaseGuard.Editor.Core.PostProcessing
         public IReadOnlyList<ReleasePostProcessLog> Log { get; }
 
         /// <summary>
-        /// Every post-processor that was discovered and evaluated in this run (in execution order).
-        /// Includes post-processors that produced no log entries.
+        /// Every post-processor that was registered for this run (in execution order).
+        /// Includes post-processors that produced no log entries or opted out via ShouldRun.
         /// </summary>
         // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public IReadOnlyList<ReleasePostProcessor> DiscoveredPostProcessors { get; }

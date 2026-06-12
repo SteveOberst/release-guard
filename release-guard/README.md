@@ -19,7 +19,7 @@ explicitly mark as forbidden for release.
 | Auditor | What it enforces |
 |---|---|
 | Scripting backend | IL2CPP required for release builds |
-| Managed stripping | Minimum managed stripping level |
+| Managed stripping | Warning when below the configured minimum; blocks when the failure threshold is `Warning` or lower |
 | Development build flag | No development builds shipped by accident |
 | Script debugging | No managed debugger attachment in release builds |
 | Profiler connection | No Autoconnect Profiler in release builds |
@@ -32,7 +32,9 @@ explicitly mark as forbidden for release.
 | Insecure HTTP | Advisory: cleartext HTTP allowed in release builds (dismissible) |
 | Burst debug settings | Advisory, when Burst is installed: disabled optimizations or native debug mode (dismissible) |
 
-Post-build, the transformer and post-processor pipelines run against the build output:
+Post-build, the transformer and post-processor pipelines run against the build output. The
+transformer pipeline is empty until you register custom transformers; the built-in
+post-processors run last:
 
 | Post-build pipeline item | What it does |
 |---|---|
@@ -40,9 +42,10 @@ Post-build, the transformer and post-processor pipelines run against the build o
 | Build manifest post-processor | Opt-in: writes `release-guard-manifest.json` recording the configuration that produced the build |
 
 All built-in auditors, post-processors, and transformers are individually toggleable. Custom
-auditors, post-processors, transformers, and plugins are auto-discovered with `TypeCache`.
-At runtime, `ReleaseGuardStartup` initializes a `ReleaseGuardContext` once per Editor-domain
-load. The context owns settings, logging, loaded plugins, and typed registries.
+auditors, post-processors, transformers, and plugins can be registered explicitly through a
+plugin, or auto-discovered with `TypeCache` when the corresponding discovery setting is enabled.
+At runtime, `ReleaseGuardStartup` initializes a `ReleaseGuardEnvironment` once per Editor-domain
+load. The environment owns settings, logging, loaded plugins, and typed registries.
 Relevant Project Settings changes rebuild that runtime-only state.
 
 The runtime code is split by responsibility: `Core/Runtime` owns startup/context/container
@@ -67,6 +70,14 @@ subfolder of the repository.
 Each tagged release publishes `org.researchy.release-guard-<version>.tgz`. Download it from the
 [releases page](https://github.com/SteveOberst/release-guard/releases) and install it with
 **Window > Package Manager > + > Add package from tarball**.
+
+### OpenUPM
+
+The repository includes OpenUPM metadata. If you use OpenUPM, install the package with:
+
+```bash
+openupm add org.researchy.release-guard
+```
 
 ## Quick start
 
@@ -135,15 +146,21 @@ The three extensible base types are:
 | `ReleaseTransformer` | `ReleaseGuard.Editor.Core.Transforming` | `Transform` | Post-build, before post-processors |
 | `ReleasePostProcessor` | `ReleaseGuard.Editor.Core.PostProcessing` | `PostProcess` | Post-build, after transformers |
 
-`ReleaseGuard.Editor` is `autoReferenced`, so no extra asmdef entry is needed to see the
-base types from any Editor assembly in your project.
+`ReleaseGuard.Editor` is `autoReferenced`, so no extra asmdef entry is needed just to see the
+base types from an Editor assembly in your project. For the recommended `[InitializeOnLoad]`
+plugin registration pattern, add an explicit asmdef reference to `ReleaseGuard.Editor` so Unity
+initializes Release Guard before your plugin loader runs.
 
 See the API guides for full details:
 [plugins](Documentation~/api/plugins.md),
 [custom auditors](Documentation~/api/custom-auditors.md),
 [custom transformers](Documentation~/api/custom-transformers.md),
 [custom post-processors](Documentation~/api/custom-post-processors.md), and
-[plugin settings and custom renderers](Documentation~/api/settings.md).
+[plugin settings and custom readers](Documentation~/api/settings.md).
+
+For a complete first extension, see
+[First custom auditor plugin](Documentation~/guides/custom-auditor-plugin.md), or import the
+Package Manager sample **Example Plugin**.
 
 ## Documentation
 
@@ -159,6 +176,8 @@ Guides:
 - [Build profiles](Documentation~/guides/build-profiles.md)
 - [`[ReleaseForbidden]`](Documentation~/guides/release-forbidden.md)
 - [Audit window](Documentation~/guides/audit-window.md)
+- [First custom auditor plugin](Documentation~/guides/custom-auditor-plugin.md)
+- [CI integration](Documentation~/guides/ci-integration.md)
 
 API:
 
@@ -166,7 +185,7 @@ API:
 - [Custom auditors](Documentation~/api/custom-auditors.md)
 - [Custom post-processors](Documentation~/api/custom-post-processors.md)
 - [Custom transformers](Documentation~/api/custom-transformers.md)
-- [Plugin settings and custom renderers](Documentation~/api/settings.md)
+- [Plugin settings and custom readers](Documentation~/api/settings.md)
 
 Reference:
 
@@ -183,4 +202,3 @@ Unity 2022.3 or newer. No package dependencies.
 ## License
 
 MIT. See [LICENSE.md](LICENSE.md).
-

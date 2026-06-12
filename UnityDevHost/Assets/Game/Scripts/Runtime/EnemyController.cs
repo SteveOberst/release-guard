@@ -19,18 +19,23 @@ namespace AttackSurfaceFixture.Game.Runtime
     {
         [SerializeField] private EnemyDefinition definition;
         [SerializeField] private float detectionRadius = 6f;
-        [SerializeField] private float attackRadius    = 1.8f;
-        [SerializeField] private float moveSpeed       = 2.5f;
+        [SerializeField] private float attackRadius = 1.8f;
+        [SerializeField] private float moveSpeed = 2.5f;
 
-        public EnemyDefinition Definition  => definition;
-        public int CurrentHealth           { get; private set; }
-        public bool IsDead                 => CurrentHealth <= 0;
+        public EnemyDefinition Definition => definition;
+        public int CurrentHealth { get; private set; }
+        public bool IsDead => CurrentHealth <= 0;
 
         private EnemyState _state = EnemyState.Idle;
-        private Transform  _playerTransform;
-        private float      _stateTimer;
+        private Transform _playerTransform;
+        private float _stateTimer;
 
-        private enum EnemyState { Idle, Chasing, Attacking }
+        private enum EnemyState
+        {
+            Idle,
+            Chasing,
+            Attacking
+        }
 
         // -- Unity lifecycle
 
@@ -50,8 +55,8 @@ namespace AttackSurfaceFixture.Game.Runtime
 
             switch (_state)
             {
-                case EnemyState.Idle:      TickIdle();      break;
-                case EnemyState.Chasing:   TickChasing();   break;
+                case EnemyState.Idle: TickIdle(); break;
+                case EnemyState.Chasing: TickChasing(); break;
                 case EnemyState.Attacking: TickAttacking(); break;
             }
         }
@@ -72,9 +77,9 @@ namespace AttackSurfaceFixture.Game.Runtime
         /// <summary>Swaps the enemy's data definition and resets health to the new maximum.</summary>
         public void SetDefinition(EnemyDefinition def)
         {
-            definition    = def;
+            definition = def;
             CurrentHealth = def != null ? def.MaxHealth : 20;
-            _state        = EnemyState.Idle;
+            _state = EnemyState.Idle;
         }
 
         // -- State ticks
@@ -88,12 +93,25 @@ namespace AttackSurfaceFixture.Game.Runtime
 
         private void TickChasing()
         {
-            if (_playerTransform == null) { TransitionTo(EnemyState.Idle); return; }
+            if (_playerTransform == null)
+            {
+                TransitionTo(EnemyState.Idle);
+                return;
+            }
 
             var dist = DistToPlayer();
 
-            if (dist > detectionRadius * 1.5f) { TransitionTo(EnemyState.Idle);      return; }
-            if (dist <= attackRadius)           { TransitionTo(EnemyState.Attacking); return; }
+            if (dist > detectionRadius * 1.5f)
+            {
+                TransitionTo(EnemyState.Idle);
+                return;
+            }
+
+            if (dist <= attackRadius)
+            {
+                TransitionTo(EnemyState.Attacking);
+                return;
+            }
 
             transform.position = Vector3.MoveTowards(
                 transform.position, _playerTransform.position, moveSpeed * Time.deltaTime);
@@ -109,7 +127,7 @@ namespace AttackSurfaceFixture.Game.Runtime
 
         private void TransitionTo(EnemyState next)
         {
-            _state      = next;
+            _state = next;
             _stateTimer = 0f;
         }
 

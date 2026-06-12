@@ -3,9 +3,9 @@ using System;
 namespace ReleaseGuard.Editor.Core.Config.Attributes
 {
     [AttributeUsage(AttributeTargets.Class)]
-    public class SettingsContainerAttribute : Attribute
+    public class SettingsContainer : Attribute
     {
-        protected SettingsContainerAttribute(string label, string description = "")
+        protected SettingsContainer(string label, string description = "")
         {
             Label = label;
             Description = description;

@@ -17,25 +17,24 @@ the UI layer reads fields through these sub-objects, e.g.
 
 ## Settings pages
 
-Pages are ordered by the `[SettingsPage(order, ...)]` attribute on each sub-object
-field:
+Pages are ordered by the declaration order of sub-object fields in `ReleaseGuardSettings`:
 
-| Order | Field | Type | Page label |
-| --- | --- | --- | --- |
-| 1 | `general` | `GeneralSettings` | General |
-| 2 | `auditors` | `AuditorSettings` | Auditors |
-| 3 | `postProcessors` | `PostProcessorSettings` | Post-Processors |
-| 4 | `transformers` | `TransformerSettings` | Transformers |
-| 5 | `plugins` | `PluginSettings` | Plugins |
+| Field | Type | Page label |
+| --- | --- | --- |
+| `general` | `GeneralSettings` | General |
+| `auditors` | `AuditorSettings` | Auditors |
+| `postProcessors` | `PostProcessorSettings` | Post-Processors |
+| `transformers` | `TransformerSettings` | Transformers |
+| `plugins` | `PluginSettings` | Plugins |
 
 ## General (`settings.general`, `GeneralSettings`)
 
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
-| `enabled` | `bool` | `true` | Master switch. When off, Release Guard never runs. |
-| `skipOnDevelopmentBuilds` | `bool` | `true` | Skip all checks for Development builds; release rules only apply to non-development builds. |
+| `enabled` | `bool` | `true` | Master switch for real build stages. When off, Release Guard does not gate builds and does not run post-build pipelines. |
+| `skipOnDevelopmentBuilds` | `bool` | `true` | Skip Release Guard build stages for Development builds; release rules only apply to non-development builds. |
 | `failureThreshold` | `ReleaseIssueSeverity` | `Error` | A build is blocked when any issue is at or above this severity. |
-| `verboseLogging` | `bool` | `false` | Log extra diagnostic detail (discovered auditors, skips, etc.) to the Console. |
+| `verboseLogging` | `bool` | `false` | Log extra diagnostic detail (registered auditors, skips, etc.) to the Console. |
 | `profileOverrides` | `List<BuildProfileOverride>` | empty list | Optional per-profile overrides, matched against the active Build Profile name. |
 
 ### BuildProfileOverride
@@ -60,7 +59,7 @@ Built-in Rules:
 | `forbidDevelopmentBuild` | `bool` | `true` | Treat shipping a Development Build as a release issue. |
 | `forbidScriptDebugging` | `bool` | `true` | Treat allowing a managed script debugger to attach as a release issue. |
 | `forbidProfilerConnection` | `bool` | `true` | Treat shipping with the Unity profiler connection enabled as a release issue. |
-| `minManagedStrippingLevel` | `ManagedStrippingLevel` | `Medium` | Minimum managed code stripping level required (`Disabled` = don't check). |
+| `minManagedStrippingLevel` | `ManagedStrippingLevel` | `Medium` | Minimum managed code stripping level. Below-minimum findings are `Warning`; `Disabled` skips the check. |
 | `forbidBroadPreserve` | `bool` | `true` | Treat broad `[Preserve]` usage and broad link.xml preservation rules as a release issue. |
 
 Discovery:
@@ -135,17 +134,26 @@ See [api/plugins](../api/plugins.md).
 
 ## Overview page members
 
-The root overview page is generated from attributes on `ReleaseGuardSettings`:
+The root overview page is generated from `InlineComponent` fields defined on
+`ReleaseGuardSettings` and initialized in `OnEnable`. The page shows:
 
-- `StatusText` (`[SettingsStatus]`) - a status line that reflects whether Release
-  Guard is active and the current `failureThreshold`.
-- `[SettingsAction]` buttons: "Open Audit Window" (order 0), "Ping Settings Asset"
-  (order 1), "Reload Release Guard" (order 2).
+- A status section summarizing whether Release Guard is active and the current
+  `failureThreshold`.
+- An actions section with buttons: "Open Audit Window", "Ping Settings Asset", and
+  "Reload Release Guard".
 
 ## Query helper methods
 
-`ReleaseGuardSettings` exposes convenience lookups. Id lists are compared trimmed,
-so a stray space never silently breaks a lookup.
+`ReleaseGuardSettings` exposes convenience lookups. Configured id-list entries are
+trimmed before comparison, so a stray space in the settings list does not silently
+break a lookup. Matching is otherwise exact and case-sensitive except where noted.
+
+**Important for id-based lookups (`IsAuditorDisabled`, `IsPostProcessorDisabled`,
+`IsTransformerDisabled`, `IsPluginDisabled`):** all ids are normalized to lowercase
+when they are registered in the registry. The lookup compares your list entry against
+the already-lowercased id. Entries in `disabledAuditorIds` (and the equivalent lists)
+must therefore be typed in lowercase — `"scripting_backend"` works; `"Scripting_Backend"`
+does not match.
 
 | Method | Returns |
 | --- | --- |

@@ -52,9 +52,16 @@ namespace AttackSurfaceFixture.Game.Runtime
         {
             foreach (var r in _active)
             {
-                try { r.Deactivate(); }
-                catch (Exception ex) { Debug.LogException(ex); }
+                try
+                {
+                    r.Deactivate();
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogException(ex);
+                }
             }
+
             _active.Clear();
         }
 

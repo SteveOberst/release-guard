@@ -15,18 +15,19 @@ namespace AttackSurfaceFixture.Game.UI
     /// </summary>
     public sealed class GameplayHUD : MonoBehaviour
     {
-        [Header("Player Status")]
-        [SerializeField] private Slider healthBar;
-        [SerializeField] private Text   currencyLabel;
-        [SerializeField] private Text   buffStatusLabel;
+        [Header("Player Status")] [SerializeField]
+        private Slider healthBar;
 
-        [Header("Combat")]
-        [SerializeField] private Text   killCountLabel;
-        [SerializeField] private Text   lastRewardLabel;
-        [SerializeField] private Text   combatStatusLabel;
+        [SerializeField] private Text currencyLabel;
+        [SerializeField] private Text buffStatusLabel;
 
-        [Header("Navigation")]
-        [SerializeField] private Button shopButton;
+        [Header("Combat")] [SerializeField] private Text killCountLabel;
+        [SerializeField] private Text lastRewardLabel;
+        [SerializeField] private Text combatStatusLabel;
+
+        [Header("Navigation")] [SerializeField]
+        private Button shopButton;
+
         [SerializeField] private Button retreatButton;
 
         private int _killCount;
@@ -36,7 +37,7 @@ namespace AttackSurfaceFixture.Game.UI
 
         private void Start()
         {
-            if (shopButton   != null) shopButton.onClick.AddListener(OnShopClicked);
+            if (shopButton != null) shopButton.onClick.AddListener(OnShopClicked);
             if (retreatButton != null) retreatButton.onClick.AddListener(OnRetreatClicked);
 
             // Initialise from current player state if already in scene.
@@ -51,26 +52,26 @@ namespace AttackSurfaceFixture.Game.UI
         private void OnEnable()
         {
             GameEvents.OnPlayerHealthChanged += HandleHealthChanged;
-            GameEvents.OnCurrencyChanged     += HandleCurrencyChanged;
-            GameEvents.OnEnemyDefeated       += HandleEnemyDefeated;
-            GameEvents.OnBuffApplied         += HandleBuffApplied;
-            GameEvents.OnCombatStarted       += HandleCombatStarted;
-            GameEvents.OnCombatEnded         += HandleCombatEnded;
+            GameEvents.OnCurrencyChanged += HandleCurrencyChanged;
+            GameEvents.OnEnemyDefeated += HandleEnemyDefeated;
+            GameEvents.OnBuffApplied += HandleBuffApplied;
+            GameEvents.OnCombatStarted += HandleCombatStarted;
+            GameEvents.OnCombatEnded += HandleCombatEnded;
         }
 
         private void OnDisable()
         {
             GameEvents.OnPlayerHealthChanged -= HandleHealthChanged;
-            GameEvents.OnCurrencyChanged     -= HandleCurrencyChanged;
-            GameEvents.OnEnemyDefeated       -= HandleEnemyDefeated;
-            GameEvents.OnBuffApplied         -= HandleBuffApplied;
-            GameEvents.OnCombatStarted       -= HandleCombatStarted;
-            GameEvents.OnCombatEnded         -= HandleCombatEnded;
+            GameEvents.OnCurrencyChanged -= HandleCurrencyChanged;
+            GameEvents.OnEnemyDefeated -= HandleEnemyDefeated;
+            GameEvents.OnBuffApplied -= HandleBuffApplied;
+            GameEvents.OnCombatStarted -= HandleCombatStarted;
+            GameEvents.OnCombatEnded -= HandleCombatEnded;
         }
 
         // -- Button callbacks
 
-        private void OnShopClicked()    => ServiceLocator.Get<GameStateManager>()?.OpenShop();
+        private void OnShopClicked() => ServiceLocator.Get<GameStateManager>()?.OpenShop();
         private void OnRetreatClicked() => ServiceLocator.Get<CombatSystem>()?.Retreat();
 
         // -- Event handlers
@@ -88,7 +89,7 @@ namespace AttackSurfaceFixture.Game.UI
         private void HandleEnemyDefeated(EnemyDefinition enemy, int reward)
         {
             _killCount++;
-            if (killCountLabel  != null) killCountLabel.text  = $"Kills: {_killCount}";
+            if (killCountLabel != null) killCountLabel.text = $"Kills: {_killCount}";
             if (lastRewardLabel != null) lastRewardLabel.text = $"+{reward}g";
         }
 
@@ -101,7 +102,7 @@ namespace AttackSurfaceFixture.Game.UI
         {
             var name = enemy != null ? enemy.DisplayName : "Enemy";
             if (combatStatusLabel != null) combatStatusLabel.text = $"Fighting: {name}";
-            if (retreatButton     != null) retreatButton.interactable = true;
+            if (retreatButton != null) retreatButton.interactable = true;
         }
 
         private void HandleCombatEnded(bool victorious)

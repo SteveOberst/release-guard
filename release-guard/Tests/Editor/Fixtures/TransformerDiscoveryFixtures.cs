@@ -13,17 +13,23 @@ namespace ReleaseGuard.Editor.Tests
     [TestPostProcessorFixture]
     internal sealed class LowPriorityTestPostProcessor : ReleasePostProcessor
     {
-        public override string Id       => "test_postprocess_low";
-        public override int    Priority => -50;
-        public override void PostProcess(ReleasePostProcessContext context) { }
+        public override string Id => "test_postprocess_low";
+        public override int Priority => -50;
+
+        public override void PostProcess(ReleasePostProcessContext context)
+        {
+        }
     }
 
     [TestPostProcessorFixture]
     internal sealed class HighPriorityTestPostProcessor : ReleasePostProcessor
     {
-        public override string Id       => "test_postprocess_high";
-        public override int    Priority => 50;
-        public override void PostProcess(ReleasePostProcessContext context) { }
+        public override string Id => "test_postprocess_high";
+        public override int Priority => 50;
+
+        public override void PostProcess(ReleasePostProcessContext context)
+        {
+        }
     }
 
     // -- Plugin fixtures
@@ -32,7 +38,10 @@ namespace ReleaseGuard.Editor.Tests
     internal sealed class ProvidedTestPostProcessor : ReleasePostProcessor
     {
         public override string Id => "test_provided_postprocessor";
-        public override void PostProcess(ReleasePostProcessContext context) { }
+
+        public override void PostProcess(ReleasePostProcessContext context)
+        {
+        }
     }
 
     /// <summary>
@@ -41,7 +50,7 @@ namespace ReleaseGuard.Editor.Tests
     /// </summary>
     internal sealed class TestPostProcessorPlugin : ReleaseGuardPlugin
     {
-        public override string PluginId    => "test.postprocessor-plugin";
+        public override string PluginId => "test.postprocessor-plugin";
         public override string DisplayName => "Test Post-Processor Plugin";
 
         public override void Register(PluginRegistrationContext context)
@@ -59,7 +68,7 @@ namespace ReleaseGuard.Editor.Tests
     {
         public static bool Enabled;
 
-        public override string PluginId    => "test.throwing-postprocessor-plugin";
+        public override string PluginId => "test.throwing-postprocessor-plugin";
         public override string DisplayName => "Throwing Post-Processor Plugin";
 
         public override void Register(PluginRegistrationContext context)
@@ -73,13 +82,16 @@ namespace ReleaseGuard.Editor.Tests
 
     internal sealed class DeduplicatingPostProcessorPlugin : ReleaseGuardPlugin
     {
-        public override string PluginId    => "test.deduplicating-postprocessor-plugin";
+        public override string PluginId => "test.deduplicating-postprocessor-plugin";
         public override string DisplayName => "Deduplicating Post-Processor Plugin";
 
         internal sealed class DupPostProcessor : ReleasePostProcessor
         {
             public override string Id => "test_dup_via_postprocessor_plugin";
-            public override void PostProcess(ReleasePostProcessContext context) { }
+
+            public override void PostProcess(ReleasePostProcessContext context)
+            {
+            }
         }
 
         public override void Register(PluginRegistrationContext context)
@@ -91,19 +103,46 @@ namespace ReleaseGuard.Editor.Tests
 
     // -- Transformer pipeline fixtures (separate from post-processors)
 
+    internal sealed class DeduplicatingTransformerPlugin : ReleaseGuardPlugin
+    {
+        public override string PluginId => "test.deduplicating-transformer-plugin";
+        public override string DisplayName => "Deduplicating Transformer Plugin";
+
+        internal sealed class DupTransformer : ReleaseTransformer
+        {
+            public override string Id => "test_dup_via_transformer_plugin";
+
+            public override void Transform(ReleaseTransformContext context)
+            {
+            }
+        }
+
+        public override void Register(PluginRegistrationContext context)
+        {
+            context.ReleaseGuard.Registries.Transformers.Register(new DupTransformer());
+            context.ReleaseGuard.Registries.Transformers.Register(new DupTransformer()); // intentional dup
+        }
+    }
+
     [TestTransformerFixture]
     internal sealed class LowPriorityTestTransformer : ReleaseTransformer
     {
-        public override string Id       => "test_transform_low";
-        public override int    Priority => -50;
-        public override void Transform(ReleaseTransformContext context) { }
+        public override string Id => "test_transform_low";
+        public override int Priority => -50;
+
+        public override void Transform(ReleaseTransformContext context)
+        {
+        }
     }
 
     [TestTransformerFixture]
     internal sealed class HighPriorityTestTransformer : ReleaseTransformer
     {
-        public override string Id       => "test_transform_high";
-        public override int    Priority => 50;
-        public override void Transform(ReleaseTransformContext context) { }
+        public override string Id => "test_transform_high";
+        public override int Priority => 50;
+
+        public override void Transform(ReleaseTransformContext context)
+        {
+        }
     }
 }

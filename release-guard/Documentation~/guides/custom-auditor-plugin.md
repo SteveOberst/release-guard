@@ -76,6 +76,8 @@ namespace MyReleaseGuardPlugin
         public override string Id => "myteam.company_name";
         public override string DisplayName => "Company name";
 
+        // ShouldRun returning false prevents Evaluate from being called, so the
+        // _settings != null guard here also protects Evaluate from a null dereference.
         public override bool ShouldRun(ReleaseAuditContext context) =>
             _settings != null && _settings.requireCompanyName;
 
@@ -97,6 +99,13 @@ namespace MyReleaseGuardPlugin
 Pick a stable, unique `Id`. Users disable custom auditors by putting that id in
 `Auditors > Discovery > Disabled Auditor Ids`, and duplicate registrations keep the first item
 that registered that id.
+
+> **`context.Settings` vs `context.Configuration`.** `context.Settings` is the raw settings
+> asset (committed values). `context.Configuration` is the resolved per-run state after
+> applying Build Profile overrides. For most auditors — reading a feature toggle, checking a
+> threshold — use `context.Settings`. Use `context.Configuration` only when you need the
+> resolved `FailureThreshold` or `BuildProfileName`. See the
+> [custom auditors API](../api/custom-auditors.md) for details.
 
 ## 4. Register the plugin
 
@@ -143,13 +152,96 @@ to `ReleaseGuard.Editor`.
 2. Confirm your plugin settings page appears under `Release Guard > Plugins`.
 3. Open `Tools > Release Guard > Audit`.
 4. Click `Run Audit`.
-5. Expand `Plugins` and `Discovered auditors` to confirm the plugin and auditor are registered.
+5. Expand `Plugins` and `Registered auditors` to confirm the plugin and auditor are registered.
 
 Manual audits run only auditors. Transformers and post-processors appear in the window, but they
 run only after successful builds.
+
+**Troubleshooting plugin loading:** if your plugin does not appear in the Plugins foldout, enable
+`General > Verbose Logging` in Project Settings, then trigger a domain reload (make any script
+change, save, and wait for recompile). Look in the Console for `[ReleaseGuard]`-prefixed log lines
+that mention your plugin id — they show whether the plugin was found, skipped, or produced an
+error. The most common causes are a missing asmdef reference to `ReleaseGuard.Editor` (described
+in step 1) and a `PluginId` that matches an entry in `Plugins > Disabled Plugin Ids`.
+
+## 6. Import and use the bundled sample
+
+The package ships a working example under `Samples~/Example Plugin`. To import it:
+
+1. Open `Window > Package Manager`.
+2. Select **Release Guard** in the package list.
+3. Go to the **Samples** tab.
+4. Click **Import** next to **Example Plugin**.
+
+Unity copies the sample into `Assets/Samples/Release Guard/<version>/Example Plugin/`. The
+sample contains an asmdef, a plugin class, a settings class, and an auditor — the exact
+same pattern as this guide. After import, open `Edit > Project Settings > Release Guard`;
+the Example Plugin settings page appears under `Release Guard > Plugins`. Enable **Strict Mode**,
+then run `Tools > Release Guard > Audit` to see the example auditor fire a Warning.
+
+## 7. Write tests for your auditor
+
+Place EditMode tests in a test assembly that has `"UNITY_INCLUDE_TESTS"` as an asmdef
+`defineConstraints` and references `ReleaseGuard.Editor`, `ReleaseGuard.Runtime`, and the
+NUnit test runner. Use `[TestAuditorFixture]` on any `ReleaseAuditor` subclass that is only
+for tests, so it is excluded from auto-discovery and real audit runs.
+
+A minimal test creates a `ReleaseGuardSettings` instance, builds a
+`ReleaseAuditContext` manually, runs `auditor.Evaluate(context)`, and asserts on the
+collected issues:
+
+> **`LoadOrCreate()` creates a real asset.** Calling `ReleaseGuardSettings.LoadOrCreate()`
+> in a test creates `Assets/ReleaseGuard/ReleaseGuardSettings.asset` on disk if it does not
+> already exist. In the `UnityDevHost` project this asset is already committed, so the call
+> just loads it. In a fresh project or on a CI machine without a committed settings asset, the
+> call creates the file — you may want to clean it up after the test or use
+> `ScriptableObject.CreateInstance<ReleaseGuardSettings>()` instead for fully isolated tests
+> that don't touch the disk.
+
+```csharp
+using System.Collections.Generic;
+using NUnit.Framework;
+using ReleaseGuard.Editor.Config;
+using ReleaseGuard.Editor.Core.Audit;
+using ReleaseGuard.Editor.Core.Runtime;
+using UnityEditor;
+
+namespace MyReleaseGuardPlugin.Tests
+{
+    public sealed class CompanyNameAuditorTests
+    {
+        [Test]
+        public void Reports_error_when_company_name_is_DefaultCompany()
+        {
+            var settings  = ReleaseGuardSettings.LoadOrCreate();
+            var config    = ReleaseGuardConfiguration.Resolve(settings, report: null);
+            var logger    = new ReleaseGuardLogger(verbose: false);
+            var issues    = new List<ReleaseIssue>();
+            var context   = new ReleaseAuditContext(
+                settings, config, logger,
+                buildReport:  null,
+                buildTarget:  BuildTarget.StandaloneWindows64,
+                issues:       issues);
+
+            // Arrange: exercise the auditor with settings that enable the check
+            var pluginSettings = ScriptableObject.CreateInstance<MyPluginSettings>();
+            pluginSettings.requireCompanyName = true;
+
+            var auditor = new CompanyNameAuditor(pluginSettings);
+            auditor.Evaluate(context);
+
+            Assert.IsTrue(issues.Count > 0, "Expected at least one issue");
+            Assert.AreEqual(ReleaseIssueSeverity.Error, issues[0].Severity);
+        }
+    }
+}
+```
+
+Run tests from `Window > General > Test Runner`, EditMode tab, in the `UnityDevHost` project
+(or your own project if it is the consuming project).
 
 ## See also
 
 - [Plugins](../api/plugins.md)
 - [Custom auditors](../api/custom-auditors.md)
-- [Plugin settings and custom renderers](../api/settings.md)
+- [Plugin settings and custom readers](../api/settings.md)

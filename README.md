@@ -4,155 +4,154 @@
 [![Unity 2022.3+](https://img.shields.io/badge/unity-2022.3%2B-black)](https://unity.com/releases/editor/archive)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE.md)
 [![CI](https://github.com/SteveOberst/release-guard/actions/workflows/validate.yml/badge.svg)](https://github.com/SteveOberst/release-guard/actions/workflows/validate.yml)
-[![Release Please](https://github.com/SteveOberst/release-guard/actions/workflows/release-please.yml/badge.svg)](https://github.com/SteveOberst/release-guard/actions/workflows/release-please.yml)
 
-Release Guard is a Unity package for release-build hygiene. It hooks into Unity's build pipeline,
-runs a focused audit before the player is built, and stops the build when findings meet the
-configured failure threshold.
+**Ever shipped a Unity build with Mono backend, the Development Build flag on, or the profiler still attached?** Release Guard blocks the build the moment it detects a problem — before the player is written to disk.
 
-The defaults are intentionally strict around settings that are usually mistakes in a shipped
-build: development toggles, debugger and profiler hooks, broad preserve rules, and code you
-explicitly mark as forbidden for release.
+Install it. Commit one settings file. It runs automatically on every release build with no code changes required.
 
-## Built-in checks
+![Release Guard blocking a build in the Unity Console](assets/build-blocked.png)
 
-| Auditor | What it enforces |
+
+---
+
+## What it catches
+
+Built-in checks cover the most common release mistakes out of the box:
+
+| Check | What it enforces |
 |---|---|
-| Scripting backend | IL2CPP required for release builds |
-| Managed stripping | Minimum managed stripping level |
-| Development build flag | No development builds shipped by accident |
+| Scripting backend | IL2CPP required — Mono ships decompilable .NET assemblies |
+| Development build flag | Development Build must be off for release |
 | Script debugging | No managed debugger attachment in release builds |
 | Profiler connection | No Autoconnect Profiler in release builds |
-| Broad preserve rules | No assembly-wide `[Preserve]` or broad `link.xml` rules |
-| `[ReleaseForbidden]` | Annotated code must not reach a release build |
+| Managed stripping | Warns when below the configured minimum stripping level |
+| Broad preserve rules | No assembly-wide `[Preserve]` or blanket `link.xml` rules that defeat stripping |
+| `[ReleaseForbidden]` | Annotated code must not reach a release build — see below |
 | Android debuggable | No explicit `debuggable=true` in custom Android templates |
-| WebGL exceptions | Advisory: full exception support modes in release builds (dismissible) |
-| Engine code stripping | Advisory: suggests enabling Strip Engine Code (dismissible) |
-| Stack trace log types | Advisory: flags full stack trace collection in release builds (dismissible) |
-| Insecure HTTP | Advisory: cleartext HTTP allowed in release builds (dismissible) |
-| Burst debug settings | Advisory, when Burst is installed: disabled optimizations or native debug mode (dismissible) |
+| WebGL exceptions | Advisory: full exception support in release builds |
+| Engine code stripping | Advisory: suggests enabling Strip Engine Code |
+| Stack trace log types | Advisory: full stack trace collection in release builds |
+| Insecure HTTP | Advisory: `AlwaysAllowed` HTTP option in release builds |
+| Burst debug settings | Advisory (when Burst is installed): disabled optimizations or native debug mode |
 
-Post-build, the transformer pipeline runs against the build output:
+Post-build, the optional **debug symbol sweep** scans the build output for debug artifact folders Unity writes alongside the player (`*_BackUpThisFolder_ButDontShipItWithYourGame`, `*_BurstDebugInformation_DoNotShip`, loose `.pdb` files) and reports — or optionally deletes — them. An optional **build manifest** records the active hardening configuration as a CI artifact.
 
-| Transformer | What it does |
-|---|---|
-| Debug symbol sweep | Reports (or, opt-in, deletes) `DoNotShip` folders and loose `.pdb` files in the output folder |
-| Build manifest | Opt-in: writes `release-guard-manifest.json` recording the configuration that produced the build |
+Findings marked **Advisory** are logged but never block the build by default — they flag best-practice gaps without enforcing them. They can be suppressed individually from the audit window or via settings.
 
-All built-in auditors and transformers are individually toggleable, and custom auditors,
-transformers, and plugins are auto-discovered with `TypeCache`.
+All built-in checks are individually toggleable. Custom checks, post-processors, and transformers can be registered through a plugin or auto-discovered.
+
+---
+
+## `[ReleaseForbidden]` — keep debug code out of release builds
+
+Mark any method, field, class, or property that must never ship:
+
+```csharp
+using ReleaseGuard;
+
+[ReleaseForbidden(ReleaseIssueSeverity.Error, "Gives infinite money")]
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+public static void GrantAllCurrency() { /* ... */ }
+#endif
+```
+
+If the annotated member is compiled into the player when a release build runs, **the build fails** with the member's full name, the reason, and a fix hint. Without a `#if` guard the attribute catches the symbol at build-time only — the code is still compiled into the player and stripped by Release Guard at the gate. Pairing it with a `#if UNITY_EDITOR || DEVELOPMENT_BUILD` guard also excludes it at compile time, which is the recommended pattern. The attribute lives in a runtime assembly so you can apply it from gameplay code without referencing any Editor types.
+
+---
 
 ## Install
 
 ### Git URL
 
-Add the package to `Packages/manifest.json`:
-
-```json
-"org.researchy.release-guard": "https://github.com/SteveOberst/release-guard.git?path=/release-guard#<release-tag>"
+```
+https://github.com/SteveOberst/release-guard.git?path=/release-guard
 ```
 
-The `?path=/release-guard` query is required -- the package lives in the `release-guard/`
-subfolder of this repository.
+Open `Window > Package Manager → + → Add package from git URL` and paste the URL above. Pin to a release by appending `#<tag>`, e.g. `...release-guard#v1.0.0`. The `?path=/release-guard` suffix is required because the Unity package lives in a subdirectory of the repository, not at the repo root — omitting it will fail to resolve the package.
+
+### OpenUPM
+
+```bash
+openupm add org.researchy.release-guard
+```
 
 ### Release tarball
 
-Each tagged release publishes `org.researchy.release-guard-<version>.tgz`. Download it from the
-[releases page](https://github.com/SteveOberst/release-guard/releases) and install it with
-**Window > Package Manager > + > Add package from tarball**.
+Download `org.researchy.release-guard-<version>.tgz` from the [releases page](https://github.com/SteveOberst/release-guard/releases) and install via `Window > Package Manager → + → Add package from tarball`.
+
+---
 
 ## Quick start
 
-1. Open **Edit > Project Settings > Release Guard**.
-2. Keep the default hardening checks on unless your project has a specific documented reason not to.
-3. Set the failure threshold that matches your build policy.
-4. Add asset exclusion globs only for paths you deliberately want to suppress.
-5. Start a non-development build. Release Guard runs automatically before Unity continues.
+After installing, open `Edit > Project Settings > Release Guard`. The configuration asset is created at `Assets/ReleaseGuard/ReleaseGuardSettings.asset` on first use.
 
-You can also run the same audit manually from **Tools > Release Guard > Audit**.
+1. **Review the defaults.** The built-in checks are on and strict. Read [Configuring](release-guard/Documentation~/configuring.md) before disabling anything.
+2. **Run a manual audit.** Open `Tools > Release Guard > Audit` and click **Run Audit** to see what fires against your current project — no build needed.
+3. **Build.** Make a non-development release build. Release Guard runs automatically. A blocked build looks like this in the Console:
 
-## Extending
+```
+[ReleaseGuard] [Error] scripting_backend — Scripting backend is Mono. IL2CPP is required for release builds.
+  Fix: Switch to IL2CPP in Edit > Project Settings > Player > Other Settings > Scripting Backend.
+[ReleaseGuard] [Error] development_build — Development Build flag is set.
+  Fix: Uncheck Development Build in File > Build Settings.
+[ReleaseGuard] Build blocked: 2 issue(s) at or above Error. See the Console for details and fixes.
+```
 
-### Single auditor / post-processor / transformer
+4. **Commit the settings asset.** Commit `Assets/ReleaseGuard/ReleaseGuardSettings.asset` and its `.meta` so every teammate and your CI pipeline share the same rules.
 
-Derive from `ReleaseAuditor`, `ReleasePostProcessor`, or `ReleaseTransformer` in any Editor
-assembly and enable the corresponding **autoDiscover** setting — or register via a plugin (see below).
+**CI:** Release Guard runs in Unity's batchmode with no extra configuration. It hooks into `IPreprocessBuildWithReport` — any CI job that calls `BuildPipeline.BuildPlayer` automatically gets the gate. See [CI integration](release-guard/Documentation~/guides/ci-integration.md).
+
+---
+
+## Adding custom checks
+
+Derive from `ReleaseAuditor` in an Editor assembly and register it through a plugin:
 
 ```csharp
-public sealed class MyAuditor : ReleaseAuditor
+using ReleaseGuard.Editor.Core.Audit;
+using UnityEditor;
+
+public sealed class CompanyNameAuditor : ReleaseAuditor
 {
-    public override string Id => "myteam.my_auditor";
-    public override int Priority => 10;
+    public override string Id          => "myteam.company_name";
+    public override string DisplayName => "Company name configured";
 
     public override void Evaluate(ReleaseAuditContext context)
     {
-        if (SomeConditionFails())
-            context.Report(ReleaseIssueSeverity.Error, "Reason", "Assets/OffendingFile.cs");
+        if (string.IsNullOrWhiteSpace(PlayerSettings.companyName) ||
+            PlayerSettings.companyName == "DefaultCompany")
+        {
+            context.Error(
+                "Company name is unset or still 'DefaultCompany'.",
+                fixHint: "Set Edit > Project Settings > Player > Company Name.");
+        }
     }
 }
 ```
 
-### Plugin (multiple contributions from one entry point)
+Register it with a one-time `[InitializeOnLoad]` plugin loader. The package ships a complete **Example Plugin** sample (Package Manager → Release Guard → Samples → Import) and the [first custom auditor guide](release-guard/Documentation~/guides/custom-auditor-plugin.md) walks through the full setup step by step.
 
-Register from an `[InitializeOnLoad]` static constructor. Assembly dependency ordering guarantees
-Release Guard initializes before your code runs.
-
-```csharp
-using ReleaseGuard.Editor.Core.DI;
-using ReleaseGuard.Editor.Core.Runtime;
-using UnityEditor;
-
-[InitializeOnLoad]
-internal static class MyPluginLoader
-{
-    static MyPluginLoader()
-    {
-        DI.Resolve<ReleaseGuardEnvironment>().RegisterPlugin(new MyPlugin());
-    }
-}
-```
-
-`RegisterPlugin` returns `false` (without throwing) if the plugin is already registered — safe to
-call even when **autoDiscoverPlugins** is also enabled.
-
-### Custom settings field renderer
-
-Plugins can register `ITypeRenderer` implementations on their `SettingsRenderer` to control how
-custom field types are drawn in Project Settings — without overriding the full renderer:
-
-```csharp
-public sealed class MyTypeRenderer : ITypeRenderer
-{
-    public void Render(SettingsField field, SettingsRenderer renderer)
-    {
-        // draw using EditorGUILayout or renderer helpers
-    }
-}
-
-public sealed class MyPluginSettingsRenderer : SettingsRenderer
-{
-    public MyPluginSettingsRenderer()
-    {
-        ComponentRenderer.TypeRenderers.Register(typeof(MyCustomType), new MyTypeRenderer());
-    }
-}
-
-// In MyPluginSettings:
-public override ISettingsRenderer Renderer { get; } = new MyPluginSettingsRenderer();
-```
-
-See [`release-guard/Documentation~/index.md`](release-guard/Documentation~/index.md) for the full
-ComponentRenderer / TypeRenderer API.
+---
 
 ## Documentation
 
-The full package guide lives in [`release-guard/Documentation~/index.md`](release-guard/Documentation~/index.md).
-It covers settings, build profile overrides, asset exclusions, `[ReleaseForbidden]`, custom
-auditors, the post-build transformer pipeline, plugins, and the audit window.
+| Document | What it covers |
+|---|---|
+| [Quickstart](release-guard/Documentation~/quickstart.md) | Full install-to-first-blocked-build walkthrough |
+| [Configuring](release-guard/Documentation~/configuring.md) | Every setting explained with tradeoffs and defaults |
+| [CI integration](release-guard/Documentation~/guides/ci-integration.md) | Batchmode setup, thresholds, artifacts, troubleshooting |
+| [Release-forbidden code](release-guard/Documentation~/guides/release-forbidden.md) | `[ReleaseForbidden]` attribute and scan details |
+| [Build profiles](release-guard/Documentation~/guides/build-profiles.md) | Per-profile threshold and enable/disable overrides (Unity 6+) |
+| [First custom auditor plugin](release-guard/Documentation~/guides/custom-auditor-plugin.md) | End-to-end: asmdef, settings, auditor, plugin, tests |
+| [First custom post-processor plugin](release-guard/Documentation~/guides/custom-post-processor-plugin.md) | End-to-end: post-build output processing via plugin |
+| [Audit window](release-guard/Documentation~/guides/audit-window.md) | On-demand auditing, filtering, advisory dismissal |
+| [Full documentation index](release-guard/Documentation~/index.md) | All guides, API reference, and settings reference |
+
+---
 
 ## Repository layout
 
 | Path | Purpose |
 |---|---|
-| [`release-guard/`](release-guard/) | The UPM package (this is what you install) |
-| [`UnityDevHost/`](UnityDevHost/) | Development Unity project consuming the package via `file:` for compiling and running its tests |
+| [`release-guard/`](release-guard/) | The UPM package — this is what gets installed |
+| [`UnityDevHost/`](UnityDevHost/) | Development Unity project used to run the package's tests |

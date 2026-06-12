@@ -8,7 +8,7 @@ namespace ExamplePlugin
 
         public ExampleAuditor(ExamplePluginSettings settings) => _settings = settings;
 
-        public override string Id          => "com.example.example_auditor";
+        public override string Id => "com.example.example_auditor";
         public override string DisplayName => "Example Auditor";
 
         public override bool ShouldRun(ReleaseAuditContext context) =>

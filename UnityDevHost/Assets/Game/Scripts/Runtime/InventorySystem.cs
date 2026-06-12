@@ -28,19 +28,20 @@ namespace AttackSurfaceFixture.Game.Runtime
         {
             ServiceLocator.Register(this);
             foreach (var item in startingItems)
-                if (item != null) _items.Add(item);
+                if (item != null)
+                    _items.Add(item);
         }
 
         private void OnEnable()
         {
             GameEvents.OnItemPurchased += HandleItemPurchased;
-            GameEvents.OnItemUsed      += HandleItemUsed;
+            GameEvents.OnItemUsed += HandleItemUsed;
         }
 
         private void OnDisable()
         {
             GameEvents.OnItemPurchased -= HandleItemPurchased;
-            GameEvents.OnItemUsed      -= HandleItemUsed;
+            GameEvents.OnItemUsed -= HandleItemUsed;
         }
 
         private void OnDestroy()
@@ -70,6 +71,6 @@ namespace AttackSurfaceFixture.Game.Runtime
         // -- Event handlers
 
         private void HandleItemPurchased(ItemDefinition item, int _) => AddItem(item);
-        private void HandleItemUsed(ItemDefinition item)             => RemoveItem(item);
+        private void HandleItemUsed(ItemDefinition item) => RemoveItem(item);
     }
 }

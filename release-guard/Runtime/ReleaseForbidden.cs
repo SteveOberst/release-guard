@@ -20,7 +20,7 @@ namespace ReleaseGuard
         AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Enum |
         AttributeTargets.Method | AttributeTargets.Field | AttributeTargets.Property,
         Inherited = false)]
-    public sealed class ReleaseForbiddenAttribute : Attribute
+    public sealed class ReleaseForbidden : Attribute
     {
         /// <summary>How serious it is to ship this member. Defaults to <see cref="ReleaseIssueSeverity.Error"/>.</summary>
         public ReleaseIssueSeverity Severity { get; }
@@ -28,7 +28,7 @@ namespace ReleaseGuard
         /// <summary>Optional human-readable reason, surfaced in the report and Console.</summary>
         public string Reason { get; }
 
-        public ReleaseForbiddenAttribute(
+        public ReleaseForbidden(
             ReleaseIssueSeverity severity = ReleaseIssueSeverity.Error,
             string reason = null)
         {

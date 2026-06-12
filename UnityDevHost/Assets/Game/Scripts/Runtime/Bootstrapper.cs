@@ -21,36 +21,38 @@ namespace AttackSurfaceFixture.Game.Runtime
     /// </summary>
     public sealed class Bootstrapper : MonoBehaviour
     {
-        [Header("Config")]
-        [SerializeField] private EconomyConfig economyConfig;
-        [SerializeField] private FeatureFlags  featureFlags;
+        [Header("Config")] [SerializeField] private EconomyConfig economyConfig;
+        [SerializeField] private FeatureFlags featureFlags;
 
-        [Header("Content Catalogs")]
-        [SerializeField] private ItemDefinition[]  starterItems;
+        [Header("Content Catalogs")] [SerializeField]
+        private ItemDefinition[] starterItems;
+
         [SerializeField] private EnemyDefinition[] enemyCatalog;
 
-        [Header("Persistent System Roots (DontDestroyOnLoad)")]
-        [SerializeField] private GameStateManager gameStateManager;
-        [SerializeField] private SaveSystem       saveSystem;
-        [SerializeField] private AudioManager     audioManager;
+        [Header("Persistent System Roots (DontDestroyOnLoad)")] [SerializeField]
+        private GameStateManager gameStateManager;
 
-        [Header("Scene Systems")]
-        [SerializeField] private InventorySystem  inventorySystem;
-        [SerializeField] private ShopSystem       shopSystem;
+        [SerializeField] private SaveSystem saveSystem;
+        [SerializeField] private AudioManager audioManager;
+
+        [Header("Scene Systems")] [SerializeField]
+        private InventorySystem inventorySystem;
+
+        [SerializeField] private ShopSystem shopSystem;
         [SerializeField] private RemoteConfigKit.RemoteConfigClient remoteConfigClient;
 
         // Inspector-readable accessors used by GameAssetFactory
-        public EconomyConfig      EconomyConfig => economyConfig;
-        public FeatureFlags       FeatureFlags  => featureFlags;
-        public ItemDefinition[]   StarterItems  => starterItems;
-        public EnemyDefinition[]  EnemyCatalog  => enemyCatalog;
+        public EconomyConfig EconomyConfig => economyConfig;
+        public FeatureFlags FeatureFlags => featureFlags;
+        public ItemDefinition[] StarterItems => starterItems;
+        public EnemyDefinition[] EnemyCatalog => enemyCatalog;
 
         private void Awake()
         {
             // Register config ScriptableObjects so any system can resolve them
             // without carrying a serialized field reference.
             if (economyConfig != null) ServiceLocator.Register(economyConfig);
-            if (featureFlags  != null) ServiceLocator.Register(featureFlags);
+            if (featureFlags != null) ServiceLocator.Register(featureFlags);
 
             // Opt the RemoteConfigClient into the service locator so EventResponderHost
             // can resolve it without a direct scene reference.
@@ -79,19 +81,19 @@ namespace AttackSurfaceFixture.Game.Runtime
         /// manually setting each property through the Inspector.
         /// </summary>
         public void ApplyFixtureReferences(
-            EconomyConfig    economy,
-            FeatureFlags     flags,
+            EconomyConfig economy,
+            FeatureFlags flags,
             ItemDefinition[] starterItemCatalog,
             EnemyDefinition[] enemies,
-            InventorySystem  inventory,
-            ShopSystem       shop)
+            InventorySystem inventory,
+            ShopSystem shop)
         {
-            economyConfig   = economy;
-            featureFlags    = flags;
-            starterItems    = starterItemCatalog;
-            enemyCatalog    = enemies;
+            economyConfig = economy;
+            featureFlags = flags;
+            starterItems = starterItemCatalog;
+            enemyCatalog = enemies;
             inventorySystem = inventory;
-            shopSystem      = shop;
+            shopSystem = shop;
         }
     }
 }

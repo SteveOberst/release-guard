@@ -64,8 +64,8 @@ namespace ReleaseGuard.Editor.Tests
         public void FindArtifacts_MatchesKnownUnityArtifacts()
         {
             var backup = CreateFolder("Game_BackUpThisFolder_ButDontShipItWithYourGame");
-            var burst  = CreateFolder("Game_BurstDebugInformation_DoNotShip");
-            var pdb    = CreateFile("UnityPlayer_Win64_il2cpp_x64.pdb");
+            var burst = CreateFolder("Game_BurstDebugInformation_DoNotShip");
+            var pdb = CreateFile("UnityPlayer_Win64_il2cpp_x64.pdb");
             CreateFile("Game.exe");
             CreateFolder("Game_Data");
 
@@ -120,7 +120,7 @@ namespace ReleaseGuard.Editor.Tests
         public void PostProcess_ReportOnly_WarnsAndDeletesNothing()
         {
             var backup = CreateFolder("Game_BackUpThisFolder_ButDontShipItWithYourGame");
-            var s   = Settings();
+            var s = Settings();
             var log = new List<ReleasePostProcessLog>();
             try
             {
@@ -133,7 +133,10 @@ namespace ReleaseGuard.Editor.Tests
                 Assert.AreEqual(1, log.Count(e => e.Level == ReleasePostProcessLogLevel.Warning),
                     "Each artifact must produce one warning in report-only mode.");
             }
-            finally { UnityEngine.Object.DestroyImmediate(s); }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(s);
+            }
         }
 
         // -- PostProcess: deletion (opt-in)
@@ -142,9 +145,9 @@ namespace ReleaseGuard.Editor.Tests
         public void PostProcess_Delete_RemovesArtifacts_AndKeepsProduct()
         {
             var backup = CreateFolder("Game_BackUpThisFolder_ButDontShipItWithYourGame");
-            var pdb    = CreateFile("Game.pdb");
-            var exe    = CreateFile("Game.exe");
-            var s   = Settings();
+            var pdb = CreateFile("Game.pdb");
+            var exe = CreateFile("Game.exe");
+            var s = Settings();
             var log = new List<ReleasePostProcessLog>();
             try
             {
@@ -155,12 +158,15 @@ namespace ReleaseGuard.Editor.Tests
                 new DebugSymbolSweepPostProcessor().PostProcess(context);
 
                 Assert.IsFalse(Directory.Exists(backup), "Backup folder must be deleted.");
-                Assert.IsFalse(File.Exists(pdb),          "Loose .pdb must be deleted.");
-                Assert.IsTrue(File.Exists(exe),           "The build product must never be touched.");
+                Assert.IsFalse(File.Exists(pdb), "Loose .pdb must be deleted.");
+                Assert.IsTrue(File.Exists(exe), "The build product must never be touched.");
                 Assert.AreEqual(2, log.Count(e => e.Level == ReleasePostProcessLogLevel.Info),
                     "Each deletion must be individually logged.");
             }
-            finally { UnityEngine.Object.DestroyImmediate(s); }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(s);
+            }
         }
 
         // -- ShouldRun gate
@@ -168,11 +174,11 @@ namespace ReleaseGuard.Editor.Tests
         [Test]
         public void ShouldRun_FollowsSettingsFlag()
         {
-            var s   = Settings();
+            var s = Settings();
             var log = new List<ReleasePostProcessLog>();
             try
             {
-                var pp      = new DebugSymbolSweepPostProcessor();
+                var pp = new DebugSymbolSweepPostProcessor();
                 var context = Context(s, log);
 
                 s.postProcessors.debugSymbolSweepEnabled = true;
@@ -181,7 +187,10 @@ namespace ReleaseGuard.Editor.Tests
                 s.postProcessors.debugSymbolSweepEnabled = false;
                 Assert.IsFalse(pp.ShouldRun(context));
             }
-            finally { UnityEngine.Object.DestroyImmediate(s); }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(s);
+            }
         }
     }
 }

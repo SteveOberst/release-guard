@@ -110,7 +110,10 @@ namespace ReleaseGuard.Editor.Tests
         public override string PluginId => "test.plugin-settings-registry";
         public override string DisplayName => "Settings Plugin";
         public override System.Type SettingsType => typeof(TestPluginSettings);
-        public override void Register(PluginRegistrationContext context) { }
+
+        public override void Register(PluginRegistrationContext context)
+        {
+        }
     }
 
     [TestReleaseGuardPlugin]
@@ -121,6 +124,7 @@ namespace ReleaseGuard.Editor.Tests
         public override string PluginId => "test.plugin-settings-discovery";
         public override string DisplayName => "Discovery Settings Plugin";
         public override System.Type SettingsType => typeof(TestPluginSettings);
+
         public override void Register(PluginRegistrationContext context)
         {
             RegisteredSettings = GetSettings<TestPluginSettings>();

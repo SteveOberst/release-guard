@@ -1,5 +1,12 @@
 # Build profiles
 
+> **Unity 6+ feature.** Unity Build Profiles were introduced in Unity 6 (2023.x). The
+> `profileOverrides` list in Project Settings and the per-profile override matching described
+> here work only on Unity 6 or newer. On Unity 2022.3 or 2023.x (before Build Profiles were
+> added), the resolver always returns `null` for the active profile name, no override is ever
+> matched, and global settings apply unconditionally. The `profileOverrides` list is ignored
+> silently — it does not produce an error.
+
 Release Guard resolves an effective configuration for each run before any auditor, transformer, or post-processor executes. Resolution combines the raw settings asset, the active Unity Build Profile, and the development-build exemption into a single immutable configuration object (`ReleaseGuardConfiguration`). This guide explains that resolution and how to use per-Build-Profile overrides.
 
 ## What gets resolved
@@ -37,22 +44,35 @@ Build Profile overrides live on the General settings page in the `profileOverrid
 
 An override is matched only when its `buildProfileName` exactly equals the active profile name. If no override matches (or there is no active profile), the global General settings apply unchanged.
 
-### Example: a looser staging profile
+### Example: a stricter staging profile
 
-Suppose you have two Unity Build Profiles, `Production` and `Staging`. You want production builds to fail on any `Error`, but staging builds to keep building and only fail on nothing (effectively report-only at the highest severity). Add one override:
+Suppose you have two Unity Build Profiles, `Production` and `Staging`. You want production builds to fail only on hard `Error` findings, but staging builds to fail earlier on `Warning` findings so the team sees hardening drift before it reaches production. Add one override:
 
 - `buildProfileName`: `Staging`
 - `enabled`: `true`
-- `failureThreshold`: `Error`
+- `failureThreshold`: `Warning`
 
-Leave the global `failureThreshold` at `Error` for `Production`. Builds made with the `Production` profile (or with no profile) use the global settings; builds made with the `Staging` profile use the override.
+Leave the global `failureThreshold` at `Error` for `Production`. Builds made with the `Production` profile (or with no profile) use the global settings; builds made with the `Staging` profile use the stricter override.
+
+### Example: report-only staging profile
+
+Release Guard has no severity above `Error`, so there is no "report but never
+fail" threshold value. To make a profile report-only, set `enabled = false` for
+that profile and run a manual audit separately as part of your workflow.
 
 ### Example: disable the gate for one profile
 
-To turn Release Guard off entirely for an internal `QA` profile while keeping it on everywhere else, add an override with `buildProfileName` = `QA` and `enabled` = `false`. Every Release Guard stage will skip and log "disabled in settings or by the active Build Profile override" for builds made with that profile.
+To turn Release Guard off entirely for an internal `QA` profile while keeping it on everywhere else, add an override with `buildProfileName` = `QA` and `enabled` = `false`. Every real build stage will skip and log "disabled in settings or by the active Build Profile override" for builds made with that profile. The manual audit window remains informational.
 
 ## Interaction with the development-build exemption
 
 Remember the order: the development exemption is applied after profile resolution. If you want a profile to run even for development builds, you must also turn off the global `skipOnDevelopmentBuilds` - a profile override cannot re-enable a run that the development exemption has disabled.
+
+**`skipOnDevelopmentBuilds` has no per-profile equivalent.** Turning it off affects every build
+across every profile and every non-profile build simultaneously. There is no way to enable
+Release Guard for development builds on one specific profile while keeping the exemption for
+all others. If you need that granularity, the practical approach is to build the per-profile
+development audit logic into a separate CI step using a manual-audit Editor script, rather than
+relying on the automatic build gate.
 
 See also [the audit window](audit-window.md) for how a manual audit resolves the same configuration (using the Build Settings development checkbox in place of a build report).

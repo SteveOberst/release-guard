@@ -11,9 +11,9 @@ namespace ReleaseGuard.Editor.Core.PostProcessing
     /// entries are automatically attributed to the running post-processor.
     ///
     /// <para><b>Output path:</b> <see cref="OutputPath"/> is the path to the built product
-    /// (e.g. <c>Builds/Windows/MyGame.exe</c>). The build output directory is
+    /// (e.g. <c>Builds/Windows/MyGame.exe</c>). For file outputs, the build output directory is
     /// <c>System.IO.Path.GetDirectoryName(OutputPath)</c>. On platforms that output a folder
-    /// (Android APK, WebGL) it is the product file/folder itself.</para>
+    /// (for example WebGL), <c>OutputPath</c> is the product folder itself.</para>
     ///
     /// <para><b>BuildReport availability:</b> <see cref="BuildReport"/> is set during an active
     /// Unity build via <c>IPostprocessBuildWithReport</c>; it is <c>null</c> when running against

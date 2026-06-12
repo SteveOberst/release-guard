@@ -7,13 +7,13 @@ namespace AttackSurfaceFixture.Game.Buffs
     {
         private const int HealAmount = 30;
 
-        public string EffectId    => "heal";
+        public string EffectId => "heal";
         public string DisplayName => "Heal";
 
         public void Apply(IBuffTarget target)
         {
             var missing = target.MaxHealth - target.CurrentHealth;
-            var healed  = Mathf.Min(HealAmount, missing);
+            var healed = Mathf.Min(HealAmount, missing);
             if (healed > 0)
                 target.Heal(healed);
         }

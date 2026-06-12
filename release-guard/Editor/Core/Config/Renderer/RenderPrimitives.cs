@@ -11,11 +11,11 @@ namespace ReleaseGuard.Editor.Core.Config.Renderer
     ///     All layout values are driven by an <see cref="ISettingsRendererLayout" /> instance supplied
     ///     at construction time. Subclass via <see cref="SettingsRenderer" /> rather than directly.
     /// </summary>
-    public abstract class SettingsRenderPrimitives
+    public abstract class RenderPrimitives
     {
         private GUIStyle _lineListStyle;
 
-        protected SettingsRenderPrimitives(ISettingsRendererLayout layout = null)
+        protected RenderPrimitives(ISettingsRendererLayout layout = null)
         {
             Layout = layout ?? DefaultSettingsRendererLayout.Instance;
         }

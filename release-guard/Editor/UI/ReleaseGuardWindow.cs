@@ -122,7 +122,7 @@ namespace ReleaseGuard.Editor.UI
             EditorGUILayout.HelpBox(message, type);
         }
 
-        // --- Discovered auditors foldout ---
+        // --- Registered auditors foldout ---
 
         private void DrawDiscoveredAuditors()
         {
@@ -133,7 +133,7 @@ namespace ReleaseGuard.Editor.UI
             EditorGUILayout.Space(2);
             _showAuditors = EditorGUILayout.Foldout(
                 _showAuditors,
-                $"Discovered auditors ({auditors.Count})",
+                $"Registered auditors ({auditors.Count})",
                 toggleOnLabelClick: true);
 
             if (!_showAuditors)
@@ -192,7 +192,7 @@ namespace ReleaseGuard.Editor.UI
             {
                 EditorGUI.indentLevel++;
                 EditorGUILayout.LabelField(
-                    "No post-processors discovered (auto-discovery may be disabled in Settings).",
+                    "No post-processors registered.",
                     EditorStyles.miniLabel);
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space(4);
@@ -240,7 +240,7 @@ namespace ReleaseGuard.Editor.UI
             {
                 EditorGUI.indentLevel++;
                 EditorGUILayout.LabelField(
-                    "No transformers discovered. Derive from ReleaseTransformer to add one.",
+                    "No transformers registered. Register one through a plugin or enable transformer auto-discovery.",
                     EditorStyles.miniLabel);
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space(4);
@@ -286,7 +286,7 @@ namespace ReleaseGuard.Editor.UI
             if (plugins.Count == 0)
             {
                 EditorGUILayout.LabelField(
-                    "No plugins discovered. Derive from ReleaseGuardPlugin to add one.",
+                    "No plugins registered. Register one explicitly or enable plugin auto-discovery.",
                     EditorStyles.miniLabel);
             }
             else

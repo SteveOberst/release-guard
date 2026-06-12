@@ -1,6 +1,7 @@
 using System;
+using ReleaseGuard.Editor.Core.Config.Renderer;
 
-namespace ReleaseGuard.Editor.Core.Config
+namespace ReleaseGuard.Editor.Core.Config.Components
 {
     public sealed class InlineComponent : SettingsComponent
     {
@@ -9,9 +10,12 @@ namespace ReleaseGuard.Editor.Core.Config
         public InlineComponent(string displayName, Action<SettingsRenderer> draw)
         {
             DisplayName = displayName;
-            _draw       = draw;
+            _draw = draw;
         }
 
-        public override void Render(SettingsRenderer renderer) => _draw?.Invoke(renderer);
+        public override void Render(SettingsRenderer renderer)
+        {
+            _draw?.Invoke(renderer);
+        }
     }
 }

@@ -8,7 +8,7 @@ using UnityEditor.Compilation;
 namespace ReleaseGuard.Editor.Builtins.Auditor
 {
     /// <summary>
-    /// Flags any type or member marked with <see cref="ReleaseForbiddenAttribute"/> that would
+    /// Flags any type or member marked with <see cref="ReleaseForbidden"/> that would
     /// ship in the player build. This catches debug hooks, cheat commands, test scaffolding, and
     /// dev-only backdoors left in the codebase before they reach production.
     ///
@@ -64,7 +64,7 @@ namespace ReleaseGuard.Editor.Builtins.Auditor
         private static void ScanType(Type type, ReleaseAuditContext context)
         {
             // Type-level attribute.
-            var typeAttr = type.GetCustomAttribute<ReleaseForbiddenAttribute>(inherit: false);
+            var typeAttr = type.GetCustomAttribute<ReleaseForbidden>(inherit: false);
             if (typeAttr != null)
                 context.Report(typeAttr.Severity, FormatMessage(type.FullName, typeAttr));
 
@@ -76,7 +76,7 @@ namespace ReleaseGuard.Editor.Builtins.Auditor
             // Methods.
             foreach (var method in type.GetMethods(binding))
             {
-                var attr = method.GetCustomAttribute<ReleaseForbiddenAttribute>(inherit: false);
+                var attr = method.GetCustomAttribute<ReleaseForbidden>(inherit: false);
                 if (attr != null)
                     context.Report(attr.Severity, FormatMessage($"{type.FullName}.{method.Name}", attr));
             }
@@ -84,7 +84,7 @@ namespace ReleaseGuard.Editor.Builtins.Auditor
             // Fields.
             foreach (var field in type.GetFields(binding))
             {
-                var attr = field.GetCustomAttribute<ReleaseForbiddenAttribute>(inherit: false);
+                var attr = field.GetCustomAttribute<ReleaseForbidden>(inherit: false);
                 if (attr != null)
                     context.Report(attr.Severity, FormatMessage($"{type.FullName}.{field.Name}", attr));
             }
@@ -92,13 +92,13 @@ namespace ReleaseGuard.Editor.Builtins.Auditor
             // Properties.
             foreach (var prop in type.GetProperties(binding))
             {
-                var attr = prop.GetCustomAttribute<ReleaseForbiddenAttribute>(inherit: false);
+                var attr = prop.GetCustomAttribute<ReleaseForbidden>(inherit: false);
                 if (attr != null)
                     context.Report(attr.Severity, FormatMessage($"{type.FullName}.{prop.Name}", attr));
             }
         }
 
-        private static string FormatMessage(string memberName, ReleaseForbiddenAttribute attr)
+        private static string FormatMessage(string memberName, ReleaseForbidden attr)
         {
             var msg = $"[ReleaseForbidden] '{memberName}' must not ship in a release build.";
             if (!string.IsNullOrEmpty(attr.Reason))

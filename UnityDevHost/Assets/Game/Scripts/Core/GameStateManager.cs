@@ -25,8 +25,8 @@ namespace AttackSurfaceFixture.Game.Core
         public GameState CurrentState { get; private set; } = GameState.Boot;
 
         private const int SceneIndexMainMenu = 1;
-        private const int SceneIndexGameplay  = 2;
-        private const int SceneIndexShop      = 3;
+        private const int SceneIndexGameplay = 2;
+        private const int SceneIndexShop = 3;
 
         private void Awake()
         {

@@ -1,6 +1,7 @@
 using System.Reflection;
+using ReleaseGuard.Editor.Core.Config.Renderer;
 
-namespace ReleaseGuard.Editor.Core.Config
+namespace ReleaseGuard.Editor.Core.Config.Components
 {
     public sealed class SectionGroupComponent : ContainerComponent
     {

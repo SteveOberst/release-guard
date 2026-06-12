@@ -12,7 +12,7 @@ namespace ReleaseGuard.Editor.Core.Transforming
     ///
     /// <para><b>Output path:</b> <see cref="OutputPath"/> is the path to the built product
     /// (e.g. <c>Builds/Windows/MyGame.exe</c>). On platforms that output a folder
-    /// (Android APK, WebGL) it is the product file/folder itself.</para>
+    /// (for example WebGL) it is the product folder itself.</para>
     ///
     /// <para><b>BuildReport availability:</b> <see cref="BuildReport"/> is set during an active
     /// Unity build; it is <c>null</c> when running against an existing output -- always

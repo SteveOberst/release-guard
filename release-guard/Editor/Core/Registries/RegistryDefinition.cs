@@ -44,6 +44,7 @@ namespace ReleaseGuard.Editor.Core.Registries
                     _logger.LogVerbose($"Built-in '{b.Id}' is disabled in settings; skipping.");
                     continue;
                 }
+
                 _registry.Register(b.Id, b);
             }
         }

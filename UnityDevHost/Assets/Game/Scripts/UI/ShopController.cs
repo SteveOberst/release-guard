@@ -15,13 +15,13 @@ namespace AttackSurfaceFixture.Game.UI
     /// </summary>
     public sealed class ShopController : MonoBehaviour
     {
-        [Header("Layout")]
-        [SerializeField] private Transform itemListRoot;
+        [Header("Layout")] [SerializeField] private Transform itemListRoot;
         [SerializeField] private ShopItemSlot itemSlotPrefab;
 
-        [Header("Header / Footer")]
-        [SerializeField] private Text   currencyLabel;
-        [SerializeField] private Text   feedbackLabel;
+        [Header("Header / Footer")] [SerializeField]
+        private Text currencyLabel;
+
+        [SerializeField] private Text feedbackLabel;
         [SerializeField] private Button closeButton;
         [SerializeField] private Button refreshButton;
 
@@ -32,21 +32,21 @@ namespace AttackSurfaceFixture.Game.UI
         private void Awake()
         {
             ServiceLocator.TryGet(out _shop);
-            if (closeButton   != null) closeButton.onClick.AddListener(OnCloseClicked);
+            if (closeButton != null) closeButton.onClick.AddListener(OnCloseClicked);
             if (refreshButton != null) refreshButton.onClick.AddListener(OnRefreshClicked);
         }
 
         private void OnEnable()
         {
             GameEvents.OnCurrencyChanged += HandleCurrencyChanged;
-            GameEvents.OnShopOpened      += RefreshDisplay;
+            GameEvents.OnShopOpened += RefreshDisplay;
             RefreshDisplay();
         }
 
         private void OnDisable()
         {
             GameEvents.OnCurrencyChanged -= HandleCurrencyChanged;
-            GameEvents.OnShopOpened      -= RefreshDisplay;
+            GameEvents.OnShopOpened -= RefreshDisplay;
         }
 
         // -- Button callbacks

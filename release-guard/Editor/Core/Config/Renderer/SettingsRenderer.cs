@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
+using ReleaseGuard.Editor.Core.Config.Components;
+using ReleaseGuard.Editor.Core.Config.Reader;
 using ReleaseGuard.Editor.Core.Runtime;
 using UnityEditor;
 using UnityEngine;
@@ -8,11 +10,11 @@ using UnityEngine;
 // ReSharper disable UnusedMember.Global
 // ReSharper disable MemberCanBeProtected.Global
 // ReSharper disable VirtualMemberNeverOverridden.Global
-namespace ReleaseGuard.Editor.Core.Config
+namespace ReleaseGuard.Editor.Core.Config.Renderer
 {
     /// <summary>
-    /// Layout values used by <see cref="SettingsRenderer"/>. Custom renderers can provide a
-    /// different implementation when they need different spacing without hard-coded literals.
+    ///     Layout values used by <see cref="SettingsRenderer" />. Custom renderers can provide a
+    ///     different implementation when they need different spacing without hard-coded literals.
     /// </summary>
     public interface ISettingsRendererLayout
     {
@@ -32,41 +34,43 @@ namespace ReleaseGuard.Editor.Core.Config
     // ReSharper disable MemberCanBePrivate.Global
     public sealed class DefaultSettingsRendererLayout : ISettingsRendererLayout
     {
-        public const float DefaultPageLeftPadding    = 10f;
-        public const float DefaultPageRightPadding   = 4f;
-        public const float DefaultPageTopSpacing     = 4f;
-        public const float DefaultPageBottomSpacing  = 12f;
-        public const float DefaultSectionTopSpacing  = 14f;
+        public const float DefaultPageLeftPadding = 10f;
+        public const float DefaultPageRightPadding = 4f;
+        public const float DefaultPageTopSpacing = 4f;
+        public const float DefaultPageBottomSpacing = 12f;
+        public const float DefaultSectionTopSpacing = 14f;
         public const float DefaultRelatedFieldSpacing = 8f;
         public const float DefaultActionButtonHeight = 24f;
-        public const float DefaultFieldLabelWidth    = 220f;
-        public const float DefaultLineListMinLines   = 3f;
+        public const float DefaultFieldLabelWidth = 220f;
+        public const float DefaultLineListMinLines = 3f;
         public const float DefaultLineListHeightPadding = 6f;
 
         public static readonly DefaultSettingsRendererLayout Instance = new();
 
-        private DefaultSettingsRendererLayout() { }
+        private DefaultSettingsRendererLayout()
+        {
+        }
 
-        public float PageLeftPadding      => DefaultPageLeftPadding;
-        public float PageRightPadding     => DefaultPageRightPadding;
-        public float PageTopSpacing       => DefaultPageTopSpacing;
-        public float PageBottomSpacing    => DefaultPageBottomSpacing;
-        public float SectionTopSpacing    => DefaultSectionTopSpacing;
-        public float RelatedFieldSpacing  => DefaultRelatedFieldSpacing;
-        public float ActionButtonHeight   => DefaultActionButtonHeight;
-        public float FieldLabelWidth      => DefaultFieldLabelWidth;
-        public float LineListDefaultMinLines   => DefaultLineListMinLines;
-        public float LineListHeightPadding    => DefaultLineListHeightPadding;
+        public float PageLeftPadding => DefaultPageLeftPadding;
+        public float PageRightPadding => DefaultPageRightPadding;
+        public float PageTopSpacing => DefaultPageTopSpacing;
+        public float PageBottomSpacing => DefaultPageBottomSpacing;
+        public float SectionTopSpacing => DefaultSectionTopSpacing;
+        public float RelatedFieldSpacing => DefaultRelatedFieldSpacing;
+        public float ActionButtonHeight => DefaultActionButtonHeight;
+        public float FieldLabelWidth => DefaultFieldLabelWidth;
+        public float LineListDefaultMinLines => DefaultLineListMinLines;
+        public float LineListHeightPadding => DefaultLineListHeightPadding;
     }
     // ReSharper restore MemberCanBePrivate.Global
 
     /// <summary>
-    /// Canonical IMGUI renderer for Release Guard settings objects. Inherits layout and
-    /// list-field helpers from <see cref="SettingsRenderPrimitives"/> and uses a
-    /// <see cref="SettingsComponentReader"/> (via <see cref="SettingsComponentRenderer"/>) to
-    /// read and render the component tree for a settings object.
+    ///     Canonical IMGUI renderer for Release Guard settings objects. Inherits layout and
+    ///     list-field helpers from <see cref="RenderPrimitives" /> and uses a
+    ///     <see cref="SettingsComponentReader" /> (via <see cref="SettingsComponentRenderer" />) to
+    ///     read and render the component tree for a settings object.
     /// </summary>
-    public class SettingsRenderer : SettingsRenderPrimitives
+    public class SettingsRenderer : RenderPrimitives
     {
         public SettingsRenderer(ISettingsRendererLayout layout = null) : base(layout)
         {
@@ -76,7 +80,7 @@ namespace ReleaseGuard.Editor.Core.Config
         /// <summary>Shared instance -- used by Release Guard's built-in settings pages.</summary>
         public static SettingsRenderer Default { get; } = new();
 
-        /// <summary>Provides access to the underlying <see cref="SettingsComponentReader"/>.</summary>
+        /// <summary>Provides access to the underlying <see cref="SettingsComponentReader" />.</summary>
         public SettingsComponentRenderer ComponentRenderer { get; }
 
         // ------------------------------------------------------------------
@@ -84,17 +88,17 @@ namespace ReleaseGuard.Editor.Core.Config
         // ------------------------------------------------------------------
 
         /// <summary>
-        /// Generates a <see cref="SettingsProvider"/> for the root overview page and one for each
-        /// child <see cref="ScreenComponent"/> discovered in the component tree of
-        /// <paramref name="settings"/>.
+        ///     Generates a <see cref="SettingsProvider" /> for the root overview page and one for each
+        ///     child <see cref="ScreenComponent" /> discovered in the component tree of
+        ///     <paramref name="settings" />.
         /// </summary>
         public IEnumerable<SettingsProvider> CreateProviders(
             string rootPath,
             ScriptableObject settings)
         {
             var reader = ComponentRenderer.ComponentReader;
-            var label  = rootPath.Split('/').Last();
-            var root   = reader.Read(settings, rootPath, label);
+            var label = rootPath.Split('/').Last();
+            var root = reader.Read(settings, rootPath, label);
 
             yield return root.CreateProvider(settings, this, GetRootKeywords());
 
@@ -103,20 +107,26 @@ namespace ReleaseGuard.Editor.Core.Config
                     foreach (var p in screen.CreateProviders(settings, this))
                         yield return p;
 
-            if (root.DynamicProviderResolver != null)
-                foreach (var p in root.DynamicProviderResolver(settings, this))
-                    yield return p;
+            if (root.DynamicProviderResolver == null) yield break;
+            foreach (var p in root.DynamicProviderResolver(settings, this))
+                yield return p;
         }
 
         /// <summary>
-        /// Search keywords for the root overview page. Override to add domain-specific terms.
+        ///     Search keywords for the root overview page. Override to add domain-specific terms.
         /// </summary>
-        protected virtual HashSet<string> GetRootKeywords() => new();
+        protected virtual HashSet<string> GetRootKeywords()
+        {
+            return new HashSet<string>();
+        }
 
         /// <summary>
-        /// Called after settings are modified and applied. Default: reloads the Release Guard
-        /// environment. Override to customize or suppress.
+        ///     Called after settings are modified and applied. Default: reloads the Release Guard
+        ///     environment. Override to customize or suppress.
         /// </summary>
-        internal virtual void OnSettingsChanged() => ReleaseGuardStartup.Reload();
+        internal virtual void OnSettingsChanged()
+        {
+            ReleaseGuardStartup.Reload();
+        }
     }
 }

@@ -115,6 +115,13 @@ namespace ReleaseGuard.Editor.Core.Runtime
             var registries = new ReleaseGuardRegistries();
             Registries = registries;
 
+            // Guards are set before any loading so every registration path -- built-in loaders,
+            // plugin contributions, and dynamic RegisterPlugin() calls -- goes through the same
+            // disabled-id gate.
+            registries.Auditors.AddRegistrationGuard((id, _) => !settings.IsAuditorDisabled(id));
+            registries.PostProcessors.AddRegistrationGuard((id, _) => !settings.IsPostProcessorDisabled(id));
+            registries.Transformers.AddRegistrationGuard((id, _) => !settings.IsTransformerDisabled(id));
+
             AuditPipeline = new ReleaseGuardExecutor(this);
             PostProcessPipeline = new ReleasePostProcessExecutor(this);
             TransformPipeline = new ReleaseTransformExecutor(this);
@@ -127,13 +134,6 @@ namespace ReleaseGuard.Editor.Core.Runtime
             var registryLoader = new RegistryLoader(typeActivator, logger);
             registryLoader.Load(RegistryDefinitions(settings, registries, logger));
             pluginLoader.Register();
-
-            // Plugins write directly to WeightedRegistry, bypassing the isDisabled filter
-            // applied during RegistryLoader.RegisterDiscovered. Purge any disabled items
-            // that plugin contributions may have slipped in.
-            registries.Auditors.Purge(settings.IsAuditorDisabled);
-            registries.PostProcessors.Purge(settings.IsPostProcessorDisabled);
-            registries.Transformers.Purge(settings.IsTransformerDisabled);
 
             logger.LogVerbose(
                 $"Release Guard environment initialized: {Plugins.Count} plugin(s), " +

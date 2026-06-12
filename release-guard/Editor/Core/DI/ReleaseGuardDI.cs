@@ -11,14 +11,15 @@ namespace ReleaseGuard.Editor.Core.DI
         Singleton,
         Transient
     }
-    
+
     // ReSharper disable once InconsistentNaming
     public static class DI
     {
         private static volatile Container _container = new();
+
         public static void Configure(Action<Container> configure)
         {
-            if(configure is null) throw new ArgumentNullException(nameof(configure));
+            if (configure is null) throw new ArgumentNullException(nameof(configure));
 
             Clear();
 
@@ -28,7 +29,7 @@ namespace ReleaseGuard.Editor.Core.DI
 
         public static void Use(Container externalContainer)
         {
-            if(externalContainer is null) throw new ArgumentNullException(nameof(externalContainer));
+            if (externalContainer is null) throw new ArgumentNullException(nameof(externalContainer));
             Clear();
             _container = externalContainer;
         }

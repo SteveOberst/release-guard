@@ -24,21 +24,21 @@ namespace AttackSurfaceFixture.Game.Editor
     {
         // -- Path constants
 
-        private const string DataFolderPath           = "Assets/Game/Data";
-        private const string ConfigFolderPath         = "Assets/Game/Configs";
-        private const string SceneFolderPath          = "Assets/Game/Scenes";
-        private const string GamePrefabFolderPath     = "Assets/Game/Prefabs";
-        private const string TestTargetPrefabFolder   = "Assets/TestTargets/Prefabs";
+        private const string DataFolderPath = "Assets/Game/Data";
+        private const string ConfigFolderPath = "Assets/Game/Configs";
+        private const string SceneFolderPath = "Assets/Game/Scenes";
+        private const string GamePrefabFolderPath = "Assets/Game/Prefabs";
+        private const string TestTargetPrefabFolder = "Assets/TestTargets/Prefabs";
 
-        private const string BootstrapScenePath  = SceneFolderPath + "/Bootstrap.unity";
-        private const string MainMenuScenePath   = SceneFolderPath + "/MainMenu.unity";
-        private const string GameplayScenePath   = SceneFolderPath + "/Gameplay.unity";
-        private const string ShopScenePath       = SceneFolderPath + "/Shop.unity";
+        private const string BootstrapScenePath = SceneFolderPath + "/Bootstrap.unity";
+        private const string MainMenuScenePath = SceneFolderPath + "/MainMenu.unity";
+        private const string GameplayScenePath = SceneFolderPath + "/Gameplay.unity";
+        private const string ShopScenePath = SceneFolderPath + "/Shop.unity";
 
-        private const string PlayerRigPrefabPath   = GamePrefabFolderPath + "/PlayerRig.prefab";
-        private const string EnemyDummyPrefabPath  = GamePrefabFolderPath + "/EnemyDummy.prefab";
-        private const string ShopStandPrefabPath   = GamePrefabFolderPath + "/ShopStand.prefab";
-        private const string TestTargetPrefabPath  = TestTargetPrefabFolder + "/AdBeaconTarget.prefab";
+        private const string PlayerRigPrefabPath = GamePrefabFolderPath + "/PlayerRig.prefab";
+        private const string EnemyDummyPrefabPath = GamePrefabFolderPath + "/EnemyDummy.prefab";
+        private const string ShopStandPrefabPath = GamePrefabFolderPath + "/ShopStand.prefab";
+        private const string TestTargetPrefabPath = TestTargetPrefabFolder + "/AdBeaconTarget.prefab";
 
         private static readonly string[] BaselineItemPaths =
         {
@@ -72,71 +72,71 @@ namespace AttackSurfaceFixture.Game.Editor
             // -- Items
             CreateOrUpdateAsset<ItemDefinition>(BaselineItemPaths[0], so =>
             {
-                SetString(so, "itemId",           "health_potion");
-                SetString(so, "displayName",      "Health Potion");
-                SetString(so, "description",      "Restores 30 HP when used in battle.");
-                SetInt   (so, "softCurrencyPrice", 25);
-                SetBool  (so, "premiumOnly",       false);
-                SetString(so, "effectId",          "heal");
+                SetString(so, "itemId", "health_potion");
+                SetString(so, "displayName", "Health Potion");
+                SetString(so, "description", "Restores 30 HP when used in battle.");
+                SetInt(so, "softCurrencyPrice", 25);
+                SetBool(so, "premiumOnly", false);
+                SetString(so, "effectId", "heal");
             });
 
             CreateOrUpdateAsset<ItemDefinition>(BaselineItemPaths[1], so =>
             {
-                SetString(so, "itemId",           "iron_sword");
-                SetString(so, "displayName",      "Iron Sword");
-                SetString(so, "description",      "A reliable starter weapon. Boosts damage for 10 s when used.");
-                SetInt   (so, "softCurrencyPrice", 60);
-                SetBool  (so, "premiumOnly",       false);
-                SetString(so, "effectId",          "damage_boost");
+                SetString(so, "itemId", "iron_sword");
+                SetString(so, "displayName", "Iron Sword");
+                SetString(so, "description", "A reliable starter weapon. Boosts damage for 10 s when used.");
+                SetInt(so, "softCurrencyPrice", 60);
+                SetBool(so, "premiumOnly", false);
+                SetString(so, "effectId", "damage_boost");
             });
 
             CreateOrUpdateAsset<ItemDefinition>(BaselineItemPaths[2], so =>
             {
-                SetString(so, "itemId",           "swift_boots");
-                SetString(so, "displayName",      "Swift Boots");
-                SetString(so, "description",      "Lightweight enchanted boots. Grants a speed bonus for 8 s.");
-                SetInt   (so, "softCurrencyPrice", 45);
-                SetBool  (so, "premiumOnly",       false);
-                SetString(so, "effectId",          "speed_boost");
+                SetString(so, "itemId", "swift_boots");
+                SetString(so, "displayName", "Swift Boots");
+                SetString(so, "description", "Lightweight enchanted boots. Grants a speed bonus for 8 s.");
+                SetInt(so, "softCurrencyPrice", 45);
+                SetBool(so, "premiumOnly", false);
+                SetString(so, "effectId", "speed_boost");
             });
 
             // -- Enemies
             CreateOrUpdateAsset<EnemyDefinition>(BaselineEnemyPaths[0], so =>
             {
-                SetString(so, "enemyId",              "slime_basic");
-                SetString(so, "displayName",          "Green Slime");
-                SetInt   (so, "maxHealth",             20);
-                SetInt   (so, "attackPower",           3);
-                SetInt   (so, "rewardSoftCurrency",    8);
-                SetBool  (so, "boss",                  false);
+                SetString(so, "enemyId", "slime_basic");
+                SetString(so, "displayName", "Green Slime");
+                SetInt(so, "maxHealth", 20);
+                SetInt(so, "attackPower", 3);
+                SetInt(so, "rewardSoftCurrency", 8);
+                SetBool(so, "boss", false);
             });
 
             CreateOrUpdateAsset<EnemyDefinition>(BaselineEnemyPaths[1], so =>
             {
-                SetString(so, "enemyId",              "goblin_raider");
-                SetString(so, "displayName",          "Goblin Raider");
-                SetInt   (so, "maxHealth",             35);
-                SetInt   (so, "attackPower",           6);
-                SetInt   (so, "rewardSoftCurrency",    14);
-                SetBool  (so, "boss",                  false);
+                SetString(so, "enemyId", "goblin_raider");
+                SetString(so, "displayName", "Goblin Raider");
+                SetInt(so, "maxHealth", 35);
+                SetInt(so, "attackPower", 6);
+                SetInt(so, "rewardSoftCurrency", 14);
+                SetBool(so, "boss", false);
             });
 
             CreateOrUpdateAsset<EnemyDefinition>(BaselineEnemyPaths[2], so =>
             {
-                SetString(so, "enemyId",              "stone_golem");
-                SetString(so, "displayName",          "Stone Golem");
-                SetInt   (so, "maxHealth",             80);
-                SetInt   (so, "attackPower",           12);
-                SetInt   (so, "rewardSoftCurrency",    35);
-                SetBool  (so, "boss",                  true);
+                SetString(so, "enemyId", "stone_golem");
+                SetString(so, "displayName", "Stone Golem");
+                SetInt(so, "maxHealth", 80);
+                SetInt(so, "attackPower", 12);
+                SetInt(so, "rewardSoftCurrency", 35);
+                SetBool(so, "boss", true);
             });
 
             // -- Economy config
             CreateOrUpdateAsset<EconomyConfig>(ConfigFolderPath + "/economy.asset", so =>
             {
                 SetInt(so, "startingSoftCurrency", 150);
-                SetInt(so, "shopRefreshCost",       25);
-                SetInt(so, "reviveCost",            50);
+                SetInt(so, "shopRefreshCost", 25);
+                SetInt(so, "reviveCost", 50);
 
                 var costs = FindProperty(so, "upgradeCosts");
                 costs.arraySize = 3;
@@ -148,9 +148,9 @@ namespace AttackSurfaceFixture.Game.Editor
             // -- Feature flags
             CreateOrUpdateAsset<FeatureFlags>(ConfigFolderPath + "/feature_flags.asset", so =>
             {
-                SetBool(so, "shopEnabled",          true);
-                SetBool(so, "eventBannerEnabled",   true);
-                SetBool(so, "debugPanelEnabled",    false);
+                SetBool(so, "shopEnabled", true);
+                SetBool(so, "eventBannerEnabled", true);
+                SetBool(so, "debugPanelEnabled", false);
                 SetBool(so, "premiumOffersEnabled", true);
             });
 
@@ -161,15 +161,15 @@ namespace AttackSurfaceFixture.Game.Editor
         public static void AuthorBaselineFixtureContent()
         {
             EnsureBaselineDataAssets();
-            EnsureFolder("Assets/Game",        "Scenes");
-            EnsureFolder("Assets/Game",        "Prefabs");
+            EnsureFolder("Assets/Game", "Scenes");
+            EnsureFolder("Assets/Game", "Prefabs");
             EnsureFolder("Assets/TestTargets", "Prefabs");
 
             var ctx = LoadAuthoringContext();
 
-            CreateOrUpdatePrefab(PlayerRigPrefabPath,  CreatePlayerRigPrefabRoot);
+            CreateOrUpdatePrefab(PlayerRigPrefabPath, CreatePlayerRigPrefabRoot);
             CreateOrUpdatePrefab(EnemyDummyPrefabPath, CreateEnemyDummyPrefabRoot);
-            CreateOrUpdatePrefab(ShopStandPrefabPath,  CreateShopStandPrefabRoot);
+            CreateOrUpdatePrefab(ShopStandPrefabPath, CreateShopStandPrefabRoot);
             CreateOrUpdatePrefab(TestTargetPrefabPath, CreateTestTargetPrefabRoot);
 
             AuthorBootstrapScene(ctx);
@@ -194,10 +194,12 @@ namespace AttackSurfaceFixture.Game.Editor
             var persistentRoot = new GameObject("PersistentSystems");
 
             var gsm = persistentRoot.AddComponent<GameStateManager>();
-            var ss  = new GameObject("SaveSystem");  ss.transform.SetParent(persistentRoot.transform, false);
+            var ss = new GameObject("SaveSystem");
+            ss.transform.SetParent(persistentRoot.transform, false);
             ss.AddComponent<SaveSystem>();
 
-            var am = new GameObject("AudioManager"); am.transform.SetParent(persistentRoot.transform, false);
+            var am = new GameObject("AudioManager");
+            am.transform.SetParent(persistentRoot.transform, false);
             var audioManager = am.AddComponent<AudioManager>();
             // Add a music AudioSource that AudioManager can reference
             var musicSrc = am.AddComponent<AudioSource>();
@@ -205,8 +207,8 @@ namespace AttackSurfaceFixture.Game.Editor
 
             // -- ThirdParty services
             var thirdParty = new GameObject("ThirdPartyServices");
-            var analytics  = thirdParty.AddComponent<AnalyticsLite.AnalyticsService>();
-            var rcClient   = thirdParty.AddComponent<RemoteConfigKit.RemoteConfigClient>();
+            var analytics = thirdParty.AddComponent<AnalyticsLite.AnalyticsService>();
+            var rcClient = thirdParty.AddComponent<RemoteConfigKit.RemoteConfigClient>();
 
             // Wire RemoteConfig to the local-defaults JSON
             var rcDefaults = AssetDatabase.LoadAssetAtPath<TextAsset>(
@@ -232,14 +234,14 @@ namespace AttackSurfaceFixture.Game.Editor
             var bootstrapper = bootstrapRoot.AddComponent<Bootstrapper>();
             bootstrapper.ApplyFixtureReferences(
                 ctx.EconomyConfig, ctx.FeatureFlags,
-                ctx.StarterItems,  ctx.EnemyCatalog,
-                inventorySystem,   shopSystem);
+                ctx.StarterItems, ctx.EnemyCatalog,
+                inventorySystem, shopSystem);
             EditorUtility.SetDirty(bootstrapper);
 
             // Wire shop catalog in Inspector so it survives the first save
             var shopSo = new SerializedObject(shopSystem);
             shopSo.FindProperty("economyConfig")?.SetObjectReferenceValue(ctx.EconomyConfig);
-            shopSo.FindProperty("featureFlags") ?.SetObjectReferenceValue(ctx.FeatureFlags);
+            shopSo.FindProperty("featureFlags")?.SetObjectReferenceValue(ctx.FeatureFlags);
             shopSo.ApplyModifiedPropertiesWithoutUndo();
 
             // -- Preview props
@@ -261,11 +263,11 @@ namespace AttackSurfaceFixture.Game.Editor
             CreateGroundPlane(new Vector3(10f, 1f, 10f));
 
             // -- 3D set dressing
-            var menuRoot  = new GameObject("MainMenuSet");
-            var backdrop  = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var menuRoot = new GameObject("MainMenuSet");
+            var backdrop = GameObject.CreatePrimitive(PrimitiveType.Cube);
             backdrop.name = "Backdrop";
             backdrop.transform.SetParent(menuRoot.transform, false);
-            backdrop.transform.position   = new Vector3(0f, 2.5f, 6f);
+            backdrop.transform.position = new Vector3(0f, 2.5f, 6f);
             backdrop.transform.localScale = new Vector3(8f, 5f, 0.25f);
 
             var shopStandPrefab = LoadPrefab(ShopStandPrefabPath);
@@ -278,10 +280,10 @@ namespace AttackSurfaceFixture.Game.Editor
 
             // -- UI canvas
             var canvas = CreateScreenSpaceCanvas("MainMenuCanvas");
-            var ctrl   = canvas.AddComponent<MainMenuController>();
+            var ctrl = canvas.AddComponent<MainMenuController>();
 
             // Title label
-            var titleObj   = CreateUIText(canvas.transform, "TitleLabel",
+            var titleObj = CreateUIText(canvas.transform, "TitleLabel",
                 "Attack Surface Demo", 48, TextAnchor.UpperCenter,
                 new Vector2(0.1f, 0.7f), new Vector2(0.9f, 0.95f));
 
@@ -291,19 +293,19 @@ namespace AttackSurfaceFixture.Game.Editor
                 new Vector2(0.7f, 0.02f), new Vector2(0.98f, 0.08f));
 
             // Play button
-            var playBtn    = CreateUIButton(canvas.transform, "PlayButton", "Play",
+            var playBtn = CreateUIButton(canvas.transform, "PlayButton", "Play",
                 new Vector2(0.35f, 0.4f), new Vector2(0.65f, 0.52f));
 
             // Quit button
-            var quitBtn    = CreateUIButton(canvas.transform, "QuitButton", "Quit",
+            var quitBtn = CreateUIButton(canvas.transform, "QuitButton", "Quit",
                 new Vector2(0.35f, 0.26f), new Vector2(0.65f, 0.38f));
 
             // Wire controller references
             var ctrlSo = new SerializedObject(ctrl);
-            ctrlSo.FindProperty("playButton")   ?.SetObjectReferenceValue(playBtn.GetComponent<Button>());
-            ctrlSo.FindProperty("quitButton")   ?.SetObjectReferenceValue(quitBtn.GetComponent<Button>());
-            ctrlSo.FindProperty("titleLabel")   ?.SetObjectReferenceValue(titleObj.GetComponent<Text>());
-            ctrlSo.FindProperty("versionLabel") ?.SetObjectReferenceValue(versionObj.GetComponent<Text>());
+            ctrlSo.FindProperty("playButton")?.SetObjectReferenceValue(playBtn.GetComponent<Button>());
+            ctrlSo.FindProperty("quitButton")?.SetObjectReferenceValue(quitBtn.GetComponent<Button>());
+            ctrlSo.FindProperty("titleLabel")?.SetObjectReferenceValue(titleObj.GetComponent<Text>());
+            ctrlSo.FindProperty("versionLabel")?.SetObjectReferenceValue(versionObj.GetComponent<Text>());
             ctrlSo.ApplyModifiedPropertiesWithoutUndo();
 
             SaveFixtureScene(scene, MainMenuScenePath);
@@ -316,9 +318,9 @@ namespace AttackSurfaceFixture.Game.Editor
             CreateGroundPlane(new Vector3(20f, 1f, 20f));
 
             // -- Arena props
-            var lane      = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            lane.name     = "CombatLane";
-            lane.transform.position   = new Vector3(0f, 0.05f, 0f);
+            var lane = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            lane.name = "CombatLane";
+            lane.transform.position = new Vector3(0f, 0.05f, 0f);
             lane.transform.localScale = new Vector3(4f, 0.1f, 12f);
 
             // -- Player
@@ -330,7 +332,7 @@ namespace AttackSurfaceFixture.Game.Editor
             if (playerInstance != null)
             {
                 var playerCtrl = playerInstance.AddComponent<PlayerController>();
-                var pcSo       = new SerializedObject(playerCtrl);
+                var pcSo = new SerializedObject(playerCtrl);
                 pcSo.FindProperty("economyConfig")?.SetObjectReferenceValue(ctx.EconomyConfig);
                 pcSo.ApplyModifiedPropertiesWithoutUndo();
             }
@@ -339,9 +341,9 @@ namespace AttackSurfaceFixture.Game.Editor
             var enemyPrefab = LoadPrefab(EnemyDummyPrefabPath);
             if (enemyPrefab != null && ctx.EnemyCatalog.Length > 0)
             {
-                var e0 = InstantiatePrefab(enemyPrefab, "Enemy_Slime",        new Vector3(0f, 0f, 3.5f));
+                var e0 = InstantiatePrefab(enemyPrefab, "Enemy_Slime", new Vector3(0f, 0f, 3.5f));
                 var e1 = InstantiatePrefab(enemyPrefab, "Enemy_GoblinRaider", new Vector3(2.5f, 0f, 5.5f));
-                var e2 = InstantiatePrefab(enemyPrefab, "Enemy_StoneGolem",   new Vector3(-2.5f, 0f, 7f));
+                var e2 = InstantiatePrefab(enemyPrefab, "Enemy_StoneGolem", new Vector3(-2.5f, 0f, 7f));
 
                 WireEnemyController(e0, ctx.EnemyCatalog.Length > 0 ? ctx.EnemyCatalog[0] : null);
                 WireEnemyController(e1, ctx.EnemyCatalog.Length > 1 ? ctx.EnemyCatalog[1] : null);
@@ -349,45 +351,45 @@ namespace AttackSurfaceFixture.Game.Editor
             }
 
             // -- Game systems
-            var systemsRoot     = new GameObject("GameplaySystems");
-            var combatSystem    = systemsRoot.AddComponent<CombatSystem>();
-            var responderHost   = systemsRoot.AddComponent<EventResponderHost>();
+            var systemsRoot = new GameObject("GameplaySystems");
+            var combatSystem = systemsRoot.AddComponent<CombatSystem>();
+            var responderHost = systemsRoot.AddComponent<EventResponderHost>();
 
             // -- Gameplay HUD
             var canvas = CreateScreenSpaceCanvas("GameplayHUDCanvas");
-            var hud    = canvas.AddComponent<GameplayHUD>();
+            var hud = canvas.AddComponent<GameplayHUD>();
 
-            var healthSlider  = CreateUISlider(canvas.transform,   "HealthBar",
+            var healthSlider = CreateUISlider(canvas.transform, "HealthBar",
                 new Vector2(0.02f, 0.9f), new Vector2(0.35f, 0.97f));
-            var currencyText  = CreateUIText(canvas.transform,     "CurrencyLabel",
+            var currencyText = CreateUIText(canvas.transform, "CurrencyLabel",
                 "150g", 20, TextAnchor.UpperRight,
                 new Vector2(0.65f, 0.9f), new Vector2(0.98f, 0.97f));
-            var killText      = CreateUIText(canvas.transform,     "KillCountLabel",
+            var killText = CreateUIText(canvas.transform, "KillCountLabel",
                 "Kills: 0", 18, TextAnchor.UpperLeft,
                 new Vector2(0.02f, 0.82f), new Vector2(0.3f, 0.89f));
-            var combatText    = CreateUIText(canvas.transform,     "CombatStatusLabel",
+            var combatText = CreateUIText(canvas.transform, "CombatStatusLabel",
                 "", 20, TextAnchor.UpperCenter,
                 new Vector2(0.3f, 0.82f), new Vector2(0.7f, 0.89f));
-            var buffText      = CreateUIText(canvas.transform,     "BuffStatusLabel",
+            var buffText = CreateUIText(canvas.transform, "BuffStatusLabel",
                 "", 16, TextAnchor.UpperLeft,
                 new Vector2(0.02f, 0.74f), new Vector2(0.35f, 0.81f));
-            var rewardText    = CreateUIText(canvas.transform,     "LastRewardLabel",
+            var rewardText = CreateUIText(canvas.transform, "LastRewardLabel",
                 "", 18, TextAnchor.UpperCenter,
                 new Vector2(0.38f, 0.74f), new Vector2(0.62f, 0.81f));
-            var shopBtn       = CreateUIButton(canvas.transform,   "ShopButton",  "Shop",
+            var shopBtn = CreateUIButton(canvas.transform, "ShopButton", "Shop",
                 new Vector2(0.78f, 0.02f), new Vector2(0.98f, 0.1f));
-            var retreatBtn    = CreateUIButton(canvas.transform,   "RetreatButton", "Retreat",
+            var retreatBtn = CreateUIButton(canvas.transform, "RetreatButton", "Retreat",
                 new Vector2(0.55f, 0.02f), new Vector2(0.75f, 0.1f));
 
             var hudSo = new SerializedObject(hud);
-            hudSo.FindProperty("healthBar")        ?.SetObjectReferenceValue(healthSlider.GetComponent<Slider>());
-            hudSo.FindProperty("currencyLabel")    ?.SetObjectReferenceValue(currencyText.GetComponent<Text>());
-            hudSo.FindProperty("killCountLabel")   ?.SetObjectReferenceValue(killText.GetComponent<Text>());
+            hudSo.FindProperty("healthBar")?.SetObjectReferenceValue(healthSlider.GetComponent<Slider>());
+            hudSo.FindProperty("currencyLabel")?.SetObjectReferenceValue(currencyText.GetComponent<Text>());
+            hudSo.FindProperty("killCountLabel")?.SetObjectReferenceValue(killText.GetComponent<Text>());
             hudSo.FindProperty("combatStatusLabel")?.SetObjectReferenceValue(combatText.GetComponent<Text>());
-            hudSo.FindProperty("buffStatusLabel")  ?.SetObjectReferenceValue(buffText.GetComponent<Text>());
-            hudSo.FindProperty("lastRewardLabel")  ?.SetObjectReferenceValue(rewardText.GetComponent<Text>());
-            hudSo.FindProperty("shopButton")       ?.SetObjectReferenceValue(shopBtn.GetComponent<Button>());
-            hudSo.FindProperty("retreatButton")    ?.SetObjectReferenceValue(retreatBtn.GetComponent<Button>());
+            hudSo.FindProperty("buffStatusLabel")?.SetObjectReferenceValue(buffText.GetComponent<Text>());
+            hudSo.FindProperty("lastRewardLabel")?.SetObjectReferenceValue(rewardText.GetComponent<Text>());
+            hudSo.FindProperty("shopButton")?.SetObjectReferenceValue(shopBtn.GetComponent<Button>());
+            hudSo.FindProperty("retreatButton")?.SetObjectReferenceValue(retreatBtn.GetComponent<Button>());
             hudSo.ApplyModifiedPropertiesWithoutUndo();
 
             SaveFixtureScene(scene, GameplayScenePath);
@@ -403,9 +405,9 @@ namespace AttackSurfaceFixture.Game.Editor
             var shopStandPrefab = LoadPrefab(ShopStandPrefabPath);
             if (shopStandPrefab != null)
             {
-                InstantiatePrefab(shopStandPrefab, "CentralShopStand",   Vector3.zero);
-                InstantiatePrefab(shopStandPrefab, "OfferStandLeft",     new Vector3(-3.5f, 0f, 2f));
-                InstantiatePrefab(shopStandPrefab, "OfferStandRight",    new Vector3(3.5f, 0f, 2f));
+                InstantiatePrefab(shopStandPrefab, "CentralShopStand", Vector3.zero);
+                InstantiatePrefab(shopStandPrefab, "OfferStandLeft", new Vector3(-3.5f, 0f, 2f));
+                InstantiatePrefab(shopStandPrefab, "OfferStandRight", new Vector3(3.5f, 0f, 2f));
             }
 
             var targetPrefab = LoadPrefab(TestTargetPrefabPath);
@@ -414,7 +416,7 @@ namespace AttackSurfaceFixture.Game.Editor
 
             // -- Shop UI canvas
             var canvas = CreateScreenSpaceCanvas("ShopCanvas");
-            var ctrl   = canvas.AddComponent<ShopController>();
+            var ctrl = canvas.AddComponent<ShopController>();
 
             var currencyText = CreateUIText(canvas.transform, "CurrencyLabel",
                 "150g", 22, TextAnchor.UpperRight,
@@ -429,17 +431,17 @@ namespace AttackSurfaceFixture.Game.Editor
             var listRect = listRoot.AddComponent<RectTransform>();
             SetAnchoredRect(listRect, new Vector2(0.05f, 0.15f), new Vector2(0.95f, 0.78f));
 
-            var closeBtn   = CreateUIButton(canvas.transform, "CloseButton",   "Close",
+            var closeBtn = CreateUIButton(canvas.transform, "CloseButton", "Close",
                 new Vector2(0.78f, 0.02f), new Vector2(0.98f, 0.1f));
             var refreshBtn = CreateUIButton(canvas.transform, "RefreshButton", "Refresh Shop",
                 new Vector2(0.02f, 0.02f), new Vector2(0.35f, 0.1f));
 
             var ctrlSo = new SerializedObject(ctrl);
-            ctrlSo.FindProperty("itemListRoot")  ?.SetObjectReferenceValue(listRoot.transform);
-            ctrlSo.FindProperty("currencyLabel") ?.SetObjectReferenceValue(currencyText.GetComponent<Text>());
-            ctrlSo.FindProperty("feedbackLabel") ?.SetObjectReferenceValue(feedbackText.GetComponent<Text>());
-            ctrlSo.FindProperty("closeButton")   ?.SetObjectReferenceValue(closeBtn.GetComponent<Button>());
-            ctrlSo.FindProperty("refreshButton") ?.SetObjectReferenceValue(refreshBtn.GetComponent<Button>());
+            ctrlSo.FindProperty("itemListRoot")?.SetObjectReferenceValue(listRoot.transform);
+            ctrlSo.FindProperty("currencyLabel")?.SetObjectReferenceValue(currencyText.GetComponent<Text>());
+            ctrlSo.FindProperty("feedbackLabel")?.SetObjectReferenceValue(feedbackText.GetComponent<Text>());
+            ctrlSo.FindProperty("closeButton")?.SetObjectReferenceValue(closeBtn.GetComponent<Button>());
+            ctrlSo.FindProperty("refreshButton")?.SetObjectReferenceValue(refreshBtn.GetComponent<Button>());
             ctrlSo.ApplyModifiedPropertiesWithoutUndo();
 
             SaveFixtureScene(scene, ShopScenePath);
@@ -459,7 +461,7 @@ namespace AttackSurfaceFixture.Game.Editor
             marker.name = "InteractionMarker";
             marker.transform.SetParent(root.transform, false);
             marker.transform.localPosition = new Vector3(0f, 2f, 0f);
-            marker.transform.localScale    = new Vector3(0.25f, 0.25f, 0.25f);
+            marker.transform.localScale = new Vector3(0.25f, 0.25f, 0.25f);
             return root;
         }
 
@@ -470,47 +472,47 @@ namespace AttackSurfaceFixture.Game.Editor
             body.name = "Body";
             body.transform.SetParent(root.transform, false);
             body.transform.localPosition = new Vector3(0f, 1f, 0f);
-            body.transform.localScale    = new Vector3(0.8f, 1f, 0.8f);
+            body.transform.localScale = new Vector3(0.8f, 1f, 0.8f);
 
             var weakPoint = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             weakPoint.name = "WeakPoint";
             weakPoint.transform.SetParent(root.transform, false);
             weakPoint.transform.localPosition = new Vector3(0f, 2.1f, 0f);
-            weakPoint.transform.localScale    = new Vector3(0.45f, 0.45f, 0.45f);
+            weakPoint.transform.localScale = new Vector3(0.45f, 0.45f, 0.45f);
             return root;
         }
 
         private static GameObject CreateShopStandPrefabRoot()
         {
-            var root    = new GameObject("ShopStand");
+            var root = new GameObject("ShopStand");
             var counter = GameObject.CreatePrimitive(PrimitiveType.Cube);
             counter.name = "Counter";
             counter.transform.SetParent(root.transform, false);
             counter.transform.localPosition = new Vector3(0f, 0.5f, 0f);
-            counter.transform.localScale    = new Vector3(3f, 1f, 1.5f);
+            counter.transform.localScale = new Vector3(3f, 1f, 1.5f);
 
-            var sign  = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var sign = GameObject.CreatePrimitive(PrimitiveType.Cube);
             sign.name = "Sign";
             sign.transform.SetParent(root.transform, false);
             sign.transform.localPosition = new Vector3(0f, 2f, -0.4f);
-            sign.transform.localScale    = new Vector3(2f, 1f, 0.15f);
+            sign.transform.localScale = new Vector3(2f, 1f, 0.15f);
             return root;
         }
 
         private static GameObject CreateTestTargetPrefabRoot()
         {
-            var root   = new GameObject("AdBeaconTarget");
+            var root = new GameObject("AdBeaconTarget");
             var beacon = GameObject.CreatePrimitive(PrimitiveType.Cube);
             beacon.name = "BeaconBody";
             beacon.transform.SetParent(root.transform, false);
             beacon.transform.localPosition = new Vector3(0f, 1.5f, 0f);
-            beacon.transform.localScale    = new Vector3(0.75f, 3f, 0.75f);
+            beacon.transform.localScale = new Vector3(0.75f, 3f, 0.75f);
 
             var trigger = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             trigger.name = "BeaconTrigger";
             trigger.transform.SetParent(root.transform, false);
             trigger.transform.localPosition = new Vector3(0f, 3.5f, 0f);
-            trigger.transform.localScale    = Vector3.one * 0.5f;
+            trigger.transform.localScale = Vector3.one * 0.5f;
             return root;
         }
 
@@ -518,15 +520,15 @@ namespace AttackSurfaceFixture.Game.Editor
 
         private static GameObject CreateScreenSpaceCanvas(string name)
         {
-            var go     = new GameObject(name);
+            var go = new GameObject(name);
             var canvas = go.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvas.sortingOrder = 0;
 
             var scaler = go.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode         = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920f, 1080f);
-            scaler.matchWidthOrHeight  = 0.5f;
+            scaler.matchWidthOrHeight = 0.5f;
 
             go.AddComponent<GraphicRaycaster>();
             return go;
@@ -537,16 +539,16 @@ namespace AttackSurfaceFixture.Game.Editor
             int fontSize, TextAnchor alignment,
             Vector2 anchorMin, Vector2 anchorMax)
         {
-            var go    = new GameObject(name);
+            var go = new GameObject(name);
             go.transform.SetParent(parent, false);
-            var rect  = go.AddComponent<RectTransform>();
+            var rect = go.AddComponent<RectTransform>();
             SetAnchoredRect(rect, anchorMin, anchorMax);
             var label = go.AddComponent<Text>();
-            label.text      = text;
-            label.fontSize  = fontSize;
+            label.text = text;
+            label.fontSize = fontSize;
             label.alignment = alignment;
-            label.color     = Color.white;
-            label.font      = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            label.color = Color.white;
+            label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             return go;
         }
 
@@ -554,30 +556,30 @@ namespace AttackSurfaceFixture.Game.Editor
             Transform parent, string name, string label,
             Vector2 anchorMin, Vector2 anchorMax)
         {
-            var go   = new GameObject(name);
+            var go = new GameObject(name);
             go.transform.SetParent(parent, false);
             var rect = go.AddComponent<RectTransform>();
             SetAnchoredRect(rect, anchorMin, anchorMax);
 
-            var img   = go.AddComponent<Image>();
+            var img = go.AddComponent<Image>();
             img.color = new Color(0.2f, 0.4f, 0.8f, 0.9f);
 
             var btn = go.AddComponent<Button>();
             btn.targetGraphic = img;
 
-            var textGo    = new GameObject("Label");
+            var textGo = new GameObject("Label");
             textGo.transform.SetParent(go.transform, false);
-            var textRect  = textGo.AddComponent<RectTransform>();
-            textRect.anchorMin  = Vector2.zero;
-            textRect.anchorMax  = Vector2.one;
-            textRect.offsetMin  = Vector2.zero;
-            textRect.offsetMax  = Vector2.zero;
-            var textComp  = textGo.AddComponent<Text>();
-            textComp.text      = label;
-            textComp.fontSize  = 20;
+            var textRect = textGo.AddComponent<RectTransform>();
+            textRect.anchorMin = Vector2.zero;
+            textRect.anchorMax = Vector2.one;
+            textRect.offsetMin = Vector2.zero;
+            textRect.offsetMax = Vector2.zero;
+            var textComp = textGo.AddComponent<Text>();
+            textComp.text = label;
+            textComp.fontSize = 20;
             textComp.alignment = TextAnchor.MiddleCenter;
-            textComp.color     = Color.white;
-            textComp.font      = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            textComp.color = Color.white;
+            textComp.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
             return go;
         }
@@ -586,30 +588,30 @@ namespace AttackSurfaceFixture.Game.Editor
             Transform parent, string name,
             Vector2 anchorMin, Vector2 anchorMax)
         {
-            var go     = new GameObject(name);
+            var go = new GameObject(name);
             go.transform.SetParent(parent, false);
-            var rect   = go.AddComponent<RectTransform>();
+            var rect = go.AddComponent<RectTransform>();
             SetAnchoredRect(rect, anchorMin, anchorMax);
 
             // Background
-            var bgGo   = new GameObject("Background");
+            var bgGo = new GameObject("Background");
             bgGo.transform.SetParent(go.transform, false);
             var bgRect = bgGo.AddComponent<RectTransform>();
             bgRect.anchorMin = Vector2.zero;
             bgRect.anchorMax = Vector2.one;
             bgRect.offsetMin = bgRect.offsetMax = Vector2.zero;
-            var bgImg  = bgGo.AddComponent<Image>();
+            var bgImg = bgGo.AddComponent<Image>();
             bgImg.color = new Color(0.15f, 0.15f, 0.15f, 0.85f);
 
             // Fill area
-            var fillGo   = new GameObject("FillArea");
+            var fillGo = new GameObject("FillArea");
             fillGo.transform.SetParent(go.transform, false);
             var fillAreaRect = fillGo.AddComponent<RectTransform>();
             fillAreaRect.anchorMin = Vector2.zero;
             fillAreaRect.anchorMax = Vector2.one;
             fillAreaRect.offsetMin = fillAreaRect.offsetMax = Vector2.zero;
 
-            var fillImgGo   = new GameObject("Fill");
+            var fillImgGo = new GameObject("Fill");
             fillImgGo.transform.SetParent(fillGo.transform, false);
             var fillImgRect = fillImgGo.AddComponent<RectTransform>();
             fillImgRect.anchorMin = Vector2.zero;
@@ -618,12 +620,12 @@ namespace AttackSurfaceFixture.Game.Editor
             var fillImg = fillImgGo.AddComponent<Image>();
             fillImg.color = new Color(0.8f, 0.15f, 0.15f, 1f);
 
-            var slider       = go.AddComponent<Slider>();
-            slider.fillRect  = fillImgRect;
+            var slider = go.AddComponent<Slider>();
+            slider.fillRect = fillImgRect;
             slider.direction = Slider.Direction.LeftToRight;
-            slider.minValue  = 0f;
-            slider.maxValue  = 1f;
-            slider.value     = 1f;
+            slider.minValue = 0f;
+            slider.maxValue = 1f;
+            slider.value = 1f;
 
             return go;
         }
@@ -658,21 +660,21 @@ namespace AttackSurfaceFixture.Game.Editor
             cam.transform.position = new Vector3(0f, 6f, -10f);
             cam.transform.rotation = Quaternion.Euler(25f, 0f, 0f);
             var c = cam.AddComponent<Camera>();
-            c.clearFlags    = CameraClearFlags.Skybox;
+            c.clearFlags = CameraClearFlags.Skybox;
             c.nearClipPlane = 0.1f;
-            c.farClipPlane  = 100f;
+            c.farClipPlane = 100f;
 
             var light = new GameObject("Directional Light");
             light.transform.rotation = Quaternion.Euler(50f, -30f, 0f);
             var l = light.AddComponent<Light>();
-            l.type      = LightType.Directional;
+            l.type = LightType.Directional;
             l.intensity = 1.1f;
         }
 
         private static void CreateGroundPlane(Vector3 scale)
         {
             var ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
-            ground.name            = "Ground";
+            ground.name = "Ground";
             ground.transform.localScale = scale;
         }
 
@@ -699,7 +701,7 @@ namespace AttackSurfaceFixture.Game.Editor
 
         private static bool IsRequiredScene(string path) =>
             path == BootstrapScenePath || path == MainMenuScenePath ||
-            path == GameplayScenePath  || path == ShopScenePath;
+            path == GameplayScenePath || path == ShopScenePath;
 
         // -- Asset helpers
 
@@ -733,16 +735,24 @@ namespace AttackSurfaceFixture.Game.Editor
 
         private static void SetString(SerializedObject so, string name, string val) =>
             FindProperty(so, name).stringValue = val;
+
         private static void SetInt(SerializedObject so, string name, int val) =>
             FindProperty(so, name).intValue = val;
+
         private static void SetBool(SerializedObject so, string name, bool val) =>
             FindProperty(so, name).boolValue = val;
 
         private static void CreateOrUpdatePrefab(string prefabPath, System.Func<GameObject> createRoot)
         {
             var root = createRoot();
-            try   { PrefabUtility.SaveAsPrefabAsset(root, prefabPath); }
-            finally { Object.DestroyImmediate(root); }
+            try
+            {
+                PrefabUtility.SaveAsPrefabAsset(root, prefabPath);
+            }
+            finally
+            {
+                Object.DestroyImmediate(root);
+            }
         }
 
         private static GameObject LoadPrefab(string path) =>
@@ -753,7 +763,7 @@ namespace AttackSurfaceFixture.Game.Editor
         {
             var instance = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
             if (instance == null) return null;
-            instance.name             = instanceName;
+            instance.name = instanceName;
             instance.transform.position = position;
             return instance;
         }
@@ -764,9 +774,9 @@ namespace AttackSurfaceFixture.Game.Editor
             return new AuthoringContext
             {
                 EconomyConfig = LoadPrimaryAsset<EconomyConfig>(ConfigFolderPath + "/economy.asset"),
-                FeatureFlags  = LoadPrimaryAsset<FeatureFlags>(ConfigFolderPath + "/feature_flags.asset"),
-                StarterItems  = LoadAssets<ItemDefinition>(BaselineItemPaths),
-                EnemyCatalog  = LoadAssets<EnemyDefinition>(BaselineEnemyPaths)
+                FeatureFlags = LoadPrimaryAsset<FeatureFlags>(ConfigFolderPath + "/feature_flags.asset"),
+                StarterItems = LoadAssets<ItemDefinition>(BaselineItemPaths),
+                EnemyCatalog = LoadAssets<EnemyDefinition>(BaselineEnemyPaths)
             };
         }
 
@@ -781,6 +791,7 @@ namespace AttackSurfaceFixture.Game.Editor
                 a = AssetDatabase.LoadAssetAtPath<TAsset>(AssetDatabase.GUIDToAssetPath(guid));
                 if (a != null) return a;
             }
+
             return null;
         }
 
@@ -793,6 +804,7 @@ namespace AttackSurfaceFixture.Game.Editor
                 var a = AssetDatabase.LoadAssetAtPath<TAsset>(p);
                 if (a != null) list.Add(a);
             }
+
             return list.ToArray();
         }
 
@@ -807,10 +819,10 @@ namespace AttackSurfaceFixture.Game.Editor
 
         private sealed class AuthoringContext
         {
-            public EconomyConfig      EconomyConfig;
-            public FeatureFlags       FeatureFlags;
-            public ItemDefinition[]   StarterItems;
-            public EnemyDefinition[]  EnemyCatalog;
+            public EconomyConfig EconomyConfig;
+            public FeatureFlags FeatureFlags;
+            public ItemDefinition[] StarterItems;
+            public EnemyDefinition[] EnemyCatalog;
         }
     }
 

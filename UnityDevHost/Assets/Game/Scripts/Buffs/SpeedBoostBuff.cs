@@ -4,9 +4,9 @@ namespace AttackSurfaceFixture.Game.Buffs
     public sealed class SpeedBoostBuff : IBuffEffect
     {
         private const float BonusSpeed = 3f;
-        private const float Duration   = 8f;
+        private const float Duration = 8f;
 
-        public string EffectId    => "speed_boost";
+        public string EffectId => "speed_boost";
         public string DisplayName => "Speed Boost";
 
         public void Apply(IBuffTarget target) =>

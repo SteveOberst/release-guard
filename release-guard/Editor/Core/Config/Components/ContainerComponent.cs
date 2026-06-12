@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace ReleaseGuard.Editor.Core.Config
+namespace ReleaseGuard.Editor.Core.Config.Components
 {
     public abstract class ContainerComponent : SettingsComponent
     {

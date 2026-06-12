@@ -17,11 +17,11 @@ namespace AttackSurfaceFixture.Game.Data
         /// </summary>
         [SerializeField] private string effectId = string.Empty;
 
-        public string ItemId             => itemId;
-        public string DisplayName        => displayName;
-        public string Description        => description;
-        public int    SoftCurrencyPrice  => softCurrencyPrice;
-        public bool   PremiumOnly        => premiumOnly;
-        public string EffectId           => effectId;
+        public string ItemId => itemId;
+        public string DisplayName => displayName;
+        public string Description => description;
+        public int SoftCurrencyPrice => softCurrencyPrice;
+        public bool PremiumOnly => premiumOnly;
+        public string EffectId => effectId;
     }
 }

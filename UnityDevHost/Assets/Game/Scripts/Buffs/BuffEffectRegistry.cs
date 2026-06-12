@@ -40,9 +40,9 @@ namespace AttackSurfaceFixture.Game.Buffs
             // SpeedBoostBuff as reachable  -- no [Preserve] required on any of them.
             Effects = new Dictionary<string, IBuffEffect>
             {
-                { "heal",         new HealBuff() },
+                { "heal", new HealBuff() },
                 { "damage_boost", new DamageBoostBuff() },
-                { "speed_boost",  new SpeedBoostBuff() },
+                { "speed_boost", new SpeedBoostBuff() },
             };
         }
 

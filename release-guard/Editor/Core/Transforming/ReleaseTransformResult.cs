@@ -11,8 +11,8 @@ namespace ReleaseGuard.Editor.Core.Transforming
         public IReadOnlyList<ReleaseTransformLog> Log { get; }
 
         /// <summary>
-        /// Every transformer that was discovered and evaluated in this run (in execution order).
-        /// Includes transformers that produced no log entries.
+        /// Every transformer that was registered for this run (in execution order).
+        /// Includes transformers that produced no log entries or opted out via ShouldRun.
         /// </summary>
         // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public IReadOnlyList<ReleaseTransformer> DiscoveredTransformers { get; }

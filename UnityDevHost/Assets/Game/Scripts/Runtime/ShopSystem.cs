@@ -18,15 +18,15 @@ namespace AttackSurfaceFixture.Game.Runtime
     /// </summary>
     public sealed class ShopSystem : MonoBehaviour
     {
-        [SerializeField] private EconomyConfig  economyConfig;
-        [SerializeField] private FeatureFlags   featureFlags;
+        [SerializeField] private EconomyConfig economyConfig;
+        [SerializeField] private FeatureFlags featureFlags;
         [SerializeField] private ItemDefinition[] catalogItems = System.Array.Empty<ItemDefinition>();
 
         private readonly List<ItemDefinition> _catalog = new List<ItemDefinition>();
 
-        public IReadOnlyList<ItemDefinition> Catalog    => _catalog;
-        public int  RefreshCost => economyConfig != null ? economyConfig.ShopRefreshCost : 0;
-        public bool IsOpen      => featureFlags  == null || featureFlags.ShopEnabled;
+        public IReadOnlyList<ItemDefinition> Catalog => _catalog;
+        public int RefreshCost => economyConfig != null ? economyConfig.ShopRefreshCost : 0;
+        public bool IsOpen => featureFlags == null || featureFlags.ShopEnabled;
 
         // -- Unity lifecycle
 
@@ -49,9 +49,9 @@ namespace AttackSurfaceFixture.Game.Runtime
         /// </summary>
         public PurchaseResult TryPurchase(ItemDefinition item)
         {
-            if (!IsOpen)                        return PurchaseResult.ShopClosed;
-            if (item == null)                   return PurchaseResult.InvalidItem;
-            if (!_catalog.Contains(item))       return PurchaseResult.ItemNotInCatalog;
+            if (!IsOpen) return PurchaseResult.ShopClosed;
+            if (item == null) return PurchaseResult.InvalidItem;
+            if (!_catalog.Contains(item)) return PurchaseResult.ItemNotInCatalog;
 
             if (item.PremiumOnly &&
                 (featureFlags == null || !featureFlags.PremiumOffersEnabled))
@@ -69,8 +69,8 @@ namespace AttackSurfaceFixture.Game.Runtime
             AnalyticsLite.AnalyticsService.Instance?.TrackEvent("item_purchased",
                 new Dictionary<string, object>
                 {
-                    { "item_id",      item.ItemId },
-                    { "price",        item.SoftCurrencyPrice },
+                    { "item_id", item.ItemId },
+                    { "price", item.SoftCurrencyPrice },
                     { "premium_only", item.PremiumOnly }
                 });
 
@@ -105,7 +105,7 @@ namespace AttackSurfaceFixture.Game.Runtime
         public void ApplyFixtureCatalog(EconomyConfig config, ItemDefinition[] items)
         {
             economyConfig = config;
-            catalogItems  = items ?? System.Array.Empty<ItemDefinition>();
+            catalogItems = items ?? System.Array.Empty<ItemDefinition>();
         }
 
         // -- Private helpers
@@ -115,7 +115,8 @@ namespace AttackSurfaceFixture.Game.Runtime
             _catalog.Clear();
             if (items == null) return;
             foreach (var item in items)
-                if (item != null) _catalog.Add(item);
+                if (item != null)
+                    _catalog.Add(item);
         }
     }
 

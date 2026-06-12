@@ -32,7 +32,7 @@ namespace AttackSurfaceFixture.Game.Buffs
     public interface IBuffTarget
     {
         int CurrentHealth { get; }
-        int MaxHealth     { get; }
+        int MaxHealth { get; }
 
         void Heal(int amount);
         void ApplyDamageMultiplier(float multiplier, float durationSeconds);

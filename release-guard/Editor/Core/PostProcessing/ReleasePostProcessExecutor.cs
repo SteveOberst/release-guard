@@ -8,7 +8,7 @@ using UnityEditor.Build.Reporting;
 namespace ReleaseGuard.Editor.Core.PostProcessing
 {
     /// <summary>
-    /// Discovers and runs every post-processor after a successful build.
+    /// Runs every registered post-processor after a successful build.
     /// Mirrors <see cref="ReleaseGuardExecutor"/> for the post-processor pipeline.
     ///
     /// One post-processor throwing never aborts the run -- the exception is caught, logged
@@ -32,7 +32,7 @@ namespace ReleaseGuard.Editor.Core.PostProcessing
             var postProcessors = _releaseGuard.Registries.PostProcessors.Items;
 
             logger.LogVerbose(
-                $"Discovered {postProcessors.Count} post-processor(s) for target {report.summary.platform}.");
+                $"Registered {postProcessors.Count} post-processor(s) for target {report.summary.platform}.");
 
             foreach (var pp in postProcessors)
             {

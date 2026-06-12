@@ -6,11 +6,13 @@ operations. Post-processors run via Unity's `IPostprocessBuildWithReport` after
 the build succeeds and after every [transformer](custom-transformers.md), so they
 always see the final, transformed state of the build folder.
 
-Derive from `ReleasePostProcessor` in any Editor-platform assembly. Exceptions
-thrown from a post-processor are caught by the executor and turned into warnings,
-so one bad post-processor never silently prevents others from running. Keep
-implementations non-destructive by default; make any modification of build output
-opt-in via settings.
+Derive from `ReleasePostProcessor` in any Editor-platform assembly. The post-processor only
+runs after you either register it through a plugin or enable post-processor auto-discovery in
+Project Settings. Auto-discovery is off by default; explicit plugin registration is the
+recommended production path. Exceptions thrown from a post-processor are caught by the executor
+and recorded as post-process errors, so one bad post-processor never silently prevents others from running.
+Keep implementations non-destructive by default; make any modification of build output opt-in
+via settings.
 
 See also: [built-in post-processors](../reference/built-in-post-processors.md),
 [plugins](plugins.md).
@@ -69,9 +71,18 @@ fix-hint overload.
 | `BuildTarget` | `public BuildTarget BuildTarget { get; }` | Always set, regardless of whether a `BuildReport` is present. |
 | `OutputPath` | `public string OutputPath { get; }` | Always set. Path to the built product, e.g. `Builds/Windows/MyGame.exe`. |
 
-The build output directory is `System.IO.Path.GetDirectoryName(context.OutputPath)`.
-On platforms that output a folder (Android APK, WebGL) `OutputPath` is the product
-file or folder itself. `Settings` is a
+**No `Configuration` property.** Unlike the audit context, the post-process context exposes
+only `Settings` (the raw settings asset) — there is no `Configuration` property giving the
+profile-resolved effective values. If your post-processor needs the effective failure threshold
+or build profile name for the current run, read them from `Settings.general.failureThreshold`
+and use `DI.Resolve<ReleaseGuardEnvironment>().ResolveConfiguration(BuildReport)` if you need
+the fully resolved runtime state.
+
+For file outputs, the build output directory is
+`System.IO.Path.GetDirectoryName(context.OutputPath)`. For folder outputs (for
+example WebGL), `OutputPath` is the product folder itself. Check
+`Directory.Exists(context.OutputPath)` before falling back to `Path.GetDirectoryName`.
+`Settings` is a
 `ReleaseGuard.Editor.Config.ReleaseGuardSettings`; `BuildReport` and `BuildTarget`
 come from `UnityEditor.Build.Reporting` / `UnityEditor`.
 
@@ -112,7 +123,7 @@ public sealed class BuildTimestampPostProcessor : ReleasePostProcessor
 
     public override void PostProcess(ReleasePostProcessContext context)
     {
-        var dir = Path.GetDirectoryName(context.OutputPath);
+        var dir = ResolveOutputFolder(context.OutputPath);
         if (string.IsNullOrEmpty(dir) || !Directory.Exists(dir))
         {
             context.Warning("Could not resolve the build output directory.");
@@ -123,6 +134,9 @@ public sealed class BuildTimestampPostProcessor : ReleasePostProcessor
         File.WriteAllText(Path.Combine(dir, "build-timestamp.txt"), stamp);
         context.Info($"Wrote build-timestamp.txt ({stamp}).");
     }
+
+    private static string ResolveOutputFolder(string outputPath) =>
+        Directory.Exists(outputPath) ? outputPath : Path.GetDirectoryName(outputPath);
 }
 ```
 
@@ -140,5 +154,5 @@ public sealed class BuildTimestampPostProcessor : ReleasePostProcessor
   context.ReleaseGuard.Registries.PostProcessors.Register(new MyPostProcessor());
   ```
 
-Disable a discovered post-processor by adding its `Id` to
+Disable a registered or discovered post-processor by adding its `Id` to
 `Post-Processors > Discovery > Disabled Post-Processor Ids`.

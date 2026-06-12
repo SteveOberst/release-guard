@@ -1,47 +1,56 @@
-# Plugin Settings and Custom Renderers
+# Plugin Settings and Custom Readers
 
 A [plugin](plugins.md) can expose its own settings page in `Edit > Project Settings > Release Guard`.
-Release Guard stores one `ScriptableObject` asset per plugin, generates the Project Settings sub-page
-automatically, and renders each field with the same widgets as the built-in pages. This guide covers
-the full workflow from declaring a settings class through adding a custom field type and teaching the
-renderer how to display it.
+Release Guard stores one `ScriptableObject` asset per plugin and generates the sub-page
+automatically from its fields. This guide covers the full workflow: declaring a settings class,
+controlling how fields render, adding custom sections, and extending the pipeline with
+custom readers.
 
 See also the [attributes reference](../reference/attributes.md) and the
 [settings reference](../reference/settings.md).
 
 ## Declaring a settings class
 
-Subclass `ReleaseGuardPluginSettings` (namespace `ReleaseGuard.Editor.Core.Plugins`). It derives from
-`ScriptableObject`. Declare public serialized fields - each becomes a row on the generated page.
+Subclass `ReleaseGuardPluginSettings` (namespace `ReleaseGuard.Editor.Core.Plugins`). It derives
+from `ScriptableObject`. Declare serialized instance fields -- public fields or non-public
+fields marked `[SerializeField]` -- and each becomes a row on the generated page.
 
 ```csharp
-using ReleaseGuard;                              // ReleaseIssueSeverity
-using ReleaseGuard.Editor.Core.Config;           // SettingsSection, SettingsConditionalWarning
-using ReleaseGuard.Editor.Core.Config.Types;     // ExclusionList
-using ReleaseGuard.Editor.Core.Plugins;          // ReleaseGuardPluginSettings
-using UnityEngine;                               // Tooltip
+using ReleaseGuard;
+using ReleaseGuard.Editor.Core.Config.Attributes;
+using ReleaseGuard.Editor.Core.Config.Types;
+using ReleaseGuard.Editor.Core.Plugins;
+using UnityEngine;
 
 namespace ExamplePlugin
 {
+    [SettingsPage("Example Plugin", intro: "Controls for the example auditor.")]
     public sealed class ExamplePluginSettings : ReleaseGuardPluginSettings
     {
-        [SettingsSection("Behavior")]
-        [Tooltip("When enabled, the example auditor fires on every release build.")]
+        [SettingsHeader("Behavior")]
+        [Tooltip("When enabled, the example auditor reports a finding on every release build.")]
         public bool strictMode = false;
 
-        [SettingsConditionalWarning("Strict mode is on - the example auditor fires on every release build.")]
+        // ConditionalWarning draws a warning box beneath the field while the value is true.
+        [ConditionalWarning("Strict mode is on — ensure this is intentional.")]
         public bool strictModeAcknowledged = false;
 
-        [SettingsSection("Exclusions")]
-        [Tooltip("Asset paths this plugin should ignore. One gitignore-style glob per line.")]
-        public ExclusionList ignoredAssets = new();
-
-        [SettingsSection("Reporting")]
-        [Tooltip("Severity of findings when strict mode is on.")]
+        [SettingsHeader("Reporting")]
+        [Tooltip("Severity of findings reported by the example auditor when strict mode is on.")]
         public ReleaseIssueSeverity findingSeverity = ReleaseIssueSeverity.Warning;
+
+        // ExclusionList gives the field a "Preview matching assets" foldout in Project Settings.
+        // Use it instead of List<string> whenever the field represents asset-path exclusions.
+        [SettingsHeader("Exclusions")]
+        public ExclusionList ignoredAssets = new();
     }
 }
 ```
+
+`ExclusionList` (namespace `ReleaseGuard.Editor.Core.Config.Types`) is the right field type for
+any setting that accepts asset-path exclusion patterns. It serializes as a `List<string>` but
+renders with a live "Preview matching assets" foldout in the settings UI. Use `List<string>`
+only for lists that are not asset-path exclusions — the built-in renderer treats them differently.
 
 Wire it to the plugin by returning its type from `SettingsType`, then read it with `GetSettings<T>()`:
 
@@ -63,287 +72,277 @@ When `SettingsType` is non-null the framework loads or creates the asset at:
 Assets/ReleaseGuard/Plugins/{PluginId}.asset
 ```
 
-The folder is created on first use. If an asset already exists at that path but is a different settings
-type the framework throws an `InvalidOperationException` naming both types - rename or remove the stale
-asset. The Project Settings sub-page is placed automatically under the Release Guard tree.
+The folder is created on first use. If an asset already exists at that path but is a different
+settings type the framework throws an `InvalidOperationException` naming both types -- rename or
+remove the stale asset.
 
-## Field types the default renderer handles
+## How fields are rendered
 
-The default renderer walks every visible serialized field. Three cases get special widgets; everything
-else falls back to a standard `PropertyField`.
+The framework builds a component tree from the settings class using `SettingsComponentReader`.
+For every visible field it runs a three-pass pipeline:
 
-| Field type | Widget |
+1. **Before pass** -- attribute-based readers that emit components above the field, keyed by
+   attribute type. `[SettingsHeader]` is handled here: it produces a `SectionHeaderComponent`
+   drawn above the field.
+2. **Primary pass** -- the first registered reader whose `CanRead` returns `true` for the
+   field's `FieldInfo`. This produces the main component: a toggle, enum dropdown, text area,
+   exclusion list widget, or a generic `PropertyField` fallback.
+3. **After pass** -- attribute-based readers that emit components below the field.
+   `[ConditionalWarning]` is handled here: it produces a warning box drawn below
+   the toggle it is attached to.
+
+After the primary pass the reader applies every `InjectProperty` annotation on the
+field. This mutates the primary component -- for example `[SettingsLabel]` sets its
+`DisplayName`. Injection runs for all primary readers (builtin and custom) so injection
+attributes work regardless of what produced the component.
+
+Fields are discovered in declaration order across the class hierarchy (base class fields first,
+within each class ordered by `MetadataToken`). Public fields and non-public `[SerializeField]`
+fields are included unless they are static, readonly, `[NonSerialized]`, or `[HideInInspector]`.
+On the root settings object, `[NonSerialized]` `SettingsComponent` fields such as
+`InlineComponent` are also included so code can insert computed sections.
+
+## Attribute summary
+
+All settings attributes are in namespace `ReleaseGuard.Editor.Core.Config.Attributes`.
+Full signatures are in the [attributes reference](../reference/attributes.md).
+
+| Attribute | Target | Effect |
+| --- | --- | --- |
+| `[SettingsPage(label, intro, description?)]` | Class | Page title, intro text, and description shown in the overview link. |
+| `[SettingsHeader("Section")]` | Field | Bold section heading drawn above the field. |
+| `[Tooltip("...")]` | Field | Unity tooltip forwarded to the component. |
+| `[SettingsLabel("Override")]` | Field | Replaces the auto-generated field label. |
+| `[ConditionalWarning("msg")]` | `bool` field | Warning box drawn below the field while the value is `true`. |
+
+## Custom sections with InlineComponent
+
+`InlineComponent` lets you draw a custom section on the page without serializing a field.
+Declare a `[NonSerialized]` public field of type `InlineComponent` on the root settings class
+and initialize it in `OnEnable`. The root reader includes `InlineComponent` fields even though
+they are not serialized.
+
+```csharp
+using System;
+using ReleaseGuard.Editor.Core.Config.Components;
+using ReleaseGuard.Editor.Core.Plugins;
+using UnityEditor;
+
+public sealed class ExamplePluginSettings : ReleaseGuardPluginSettings
+{
+    [NonSerialized]
+    public InlineComponent statusSection;
+
+    private void OnEnable()
+    {
+        statusSection = new InlineComponent("Status", renderer =>
+        {
+            renderer.HelpBox("All systems nominal.", MessageType.Info);
+        });
+    }
+}
+```
+
+`InlineComponent` takes a display name and an `Action<SettingsRenderer>` callback. The
+`SettingsRenderer` parameter provides helpers: `HelpBox`, `Label`, `LineListField`,
+`Section`, `Row`, and `DrawPaddedContent`. The component is positioned relative to other
+fields by declaration order.
+
+## Custom field types with IComponentReader
+
+To control how a specific type or attribute renders, implement `IComponentReader` (namespace
+`ReleaseGuard.Editor.Core.Config.Reader`) and register it via `ConfigureReader`.
+
+```csharp
+public interface IComponentReader
+{
+    ComponentReadOrder Order { get; }  // Before, Primary, or After
+    int Priority { get; }              // lower value runs first within the same Order
+    bool CanRead(object source);       // FieldInfo (Primary) or Attribute (Before/After)
+    IEnumerable<SettingsComponent> Read(object source, ReadContext context);
+}
+```
+
+Override `ConfigureReader` on your settings class to register readers:
+
+```csharp
+public override void ConfigureReader(SettingsComponentReader reader)
+{
+    reader.RegisterReader(new SeverityRangeReader());
+}
+```
+
+**Primary readers** receive a `FieldInfo` as `source`. Return one or more `SettingsComponent`
+instances; the first is treated as the primary component for injection purposes.
+Built-in primary readers have known priorities; register at a lower value to take precedence.
+
+**Before and After readers** receive an `Attribute` instance as `source`. Use `Before` for
+components above the field, `After` for components below. In the `After` pass
+`ReadContext.PrimaryComponent` is set, so after-readers can inspect what the primary produced.
+
+### Example -- custom type reader
+
+```csharp
+using System.Collections.Generic;
+using System.Reflection;
+using ReleaseGuard.Editor.Core.Config.Components;
+using ReleaseGuard.Editor.Core.Config.Reader;
+using UnityEditor;
+using UnityEngine;
+
+public sealed class SeverityRangeReader : IComponentReader
+{
+    public ComponentReadOrder Order => ComponentReadOrder.Primary;
+    public int Priority => 0;
+
+    public bool CanRead(object source) =>
+        source is FieldInfo fi && fi.FieldType == typeof(SeverityRange);
+
+    public IEnumerable<SettingsComponent> Read(object source, ReadContext context)
+    {
+        var fi = (FieldInfo)source;
+        yield return new InlineComponent(ObjectNames.NicifyVariableName(fi.Name), renderer =>
+        {
+            // bind property and draw custom inline layout
+            var prop = (context.Instance as UnityEngine.Object) == null ? null
+                : new SerializedObject(context.Instance as UnityEngine.Object)
+                    .FindProperty(fi.Name);
+            if (prop == null) return;
+            var min = prop.FindPropertyRelative("min");
+            var max = prop.FindPropertyRelative("max");
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField(prop.displayName,
+                GUILayout.Width(EditorGUIUtility.labelWidth));
+            EditorGUILayout.PropertyField(min, GUIContent.none, GUILayout.Width(100));
+            EditorGUILayout.LabelField("to", GUILayout.Width(20));
+            EditorGUILayout.PropertyField(max, GUIContent.none, GUILayout.Width(100));
+            EditorGUILayout.EndHorizontal();
+        });
+    }
+}
+```
+
+For most custom types the built-in fallback (`PropertyField` with `includeChildren: true`)
+is adequate. Write a custom reader only when the default layout is wrong for your type.
+
+### Example -- custom attribute reader
+
+```csharp
+using System;
+using System.Collections.Generic;
+using ReleaseGuard.Editor.Core.Config.Components;
+using ReleaseGuard.Editor.Core.Config.Reader;
+using UnityEditor;
+
+[AttributeUsage(AttributeTargets.Field)]
+public sealed class RequiresRestartAttribute : Attribute { }
+
+public sealed class RequiresRestartReader : IComponentReader
+{
+    public ComponentReadOrder Order => ComponentReadOrder.After;
+    public int Priority => 0;
+
+    public bool CanRead(object source) => source is RequiresRestartAttribute;
+
+    public IEnumerable<SettingsComponent> Read(object source, ReadContext context)
+    {
+        yield return new InlineComponent("RequiresRestart", renderer =>
+            renderer.HelpBox(
+                "Changing this setting requires an Editor restart.",
+                MessageType.Info));
+    }
+}
+```
+
+Register it in `ConfigureReader`. Any field annotated with `[RequiresRestart]` now shows the
+help box beneath it.
+
+## InjectProperty -- custom field mutations
+
+`InjectProperty` (namespace `ReleaseGuard.Editor.Core.Config.Attributes`) is a
+lighter extension point: instead of producing new components, it mutates the primary component
+that an existing reader already produced.
+
+```csharp
+using System;
+using ReleaseGuard.Editor.Core.Config.Components;
+
+[AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
+public abstract class InjectProperty : Attribute
+{
+    protected virtual Type TargetComponentType => typeof(SettingsComponent);
+    protected abstract void Apply(SettingsComponent component);
+}
+```
+
+`TargetComponentType` filters by component type. `TryApply` (called by the reader) skips
+the component when it does not match, so the cast inside `Apply` is always safe.
+
+The built-in `[SettingsLabel]` is implemented this way: it targets `SerializedFieldComponent`
+and sets `component.DisplayName = Label`. To write your own:
+
+```csharp
+using System;
+using ReleaseGuard.Editor.Core.Config.Attributes;
+using ReleaseGuard.Editor.Core.Config.Components;
+
+[AttributeUsage(AttributeTargets.Field)]
+public sealed class MyFlagAttribute : InjectProperty
+{
+    protected override Type TargetComponentType => typeof(SerializedFieldComponent);
+
+    protected override void Apply(SettingsComponent component)
+    {
+        var sfc = (SerializedFieldComponent)component;
+        // mutate sfc here
+    }
+}
+```
+
+No `ConfigureReader` registration is needed. Any `InjectProperty` attribute placed
+on a field is applied automatically by `SettingsComponentReader` when that field is
+read.
+
+## SettingsRenderer helpers
+
+`InlineComponent` callbacks receive a `SettingsRenderer` (namespace
+`ReleaseGuard.Editor.Core.Config.Renderer`). The helpers available on it:
+
+| Method | Signature | Effect |
+| --- | --- | --- |
+| `HelpBox` | `static void HelpBox(string text, MessageType type)` | Draws a Unity help box (Info/Warning/Error icon). |
+| `Label` | `static void Label(string text)` | Draws a plain label field. |
+| `Section` | `void Section(string title)` | Draws a bold section heading with top spacing. |
+| `Row` | `static void Row(Action draw)` | Wraps `draw` in a horizontal layout group. |
+| `DrawPaddedContent` | `void DrawPaddedContent(Action draw)` | Wraps `draw` in the standard page padding and label-width. Use this as the outermost wrapper when drawing a full custom section to match the built-in pages' look. |
+| `LineListField` | `void LineListField(SerializedProperty prop, string hint)` | Draws a multiline text area for a `List<string>` serialized property, one entry per line. |
+| `LineListField` | `void LineListField(SerializedProperty prop, string displayName, string hint)` | Same, with an explicit display name overriding `prop.displayName`. |
+| `LineListField` | `void LineListField(SerializedProperty prop, string hint, float minLines)` | Same, with an explicit minimum line height. |
+
+`MessageType` is `UnityEditor.MessageType`. `SerializedProperty` is from
+`UnityEditor`.
+
+## ExclusionList
+
+`ExclusionList` (`ReleaseGuard.Editor.Core.Config.Types`) is a serializable wrapper around
+`List<string> patterns`. Use it instead of a bare `List<string>` when the field represents
+asset-path exclusions and you want the live "Preview matching assets" foldout. The built-in
+reader handles it automatically.
+
+## Component type reference
+
+All types below are in namespace `ReleaseGuard.Editor.Core.Config.Components`.
+
+| Type | Description |
 | --- | --- |
-| `ExclusionList` (`ReleaseGuard.Editor.Core.Config.Types.ExclusionList`) | Multiline pattern text area (one glob per line) followed by a collapsible "Preview matching assets" foldout. |
-| `List<string>` | Multiline text area, one entry per line. |
-| Any other serialized type | Standard `EditorGUILayout.PropertyField` with children. |
-
-`ExclusionList` is a serializable wrapper around `public List<string> patterns`. Use it instead of a
-bare `List<string>` when the field represents asset-path exclusions and you want the live preview.
-
-## Settings attributes
-
-These attributes control layout and warnings. All live in `ReleaseGuard.Editor.Core.Config` unless noted.
-
-| Attribute | Target | Effect |
-| --- | --- | --- |
-| `[SettingsSection("Heading")]` | field | Draws a bold section heading above the field. Unlike Unity's `[Header]`, works consistently for both scalar and list fields. |
-| `[SettingsConditionalWarning("message")]` | `bool` field | While the field value is `true`, draws a warning help box beneath the toggle. |
-| `[Tooltip("...")]` | field | Standard Unity tooltip / hint text, shown as the field's hint line. |
-
-The following attributes build the auto-generated overview/leaf page tree. For a simple flat plugin
-settings object you will not need these - they apply to multi-page settings trees built on
-`ReleaseGuardSettings` itself:
-
-| Attribute | Target | Effect |
-| --- | --- | --- |
-| `[SettingsPage(order, label, intro, description)]` | sub-object field | Promotes a sub-object field to its own leaf page. |
-| `[SettingsIntro("text")]` | class | Intro text shown at the top of the root overview page. |
-| `[SettingsStatus]` | string property | Value shown in the overview "Status" section. |
-| `[SettingsAction("Label", order)]` | parameterless method | Renders a button in the overview "Actions" row. |
-
-## Custom rendering
-
-### Level 1 - subclass SettingsRenderer
-
-For a custom section order, intro text, or per-field tweaks, subclass `SettingsRenderer`
-(namespace `ReleaseGuard.Editor.Core.Config`) and override `DrawSerializedObject`:
-
-```csharp
-using ReleaseGuard.Editor.Core.Config;
-using UnityEditor;
-
-public sealed class MyPluginRenderer : SettingsRenderer
-{
-    public override void DrawSerializedObject(SerializedObject so)
-    {
-        // Custom layout here. Call base for the default field walk.
-        base.DrawSerializedObject(so);
-    }
-}
-```
-
-Return it from the settings object:
-
-```csharp
-private readonly MyPluginRenderer _renderer = new();
-public override ISettingsRenderer Renderer => _renderer;
-```
-
-`SettingsRenderer` inherits layout helpers from `SettingsRenderPrimitives`, including `Section(string)`,
-`HelpBox(string, MessageType)`, `LineListField(SerializedProperty, string)`,
-`ExclusionListField(SettingsField)`, and `ExclusionPreview(SerializedProperty)`.
-
-### Level 2 - add a custom field type with a custom renderer
-
-The more interesting scenario: you have a custom C# type in your settings and want the settings page
-to display it in a specific way, rather than falling back to Unity's default `PropertyField` foldout.
-The workflow has three steps.
-
-**Step 1 - define the custom type.**
-
-Any `[Serializable]` struct or class works. Example: a severity range (min + max):
-
-```csharp
-using System;
-using ReleaseGuard;
-
-namespace ExamplePlugin
-{
-    [Serializable]
-    public sealed class SeverityRange
-    {
-        public ReleaseIssueSeverity min = ReleaseIssueSeverity.Warning;
-        public ReleaseIssueSeverity max = ReleaseIssueSeverity.Error;
-    }
-}
-```
-
-Add a field of that type to the settings class:
-
-```csharp
-[SettingsSection("Severity")]
-[Tooltip("Minimum and maximum severity the example auditor will report.")]
-public SeverityRange severityRange = new();
-```
-
-Without a custom renderer this renders as a foldout with two enum dropdowns (the default
-`PropertyField` with children). The next steps replace that with something purpose-built.
-
-**Step 2 - implement ITypeRenderer.**
-
-`ITypeRenderer` (namespace `ReleaseGuard.Editor.Core.Config`) has one method:
-
-```csharp
-void Render(SettingsField field, SettingsRenderer renderer);
-```
-
-`SettingsField` carries `SerializedProperty Property`, `FieldInfo FieldInfo`, `string Name`,
-`string Tooltip`, `bool IsStringList`, and `bool IsExclusionList`. Use the `renderer` helpers or
-Unity's `EditorGUILayout` APIs directly:
-
-```csharp
-using ReleaseGuard.Editor.Core.Config;
-using UnityEditor;
-using UnityEngine;
-
-namespace ExamplePlugin
-{
-    public sealed class SeverityRangeRenderer : ITypeRenderer
-    {
-        public void Render(SettingsField field, SettingsRenderer renderer)
-        {
-            var minProp = field.Property.FindPropertyRelative("min");
-            var maxProp = field.Property.FindPropertyRelative("max");
-
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField(field.Property.displayName,
-                GUILayout.Width(EditorGUIUtility.labelWidth));
-            EditorGUILayout.PropertyField(minProp, GUIContent.none, GUILayout.Width(100));
-            EditorGUILayout.LabelField("to", GUILayout.Width(20));
-            EditorGUILayout.PropertyField(maxProp, GUIContent.none, GUILayout.Width(100));
-            EditorGUILayout.EndHorizontal();
-
-            if (!string.IsNullOrEmpty(field.Tooltip))
-                renderer.HelpBox(field.Tooltip, MessageType.None);
-        }
-    }
-}
-```
-
-**Step 3 - register the renderer.**
-
-Register from a `SettingsRenderer` subclass constructor. The registry is
-`ComponentRenderer.TypeRenderers`, typed as `IRegistry<System.Type, ITypeRenderer>`:
-
-```csharp
-using ReleaseGuard.Editor.Core.Config;
-
-namespace ExamplePlugin
-{
-    public sealed class ExamplePluginRenderer : SettingsRenderer
-    {
-        public ExamplePluginRenderer()
-        {
-            ComponentRenderer.TypeRenderers.Register(typeof(SeverityRange), new SeverityRangeRenderer());
-        }
-    }
-}
-```
-
-Return the renderer from the settings class:
-
-```csharp
-private readonly ExamplePluginRenderer _renderer = new();
-public override ISettingsRenderer Renderer => _renderer;
-```
-
-The settings page now draws `SeverityRange` fields as a compact inline min/max row. All other fields
-continue to use their default renderers.
-
-**Registration rules:**
-
-- Built-in entries for `ExclusionList` and `List<string>` are registered as defaults and can be overridden.
-- A second `Register(...)` call for the same type is a silent no-op that returns `false`.
-- When no renderer is registered for a type, the fallback is `EditorGUILayout.PropertyField(field.Property, includeChildren: true)`.
-
-## Full example
-
-Putting it together - plugin, settings with a custom type, custom renderer, and loader:
-
-```csharp
-// SeverityRange.cs
-using System;
-using ReleaseGuard;
-
-namespace ExamplePlugin
-{
-    [Serializable]
-    public sealed class SeverityRange
-    {
-        public ReleaseIssueSeverity min = ReleaseIssueSeverity.Warning;
-        public ReleaseIssueSeverity max = ReleaseIssueSeverity.Error;
-    }
-}
-
-// SeverityRangeRenderer.cs
-using ReleaseGuard.Editor.Core.Config;
-using UnityEditor;
-using UnityEngine;
-
-namespace ExamplePlugin
-{
-    public sealed class SeverityRangeRenderer : ITypeRenderer
-    {
-        public void Render(SettingsField field, SettingsRenderer renderer)
-        {
-            var minProp = field.Property.FindPropertyRelative("min");
-            var maxProp = field.Property.FindPropertyRelative("max");
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField(field.Property.displayName,
-                GUILayout.Width(EditorGUIUtility.labelWidth));
-            EditorGUILayout.PropertyField(minProp, GUIContent.none, GUILayout.Width(100));
-            EditorGUILayout.LabelField("to", GUILayout.Width(20));
-            EditorGUILayout.PropertyField(maxProp, GUIContent.none, GUILayout.Width(100));
-            EditorGUILayout.EndHorizontal();
-        }
-    }
-}
-
-// ExamplePluginSettings.cs
-using ReleaseGuard.Editor.Core.Config;
-using ReleaseGuard.Editor.Core.Plugins;
-using UnityEngine;
-
-namespace ExamplePlugin
-{
-    public sealed class ExamplePluginSettings : ReleaseGuardPluginSettings
-    {
-        [SettingsSection("Severity")]
-        [Tooltip("Severity range the example auditor will report within.")]
-        public SeverityRange severityRange = new();
-
-        private readonly ExamplePluginRenderer _renderer = new();
-        public override ISettingsRenderer Renderer => _renderer;
-    }
-
-    public sealed class ExamplePluginRenderer : SettingsRenderer
-    {
-        public ExamplePluginRenderer()
-        {
-            ComponentRenderer.TypeRenderers.Register(typeof(SeverityRange), new SeverityRangeRenderer());
-        }
-    }
-}
-
-// ExamplePlugin.cs
-using ReleaseGuard.Editor.Core.DI;
-using ReleaseGuard.Editor.Core.Plugins;
-using ReleaseGuard.Editor.Core.Runtime;
-using UnityEditor;
-
-namespace ExamplePlugin
-{
-    public sealed class ExamplePlugin : ReleaseGuardPlugin
-    {
-        public override string PluginId    => "com.example.example-plugin";
-        public override string DisplayName => "Example Plugin";
-        public override System.Type SettingsType => typeof(ExamplePluginSettings);
-
-        public override void Register(PluginRegistrationContext context)
-        {
-            var settings = GetSettings<ExamplePluginSettings>();
-            context.ReleaseGuard.Registries.Auditors.Register(new ExampleAuditor(settings));
-        }
-    }
-
-    [InitializeOnLoad]
-    internal static class ExamplePluginLoader
-    {
-        static ExamplePluginLoader()
-        {
-            DI.Resolve<ReleaseGuardEnvironment>().RegisterPlugin(new ExamplePlugin());
-        }
-    }
-}
-```
+| `SettingsComponent` | Abstract base. Exposes `DisplayName` and `Tooltip`. |
+| `SerializedFieldComponent` | Wraps a `SerializedProperty`. Base for all field components. |
+| `PrimitiveComponent` | Renders simple types (bool, enum, int, float, string, ...). |
+| `StringListComponent` | Renders `List<string>` as a multiline text area. |
+| `ExclusionListComponent` | Renders `ExclusionList` with a pattern text area and asset preview. |
+| `GenericSerializedComponent` | Fallback for unrecognized serializable types (`PropertyField`). |
+| `InlineComponent` | Arbitrary draw callback; also the return type for custom readers. |
+| `SectionHeaderComponent` | Bold heading produced by `[SettingsHeader]`. |
+| `ConditionalWarningComponent` | Warning help box produced by `[ConditionalWarning]`. |
+| `ScreenComponent` | Root container for a full settings page. |
+| `SectionGroupComponent` | Container that groups a nested sub-object's fields. |

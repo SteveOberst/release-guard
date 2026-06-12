@@ -5,10 +5,16 @@ settings, or assets and reports findings. The build is failed when any finding i
 at or above the configured failure threshold (see
 [settings reference](../reference/settings.md)).
 
-Derive from `ReleaseAuditor` in any Editor-platform assembly and the auditor is
-discovered and run automatically when auto-discovery is enabled - no asmdef
-reference changes are required because `ReleaseGuard.Editor` is
-`autoReferenced: true`.
+Derive from `ReleaseAuditor` in any Editor-platform assembly. The auditor only
+runs after you either register it through a plugin or enable auditor
+auto-discovery in Project Settings. Auto-discovery is off by default; explicit
+plugin registration is the recommended production path.
+
+`ReleaseGuard.Editor` is `autoReferenced: true`, so the base type is visible to
+Editor assemblies without an explicit asmdef reference. If you register through
+an `[InitializeOnLoad]` plugin loader, add an explicit asmdef reference to
+`ReleaseGuard.Editor` anyway so Unity's assembly dependency order initializes
+Release Guard before your loader runs.
 
 See also: [built-in auditors](../reference/built-in-auditors.md),
 [plugins](plugins.md), [the audit window guide](../guides/audit-window.md).
@@ -51,6 +57,12 @@ It implements `IReleaseGuardRegistryItem`.
 `ReleaseAuditContext` (namespace `ReleaseGuard.Editor.Core.Audit`) carries the run
 state and the reporting API.
 
+> **`BuildReport` is `null` during manual audits.** Any code path in your auditor that
+> touches `context.BuildReport` must null-check it first. Manual audits from the audit
+> window run without an active build, so `BuildReport` is always `null` there. Only use
+> it when the context of the finding genuinely requires build-time information that is
+> not available from `PlayerSettings` or the file system.
+
 ### Reporting methods
 
 | Method | Signature |
@@ -85,12 +97,42 @@ state and the reporting API.
 `Settings` is a `ReleaseGuard.Editor.Config.ReleaseGuardSettings`. `BuildReport`
 and `BuildTarget` come from `UnityEditor.Build.Reporting` / `UnityEditor`.
 
+**`Settings` vs `Configuration`:** these are two distinct objects. `Settings` is the raw
+settings asset — the committed values that live in version control. `Configuration` is the
+resolved, per-run state after applying any Build Profile override and the development-build
+exemption. In the overwhelming majority of auditors, reading from `context.Settings` is
+correct (e.g. checking `context.Settings.auditors.requireIl2Cpp`). Use `context.Configuration`
+when you need the resolved gate behavior — for example, to read the effective failure threshold
+or to check whether Release Guard is enabled for this particular run:
+
+```csharp
+public override void Evaluate(ReleaseAuditContext context)
+{
+    // The resolved failure threshold, after any Build Profile override.
+    var threshold = context.Configuration.FailureThreshold;
+
+    // The active Build Profile name (null if no profile is active).
+    var profile = context.Configuration.BuildProfileName;
+}
+```
+
+`ReleaseGuardConfiguration` exposes: `Enabled` (`bool`), `IsDevelopmentBuild` (`bool`),
+`BuildProfileName` (`string`, nullable), `FailureThreshold` (`ReleaseIssueSeverity`).
+
 ## Priority and ShouldRun
 
-`Priority` orders auditors; lower runs first. Use a negative value to run before
-the built-ins (which all default to `0`). `ShouldRun` is a gate - return `false`
-to skip the auditor for the current run. Use `context.IsForPlatform(...)` to
-restrict to a platform.
+`Priority` orders auditors ascending: lower number runs first. The default is `0`, which
+runs alongside the built-ins. Use a negative value to run before them; a positive value to
+run after. `ShouldRun` is a gate — return `false` to skip the auditor for the current run.
+Use `context.IsForPlatform(...)` to restrict to a platform.
+
+**`ShouldRun` vs early-returning inside `Evaluate`:** both work, but they have different
+visibility. An auditor that returns `false` from `ShouldRun` appears in the audit window's
+`Registered auditors` foldout with zero findings and a "clean" label — confirming it ran but
+had nothing to report. An auditor that returns early inside `Evaluate` produces the same
+outcome. Prefer `ShouldRun` for structural conditions (wrong platform, feature not installed,
+check turned off in settings) and early-return inside `Evaluate` for dynamic conditions found
+during the check itself.
 
 ```csharp
 using ReleaseGuard.Editor.Core.Audit;
@@ -135,6 +177,24 @@ public sealed class CompanyNameAuditor : ReleaseAuditor
 }
 ```
 
+## Platform-specific PlayerSettings
+
+Many `PlayerSettings` APIs take a `NamedBuildTarget` rather than a `BuildTarget`. To convert the
+`context.BuildTarget` value:
+
+```csharp
+using UnityEditor;
+using UnityEditor.Build;
+
+var namedTarget = NamedBuildTarget.FromBuildTargetGroup(
+    BuildPipeline.GetBuildTargetGroup(context.BuildTarget));
+var backend = PlayerSettings.GetScriptingBackend(namedTarget);
+```
+
+`NamedBuildTarget` lives in `UnityEditor.Build`. The two-step conversion
+(`BuildTarget` → `BuildTargetGroup` → `NamedBuildTarget`) is the standard idiom for any
+`PlayerSettings` method that does not accept a plain `BuildTarget`.
+
 ## Registration options
 
 - **Auto-discovery (zero registration).** Enable
@@ -150,5 +210,5 @@ public sealed class CompanyNameAuditor : ReleaseAuditor
   context.ReleaseGuard.Registries.Auditors.Register(new MyAuditor(settings));
   ```
 
-Disable a discovered auditor by adding its `Id` to
+Disable a registered or discovered auditor by adding its `Id` to
 `Auditors > Discovery > Disabled Auditor Ids`.

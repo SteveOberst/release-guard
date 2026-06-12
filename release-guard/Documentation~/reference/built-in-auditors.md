@@ -30,6 +30,12 @@ Auditors report findings in three ways:
 Every finding that carries an asset path is run through the asset-exclusion list
 before being recorded (see [guides/asset-exclusions](../guides/asset-exclusions.md)).
 
+If an auditor throws an uncaught exception, the executor catches it, logs the stack
+trace to the Console, and adds a `Warning`-severity finding attributed to that auditor
+with the message `"Auditor '{id}' failed to run: {message}"`. The run continues with
+the remaining auditors — one bad auditor never aborts the whole audit. Treat this
+Warning as a bug in the auditor that needs fixing.
+
 ## Execution order
 
 Auditors run in `Priority` order (lower runs first). Only one built-in overrides
@@ -53,7 +59,7 @@ the default priority of `0`:
 | `release_forbidden` | Release-forbidden members | No `[ReleaseForbidden]` members in shipping assemblies | Per-attribute (default Error) | always runs |
 | `android_debuggable` | Android debuggable templates | No explicit `debuggable=true` in Android templates | Error | platform == Android |
 | `webgl_exception_support` | WebGL exception support | Exception support is not a Full mode | Advisory (Warning or Info) | platform == WebGL |
-| `strip_engine_code` | Engine code stripping | `PlayerSettings.stripEngineCode` is enabled | Advisory (Info) | always runs |
+| `strip_engine_code` | Engine code stripping | Flags `PlayerSettings.stripEngineCode == false` | Advisory (Info) | always runs |
 | `stack_trace_type` | Stack trace log types | No log channel uses Full stack traces | Advisory (Info) | always runs |
 | `insecure_http` | Insecure HTTP option | Cleartext HTTP is not `AlwaysAllowed` | Advisory (Warning) | always runs |
 | `burst_debug` | Burst AOT debug settings | Burst optimizations on, native debug off | Advisory (Warning) | Burst AOT settings type is present |
@@ -84,21 +90,31 @@ the default priority of `0`:
   Level: set to {required} or higher."
 - Advisories:
   - `managed_stripping.below_medium` (severity Warning) - raised when the actual
-    level is below Medium.
+    level is below Medium, **independently of the configured minimum**. This means
+    if you deliberately lower `minManagedStrippingLevel` to `Low` or `Minimal`,
+    you will still receive this advisory. Suppress it with "Don't show again" in
+    the audit window once you have consciously accepted the lower stripping level.
   - `managed_stripping.low_deprecated` (severity Warning) - raised when the level
-    is exactly Low (marked for future deprecation in Unity).
+    is exactly `Low`. Unity has marked `Low` for future deprecation; this advisory
+    prompts migration before it becomes an error in a later Unity version.
 
 ### development_build - Development build disabled
 
 - DisplayName: `Development build disabled`
 - ShouldRun: `context.Settings.auditors.forbidDevelopmentBuild`
-- Checks: if `context.IsDevelopmentBuild` is true, reports an Error. Note: when
-  `general.skipOnDevelopmentBuilds` is on (the default), real dev builds are
-  exempted before any auditor runs, so this mainly serves as a heads-up in the
-  manual audit window.
+- Checks: if `context.IsDevelopmentBuild` is true, reports an Error.
 - Severity: Error
 - Fix hint: "Disable 'Development Build' in Build Settings (or your Build Profile)
   before releasing."
+
+> **Interaction with `skipOnDevelopmentBuilds`:** With the default settings
+> (`skipOnDevelopmentBuilds = true`), Release Guard skips every build stage entirely
+> when the Development Build flag is set — this auditor never runs during a real
+> development build. This auditor becomes meaningful only when `skipOnDevelopmentBuilds`
+> is turned off (i.e. you want Release Guard to audit all builds regardless of the
+> development flag), and a development build slips through to the gate. With default
+> settings its primary value is in the manual audit window, where it flags the current
+> Build Settings state.
 
 ### script_debugging - Script debugging disabled
 

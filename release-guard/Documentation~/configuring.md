@@ -25,16 +25,19 @@ the same gate.
 
 ### `enabled`
 
-On by default. The master switch - when off, Release Guard never runs.
+On by default. The master switch for real build stages - when off, Release Guard does not gate
+builds and does not run post-build pipelines.
 
-Every pipeline stage silently skips: no pre-build audit, no post-build transforms, no
-post-processors. **When to disable:** temporarily, to unblock a build during a debugging
-session. For environment-specific relaxation, reach for `profileOverrides` instead so the
-gate still applies everywhere else.
+Every real build stage silently skips: no pre-build audit gate, no post-build transforms, no
+post-processors. The manual audit window remains informational and can still run auditors on
+demand. **When to disable:** temporarily, to unblock a build during a debugging session. For
+environment-specific relaxation, reach for `profileOverrides` instead so the gate still applies
+everywhere else.
 
 ### `skipOnDevelopmentBuilds`
 
-On by default. Skips all Release Guard checks for builds made with `Development Build` enabled.
+On by default. Skips all Release Guard build stages for builds made with `Development Build`
+enabled.
 
 Development builds are internal. They intentionally carry debugger attachments, profiler
 connections, and test scaffolding - auditing them against release rules produces noise for no
@@ -51,13 +54,20 @@ Defaults to `Error`. A build is blocked when any finding is at or above this sev
   accumulation.
 - `Info` - everything blocks, including advisories. Usually too strict to be practical.
 
-Note that advisories are `Info`-level, so they pass through at `Warning` and `Error`
-thresholds regardless. Use the "Don't show again" button in the audit window to permanently
-suppress specific advisories you have reviewed and accepted.
+The default is strict about hard release mistakes such as Mono scripting backend, development
+build flags, script debugging, profiler connection, broad preserve rules, and
+`[ReleaseForbidden]` errors. It is intentionally advisory for several best-practice checks.
+For example, a managed stripping level below the configured minimum reports a `Warning`, so it
+does not block while the threshold remains `Error`.
+
+Advisories carry their own severity, commonly `Info` or `Warning`. They pass through at the
+default `Error` threshold. Warning-level advisories become blocking only if you set
+`failureThreshold` to `Warning` or lower. Use the "Don't show again" button in the audit window
+to permanently suppress specific advisories you have reviewed and accepted.
 
 ### `verboseLogging`
 
-Off by default. Emits extra diagnostics to the Console: which auditors were discovered, which
+Off by default. Emits extra diagnostics to the Console: which auditors were registered, which
 skipped and why, finding counts per auditor, and timing. **When to enable:** diagnosing why
 a custom check is not running, or verifying a new plugin is being picked up. Leave it off in
 production.
@@ -70,8 +80,8 @@ replace the global values for that build.
 
 Common patterns:
 
-- A "Staging" profile with `failureThreshold: Warning` to catch problems early without
-  blocking the staging pipeline.
+- A "Staging" profile with `failureThreshold: Warning` to catch problems early by blocking on
+  warnings before they reach production.
 - A "QA Distribution" profile with `enabled: false` for internal builds where the full gate
   is not yet appropriate.
 - A "Production" profile with a stricter threshold than the global default.
@@ -118,8 +128,16 @@ Mono builds.
 
 On by default, severity Error. Blocks the build if the `Development Build` checkbox is on.
 
-Combined with `skipOnDevelopmentBuilds`, this catches a specific failure mode: a CI pipeline
-that builds with the development flag set by mistake and reaches the release gate anyway.
+**Interaction with `skipOnDevelopmentBuilds`:** these two settings are independent, not
+complementary. With `skipOnDevelopmentBuilds = true` (the default), Release Guard skips all
+build stages when the Development Build flag is set, so this auditor never fires during a real
+development build. `forbidDevelopmentBuild` becomes meaningful only when `skipOnDevelopmentBuilds`
+is disabled — a project that audits all builds regardless of the development flag, where this
+auditor then blocks any build that arrives at the gate with the development flag still set.
+
+With default settings, the value of `forbidDevelopmentBuild` is largely in the manual audit
+window, where it reports the current Build Settings state as an Error.
+
 **When to disable:** your team intentionally distributes development builds to a tester group
 and considers it acceptable. The cleaner approach is a Build Profile override so the check
 still applies to production.
@@ -144,8 +162,9 @@ for that case, not the global setting.
 
 ### `minManagedStrippingLevel`
 
-Defaults to `Medium`. Sets a minimum managed code stripping level; the build is blocked if the
-project is configured below it.
+Defaults to `Medium`. Sets a minimum managed code stripping level. If the project is configured
+below it, Release Guard reports a `Warning`; that warning blocks only when `failureThreshold` is
+`Warning` or lower.
 
 Stripping removes unreachable types, methods, and fields from compiled assemblies. Less code
 ships, the binary is smaller, and reverse-engineering is harder. Options from least to most
@@ -159,6 +178,14 @@ aggressive: `Disabled`, `Minimal`, `Low`, `Medium`, `High`.
   consequences first.
 - Raise to `High` for maximum hardening. Expect to write `link.xml` rules or add `[Preserve]`
   attributes for anything accessed by reflection. Test thoroughly.
+
+**Note on advisories:** two advisories fire independently of this setting. The
+`managed_stripping.below_medium` advisory fires whenever the actual stripping level is below
+`Medium`, regardless of your configured minimum — so if you intentionally set the minimum to
+`Low`, you will still receive that advisory until you suppress it via "Don't show again" in the
+audit window. The `managed_stripping.low_deprecated` advisory fires when the actual level is
+exactly `Low`, which Unity has marked for future deprecation. See
+[reference/built-in-auditors](reference/built-in-auditors.md).
 
 ### `forbidBroadPreserve`
 
@@ -175,18 +202,30 @@ have accepted that tradeoff. Document it.
 ### `autoDiscoverAuditors`
 
 Off by default. When on, discovers every `ReleaseAuditor` subclass via TypeCache and runs
-them all (excluding built-ins and test fixtures).
+them all (excluding test fixtures and types that live in the `ReleaseGuard.Editor` package
+assembly itself).
 
 Leave this off. Register custom auditors explicitly through a plugin with `[InitializeOnLoad]`.
 Auto-discovery picks up any subclass in any Editor-included assembly, including experimental
 or in-progress code you may not want running in production. Explicit registration gives you
 full control over what runs. See [api/plugins](api/plugins.md).
 
+**Test auditor exclusion:** any `ReleaseAuditor` subclass you write solely for tests must be
+marked with `[TestAuditorFixture]` (from `ReleaseGuard.Editor.Core.Audit`) to prevent
+auto-discovery from picking it up in real audit runs. Without this attribute, a test auditor
+class in any Editor assembly is treated as a production auditor when `autoDiscoverAuditors` is
+on. See [reference/attributes](reference/attributes.md).
+
 ### `disabledAuditorIds`
 
 Empty by default. Auditor ids to exclude from every run. Works for both built-in and custom
 auditors. See [reference/built-in-auditors](reference/built-in-auditors.md) for the id of
 each built-in.
+
+**Ids are matched case-sensitively and must be lowercase.** Internally, all auditor ids are
+normalized to lowercase on registration. The lookup `e == id` compares your entry against
+the normalized (lowercase) id, so `"Scripting_Backend"` would never match `"scripting_backend"`.
+Always enter ids exactly as shown in the documentation (all lowercase, snake_case).
 
 Prefer this over removing or commenting out an auditor's source code - it is reversible and
 communicates intent clearly in version control.
@@ -203,8 +242,8 @@ the reminder to address it. See [guides/asset-exclusions](guides/asset-exclusion
 
 ### `releaseForbiddenExcludedAssemblies`
 
-Empty by default. Assembly names to skip entirely during the `[ReleaseForbidden]` scan. Names
-are matched case-insensitively without the `.dll` extension.
+Empty by default. Assembly names to skip entirely during the `[ReleaseForbidden]` scan. Enter
+the assembly name without the `.dll` extension; matching is case-insensitive.
 
 The main use case: a third-party assembly you cannot modify that contains `[ReleaseForbidden]`
 members that do not apply to your build. See [guides/release-forbidden](guides/release-forbidden.md).
@@ -271,7 +310,7 @@ patterns.
 
 Off by default. When on, writes `release-guard-manifest.json` next to the build output after
 every release build. The manifest records the Release Guard version, Unity version, build
-target, build GUID, and the active auditors and post-processors.
+target, build GUID, and the active auditors, post-processors, and transformers.
 
 This is a CI artifact, not a file to ship to players. It answers "what was the exact hardening
 configuration for this build?" useful for compliance audits and incident analysis. **When to

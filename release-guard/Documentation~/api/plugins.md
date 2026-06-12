@@ -7,10 +7,19 @@ register it with `[InitializeOnLoad]`, and contribute your custom
 plugins while initializing the Editor-domain `ReleaseGuardEnvironment` and calls each
 plugin's `Register` once.
 
+**Unity Editor domain reloads** — The Unity Editor discards and rebuilds its entire C# scripting
+environment whenever scripts are recompiled, when you enter Play Mode (unless Domain Reload is
+disabled), or when you call `UnityEditor.EditorUtility.RequestScriptReload()`. Each rebuild is
+called a *domain reload*. Types annotated with `[InitializeOnLoad]` have their static constructors
+called once at the end of every domain reload, in assembly-dependency order. This is how Release
+Guard and your plugin loader both get a fresh, deterministic start after every compile — and why
+the environment is created once per domain reload rather than once per Editor session.
+
 Plugins are first-class in the tooling: every registered plugin appears by name in the
-Release Guard window's Plugins foldout, with its id, display name, author, and a list of
-everything it contributed. That visibility makes it easy to confirm your extension is active
-and to diagnose conflicts when multiple plugins contribute to the same registry.
+Release Guard window's Plugins foldout, with its id, display name, and author. The separate
+auditor, post-processor, and transformer foldouts show the final registered items. Together,
+those views make it easy to confirm your extension is active and to diagnose conflicts when
+multiple plugins contribute to the same registry.
 
 ## Plugin vs direct registration
 
@@ -63,6 +72,28 @@ This is the shape used by the shipped sample plugin. The plugin, its settings, a
 its auditor all live in one Editor-only assembly with an asmdef that references
 `ReleaseGuard.Editor` and `ReleaseGuard.Runtime`.
 
+Minimal asmdef shape:
+
+```json
+{
+  "name": "MyReleaseGuardPlugin",
+  "rootNamespace": "MyReleaseGuardPlugin",
+  "references": [
+    "ReleaseGuard.Editor",
+    "ReleaseGuard.Runtime"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "autoReferenced": false
+}
+```
+
+Unity also accepts GUID references, which is what the bundled development host
+uses. The important part is the explicit dependency on `ReleaseGuard.Editor`;
+that dependency gives deterministic `[InitializeOnLoad]` ordering for the loader
+shown below.
+
 ```csharp
 using ReleaseGuard.Editor.Core.DI;
 using ReleaseGuard.Editor.Core.Plugins;
@@ -75,7 +106,7 @@ namespace ExamplePlugin
     {
         public override string PluginId    => "com.example.example-plugin";
         public override string DisplayName => "Example Plugin";
-        public override string Author      => "Researchy Development";
+        public override string Author      => "Your Team";
         public override System.Type SettingsType => typeof(ExamplePluginSettings);
 
         public override void Register(PluginRegistrationContext context)
@@ -147,6 +178,19 @@ internal static class MyPluginLoader
 `DI` is `ReleaseGuard.Editor.Core.DI.DI`; `ReleaseGuardEnvironment` is
 `ReleaseGuard.Editor.Core.Runtime.ReleaseGuardEnvironment`.
 
+**What is `DI`?** Release Guard uses a minimal internal service locator to hold
+the single `ReleaseGuardEnvironment` instance for the current domain load.
+`DI.Resolve<T>()` returns the registered instance of `T`; it throws
+`InvalidOperationException` if the type has not been registered or if the
+container was disposed. It never returns null.
+
+In normal operation `DI.Resolve<ReleaseGuardEnvironment>()` always succeeds when
+called from an `[InitializeOnLoad]` context with the correct asmdef dependency —
+the environment is registered synchronously before any consumer assembly
+initializes. If `Resolve` throws, or `RegisterPlugin` logs a warning that
+initialization is incomplete, the asmdef dependency on `ReleaseGuard.Editor` is
+missing or the plugin is loading from an assembly that doesn't have it.
+
 **Ordering contract.** Release Guard initializes its environment synchronously in
 its own `[InitializeOnLoad]` static constructor
 (`ReleaseGuard.Editor.Core.Runtime.ReleaseGuardStartup`). Unity runs static
@@ -167,7 +211,7 @@ entry point:
 public bool RegisterPlugin(ReleaseGuardPlugin plugin)
 ```
 
-It never throws. It returns `false` (and registers nothing) when:
+It returns `false` (and registers nothing) for the normal guard cases:
 
 - `plugin` is `null`;
 - it is called before the environment finished initializing (this also logs a
@@ -179,8 +223,20 @@ It never throws. It returns `false` (and registers nothing) when:
 
 On success it wires settings (loading or creating the settings asset),
 calls `plugin.Register(...)`, and adds the plugin to the environment's plugin
-list. If `Register` itself throws, the exception is caught and logged - the plugin
-is still added.
+list. If `Register` itself throws, the exception is caught and logged — the plugin
+is still added to the plugin list, but any contributions that `Register` had not
+yet registered before throwing are absent. This means a partially-initialized plugin
+can appear in the Plugins foldout while some of its auditors or post-processors are
+missing. If your `Register` method throws partway through, check the Console for
+the logged exception and treat it as a bug to fix rather than an expected state.
+
+Settings wiring runs **before** the exception handler, so a type-mismatch error
+(e.g. an existing `Assets/ReleaseGuard/Plugins/{PluginId}.asset` whose type no
+longer matches `SettingsType`, typically after renaming the settings class)
+propagates uncaught out of `RegisterPlugin` and then out of your
+`[InitializeOnLoad]` static constructor. Unity logs it as a domain-reload error.
+The fix is to delete or rename the stale asset, then trigger a domain reload
+(recompile or open/close the project).
 
 ## Auto-discovery (not recommended for production)
 
@@ -220,5 +276,5 @@ Override `SettingsType` and return `typeof(YourSettings)` to opt into the settin
 system. The framework then loads or creates the per-plugin asset at
 `Assets/ReleaseGuard/Plugins/{PluginId}.asset` and generates a Project Settings
 sub-page for it automatically. Inside `Register` (or any contributed item) read it
-via `GetSettings<YourSettings>()`. Full details, field widgets, and attributes are
-in [settings.md](settings.md).
+via `GetSettings<YourSettings>()`. Full details on declaring fields, attributes,
+custom sections, and extending the rendering pipeline are in [settings.md](settings.md).

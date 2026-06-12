@@ -11,7 +11,7 @@ namespace ReleaseGuard.Editor.Core.Transforming
     /// All fixture attributes are checked by registry loading.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
-    public sealed class TestTransformerFixtureAttribute : Attribute
+    public sealed class TestTransformerFixture : Attribute
     {
     }
 }

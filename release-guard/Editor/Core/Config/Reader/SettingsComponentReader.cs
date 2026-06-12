@@ -2,27 +2,28 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using ReleaseGuard.Editor.Core.Config.Attributes;
+using ReleaseGuard.Editor.Core.Config.Components;
 using UnityEditor;
 using UnityEngine;
 
-namespace ReleaseGuard.Editor.Core.Config
+namespace ReleaseGuard.Editor.Core.Config.Reader
 {
     public sealed class SettingsComponentReader
     {
-        private readonly List<IComponentReader> _readers = new();
         private readonly Dictionary<(Type, string), IReadOnlyList<SettingsComponent>> _cache = new();
+        private readonly List<IComponentReader> _readers = new();
 
         public void RegisterReader(IComponentReader reader)
         {
             var idx = _readers.Count;
             for (var i = 0; i < _readers.Count; i++)
             {
-                if (CompareReaders(reader, _readers[i]) < 0)
-                {
-                    idx = i;
-                    break;
-                }
+                if (CompareReaders(reader, _readers[i]) >= 0) continue;
+                idx = i;
+                break;
             }
+
             _readers.Insert(idx, reader);
         }
 
@@ -35,24 +36,24 @@ namespace ReleaseGuard.Editor.Core.Config
         public ScreenComponent Read(object instance, string rootPath, string rootLabel)
         {
             var type = instance.GetType();
-            var pageAttr = type.GetCustomAttribute<SettingsPageAttribute>();
+            var pageAttr = type.GetCustomAttribute<SettingsPage>();
 
             var context = new ReadContext
             {
-                Reader     = this,
+                Reader = this,
                 ParentPath = rootPath,
-                Instance   = instance
+                Instance = instance
             };
 
-            var children = ProcessFields(type, context, includeNonSerialized: true);
+            var children = ProcessFields(type, context, true);
 
             return new ScreenComponent
             {
                 DisplayName = rootLabel,
-                Path        = rootPath,
-                Intro       = pageAttr?.Intro ?? string.Empty,
+                Path = rootPath,
+                Intro = pageAttr?.Intro ?? string.Empty,
                 Description = pageAttr?.Description ?? string.Empty,
-                Children    = children
+                Children = children
             };
         }
 
@@ -64,11 +65,11 @@ namespace ReleaseGuard.Editor.Core.Config
 
             var context = new ReadContext
             {
-                Reader     = this,
+                Reader = this,
                 ParentPath = parentPath
             };
 
-            var result = ProcessFields(type, context, includeNonSerialized: false);
+            var result = ProcessFields(type, context, false);
             _cache[key] = result;
             return result;
         }
@@ -76,7 +77,7 @@ namespace ReleaseGuard.Editor.Core.Config
         private IReadOnlyList<SettingsComponent> ProcessFields(
             Type type, ReadContext context, bool includeNonSerialized)
         {
-            var result         = new List<SettingsComponent>();
+            var result = new List<SettingsComponent>();
             var containerIndex = 0;
 
             foreach (var fi in GetFields(type, includeNonSerialized))
@@ -86,60 +87,68 @@ namespace ReleaseGuard.Editor.Core.Config
 
                 var fieldCtx = new ReadContext
                 {
-                    Reader         = context.Reader,
-                    ParentPath     = context.ParentPath,
+                    Reader = context.Reader,
+                    ParentPath = context.ParentPath,
                     ContainerIndex = isContainer ? containerIndex : 0,
-                    Instance       = context.Instance
+                    Instance = context.Instance
                 };
 
                 var attrs = Attribute.GetCustomAttributes(fi);
 
                 // Before pass
                 foreach (var attr in attrs)
-                    foreach (var r in _readers)
-                        if (r.Order == ComponentReadOrder.Before && r.CanRead(attr))
-                            result.AddRange(r.Read(attr, fieldCtx));
+                foreach (var r in _readers.Where(r => r.Order == ComponentReadOrder.Before && r.CanRead(attr)))
+                    result.AddRange(r.Read(attr, fieldCtx));
 
                 // Primary pass
                 SettingsComponent primary = null;
-                foreach (var r in _readers)
+                var primaryComponents = from r in _readers
+                    where r.Order == ComponentReadOrder.Primary && r.CanRead(fi)
+                    select r.Read(fi, fieldCtx).ToList();
+
+                foreach (var produced in primaryComponents)
                 {
-                    if (r.Order != ComponentReadOrder.Primary || !r.CanRead(fi)) continue;
-                    var produced = r.Read(fi, fieldCtx).ToList();
                     if (produced.Count > 0)
                     {
                         primary = produced[0];
                         result.AddRange(produced);
                     }
+
                     break;
                 }
+
+                // Apply InjectProperty injections -- runs for every reader, builtin or custom.
+                if (primary != null)
+                    foreach (var injectAttr in attrs.OfType<InjectProperty>())
+                        injectAttr.TryApply(primary);
 
                 // After pass (only if there is something to decorate)
                 if (attrs.Length <= 0) continue;
                 var afterCtx = new ReadContext
                 {
-                    Reader           = context.Reader,
-                    ParentPath       = context.ParentPath,
-                    ContainerIndex   = fieldCtx.ContainerIndex,
-                    Instance         = context.Instance,
+                    Reader = context.Reader,
+                    ParentPath = context.ParentPath,
+                    ContainerIndex = fieldCtx.ContainerIndex,
+                    Instance = context.Instance,
                     PrimaryComponent = primary
                 };
                 foreach (var attr in attrs)
-                    foreach (var r in _readers)
-                        if (r.Order == ComponentReadOrder.After && r.CanRead(attr))
-                            result.AddRange(r.Read(attr, afterCtx));
+                {
+                    var readers = _readers.Where(r => r.Order == ComponentReadOrder.After && r.CanRead(attr));
+                    foreach (var r in readers)
+                        result.AddRange(r.Read(attr, afterCtx));
+                }
             }
 
             return result;
         }
 
-        public void BindProperties(
+        public static void BindProperties(
             IReadOnlyList<SettingsComponent> components,
             Func<string, SerializedProperty> findProperty)
         {
             if (components == null) return;
             foreach (var c in components)
-            {
                 switch (c)
                 {
                     case SerializedFieldComponent sfc:
@@ -150,7 +159,6 @@ namespace ReleaseGuard.Editor.Core.Config
                         BindProperties(sgc.Children, name => findProperty($"{prefix}.{name}"));
                         break;
                 }
-            }
         }
 
         private static IEnumerable<FieldInfo> GetFields(Type type, bool includeNonSerialized)
@@ -162,12 +170,11 @@ namespace ReleaseGuard.Editor.Core.Config
             while (hierarchy.Count > 0)
             {
                 var fields = hierarchy.Pop()
-                    .GetFields(BindingFlags.Instance | BindingFlags.Public |
-                               BindingFlags.NonPublic | BindingFlags.DeclaredOnly)
+                    .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic |
+                               BindingFlags.DeclaredOnly)
                     .OrderBy(f => f.MetadataToken);
 
                 foreach (var f in fields)
-                {
                     if (includeNonSerialized)
                     {
                         if (IsSerializableField(f) || IsNonSerializedComponent(f))
@@ -178,7 +185,6 @@ namespace ReleaseGuard.Editor.Core.Config
                         if (IsSerializableField(f))
                             yield return f;
                     }
-                }
             }
         }
 
@@ -189,7 +195,9 @@ namespace ReleaseGuard.Editor.Core.Config
             return f.IsPublic || f.GetCustomAttribute<SerializeField>() != null;
         }
 
-        private static bool IsNonSerializedComponent(FieldInfo f) =>
-            f.IsNotSerialized && typeof(SettingsComponent).IsAssignableFrom(f.FieldType);
+        private static bool IsNonSerializedComponent(FieldInfo f)
+        {
+            return f.IsNotSerialized && typeof(SettingsComponent).IsAssignableFrom(f.FieldType);
+        }
     }
 }

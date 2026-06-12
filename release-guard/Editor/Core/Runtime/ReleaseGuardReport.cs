@@ -10,8 +10,8 @@ namespace ReleaseGuard.Editor.Core.Runtime
         public IReadOnlyList<ReleaseIssue> Issues { get; }
 
         /// <summary>
-        /// Every auditor that was discovered and evaluated in this run (in execution order).
-        /// Includes auditors that found no issues. Useful for verifying a custom auditor is
+        /// Every auditor that was registered for this run (in execution order).
+        /// Includes auditors that found no issues or opted out via ShouldRun. Useful for verifying a custom auditor is
         /// being picked up, without requiring verbose logging.
         /// </summary>
         public IReadOnlyList<ReleaseAuditor> DiscoveredAuditors { get; }

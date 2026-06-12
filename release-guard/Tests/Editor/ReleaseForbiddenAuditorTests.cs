@@ -56,7 +56,10 @@ namespace ReleaseGuard.Editor.Tests
                     issues.Any(i => i.Message.Contains("ForbiddenPropertyExample.ForbiddenFlag")),
                     "Expected the property annotated with [ReleaseForbidden] to be reported.");
             }
-            finally { Object.DestroyImmediate(settings); }
+            finally
+            {
+                Object.DestroyImmediate(settings);
+            }
         }
 
         [Test]
@@ -73,7 +76,10 @@ namespace ReleaseGuard.Editor.Tests
                 Assert.IsNotNull(issue, "Expected the type annotated with [ReleaseForbidden] to be reported.");
                 StringAssert.Contains(typeof(ForbiddenTypeExample).FullName, issue.Message);
             }
-            finally { Object.DestroyImmediate(settings); }
+            finally
+            {
+                Object.DestroyImmediate(settings);
+            }
         }
 
         [Test]

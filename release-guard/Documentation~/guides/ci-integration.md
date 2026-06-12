@@ -14,6 +14,8 @@ pre-build audit and fails when findings meet the configured threshold.
 5. If `Post-Processors > Build Manifest > Write Build Manifest` is enabled, archive
    `release-guard-manifest.json` as a CI artifact and exclude it from shipped builds.
 
+> **Missing settings asset in CI.** If the settings asset is not committed, `ReleaseGuardSettings.LoadOrCreate()` creates a fresh asset with all defaults when the Editor starts. This means CI would run with permissive defaults rather than your team's committed policy, and changes to thresholds or disabled auditor ids made locally would have no effect in CI. Always commit the asset before onboarding CI.
+
 When Release Guard blocks a build, Unity throws a `BuildFailedException` with a message like:
 
 ```text
@@ -60,6 +62,23 @@ There is no "report-only" threshold above `Error`. For report-only CI, run a sep
 Editor script or use a Build Profile with Release Guard disabled and rely on the log as advisory
 output.
 
+**Advisory interaction with a stricter threshold:** several built-in advisories are `Warning`
+severity (for example `managed_stripping.below_medium` and `insecure_http.always_allowed`).
+If you raise `failureThreshold` to `Warning`, these advisories start blocking the build. You
+must either fix the underlying issue, lower the threshold back to `Error` for those builds, or
+use "Don't show again" in the audit window to permanently suppress specific advisories you have
+reviewed and accepted. Plan for this extra suppression management work before enabling a
+`Warning` threshold in CI.
+
+## Multi-platform builds
+
+Release Guard resolves the effective configuration once per build. In batchmode, each call to
+`BuildPipeline.BuildPlayer` triggers an independent pre-build audit (targeting that call's
+`BuildTarget`) and an independent post-build pipeline. There is no cross-build state. If your
+CI script builds for multiple targets sequentially in one Editor session, each build gets a
+fresh audit against the current build target with the same settings asset. You will see one set
+of audit log entries per target in the Editor log.
+
 ## Post-build artifacts
 
 The debug symbol sweep post-processor is report-only by default. If you enable deletion, archive
@@ -69,7 +88,8 @@ output.
 The build manifest is intended for CI artifact storage. It records Unity version, build target,
 active registry ids, disabled ids, suppressions, and build summary fields when a build report is
 available. It deliberately does not record VCS revision or absolute paths; add those in your own
-higher-priority post-processor or in CI metadata.
+post-processor with a priority greater than `100` if it must amend the built-in manifest, or keep
+them in CI metadata.
 
 Useful ways to use the manifest in CI:
 
@@ -91,11 +111,29 @@ bundle, either store those beside the manifest in CI metadata or write a custom 
 adds a second project-specific manifest file. The built-in manifest intentionally avoids repository
 and machine-specific data.
 
+## Ordering with other build callbacks
+
+Release Guard hooks at `callbackOrder = 0` for the pre-build gate (`IPreprocessBuildWithReport`)
+and at `callbackOrder = int.MaxValue` for post-processors (`IPostprocessBuildWithReport`). If
+you have custom build scripts that also implement `IPreprocessBuildWithReport`, their
+`callbackOrder` value determines whether they run before or after the Release Guard gate:
+
+- `callbackOrder < 0`: runs before the Release Guard gate. Use this for scripts that prepare
+  the build (e.g. setting `BuildOptions`).
+- `callbackOrder > 0`: runs after the gate. Those scripts will not run when a blocked build throws.
+- `callbackOrder = 0` (the default): runs alongside Release Guard; Unity does not guarantee
+  order among same-priority callbacks.
+
+If a script must fire before the Release Guard check (e.g. to set a `Development Build` flag
+that the gate then reads), give it a negative `callbackOrder`.
+
 ## Troubleshooting
 
 - No Release Guard output: confirm the package is installed and `General > Enabled` is on.
 - Build unexpectedly skipped: confirm the build is not a Development build and no Build Profile
   override disables Release Guard.
+- Different behavior between local and CI: confirm `Assets/ReleaseGuard/ReleaseGuardSettings.asset`
+  is committed. Without the asset, CI uses freshly-created defaults, not your local settings.
 - Custom plugin missing: confirm the plugin assembly has an explicit asmdef reference to
   `ReleaseGuard.Editor` and that the plugin id is not listed in `Plugins > Disabled Plugin Ids`.
 - Custom auditor missing: confirm it is registered by a plugin, or enable
