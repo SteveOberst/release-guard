@@ -38,5 +38,23 @@ namespace ReleaseGuard.Editor.Core.Registries
         {
             return string.IsNullOrEmpty(id) ? null : _byId.GetValueOrDefault(id.ToLowerInvariant());
         }
+
+        internal void Purge(Func<string, bool> shouldRemove)
+        {
+            var toRemove = new List<string>();
+            foreach (var id in _byId.Keys)
+                if (shouldRemove(id))
+                    toRemove.Add(id);
+
+            foreach (var id in toRemove)
+            {
+                var item = _byId[id];
+                _byId.Remove(id);
+                _sorted.Remove((item.Priority, id));
+            }
+
+            if (toRemove.Count > 0)
+                _itemsCache = null;
+        }
     }
 }

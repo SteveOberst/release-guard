@@ -128,6 +128,13 @@ namespace ReleaseGuard.Editor.Core.Runtime
             registryLoader.Load(RegistryDefinitions(settings, registries, logger));
             pluginLoader.Register();
 
+            // Plugins write directly to WeightedRegistry, bypassing the isDisabled filter
+            // applied during RegistryLoader.RegisterDiscovered. Purge any disabled items
+            // that plugin contributions may have slipped in.
+            registries.Auditors.Purge(settings.IsAuditorDisabled);
+            registries.PostProcessors.Purge(settings.IsPostProcessorDisabled);
+            registries.Transformers.Purge(settings.IsTransformerDisabled);
+
             logger.LogVerbose(
                 $"Release Guard environment initialized: {Plugins.Count} plugin(s), " +
                 $"{registries.Auditors.Items.Count} auditor(s), " +
