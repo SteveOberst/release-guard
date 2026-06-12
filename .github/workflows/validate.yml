@@ -43,16 +43,17 @@ jobs:
             " "$1"
           }
           ok=0
-          for f in $(find . \( -name '*.json' -o -name '*.asmdef' \) \
-                          -not -path './.git/*' \
-                          -not -path './node_modules/*'); do
+          while IFS= read -r -d '' f; do
             if parse "$f"; then
               echo "OK: $f"
             else
               echo "INVALID: $f"
               ok=1
             fi
-          done
+          done < <(find . \( -name '*.json' -o -name '*.asmdef' \) \
+                        -not -path './.git/*' \
+                        -not -path './node_modules/*' \
+                        -print0)
           exit $ok
 
       - name: Verify Documentation~ exists
