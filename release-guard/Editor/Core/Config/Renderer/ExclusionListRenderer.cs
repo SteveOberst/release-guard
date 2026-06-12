@@ -5,9 +5,12 @@ using UnityEditor;
 namespace ReleaseGuard.Editor.Core.Config
 {
     /// <summary>
-    /// Stateful widget that draws a collapsible "Preview matching assets" foldout beneath an
-    /// excluded-asset-patterns list. One instance per renderer keeps expand/collapse state
-    /// and caches match results per pattern key to avoid per-frame queries.
+    /// Stateful widget for <see cref="Types.ExclusionList"/> fields. One instance per renderer
+    /// keeps expand/collapse state and caches match results per pattern key.
+    ///
+    /// <para>Use <see cref="RenderField"/> to draw the complete widget (pattern text area +
+    /// preview foldout). Use <see cref="DrawPreview"/> to draw only the preview foldout when
+    /// building a custom exclusion-list widget.</para>
     /// </summary>
     public sealed class ExclusionListRenderer
     {
@@ -20,8 +23,24 @@ namespace ReleaseGuard.Editor.Core.Config
         private int _matchCount;
 
         /// <summary>
-        /// Draws the preview foldout for the array-of-strings property at
-        /// <paramref name="patternsProp"/>.
+        /// Draws the complete <see cref="Types.ExclusionList"/> field: a multiline pattern text
+        /// area followed by the collapsible "Preview matching assets" foldout.
+        /// </summary>
+        public void RenderField(
+            SerializedProperty property,
+            string displayName,
+            string tooltip,
+            SettingsRenderPrimitives primitives)
+        {
+            var patternsProp = property.FindPropertyRelative("patterns");
+            primitives.LineListField(patternsProp, displayName, tooltip);
+            DrawPreview(patternsProp);
+        }
+
+        /// <summary>
+        /// Draws the collapsible "Preview matching assets" foldout for the array-of-strings
+        /// property at <paramref name="patternsProp"/>. Use when building a custom exclusion-list
+        /// widget that handles the text area itself.
         /// </summary>
         public void DrawPreview(SerializedProperty patternsProp)
         {

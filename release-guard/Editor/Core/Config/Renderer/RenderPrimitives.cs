@@ -4,12 +4,12 @@ using System.Text;
 using UnityEditor;
 using UnityEngine;
 
-namespace ReleaseGuard.Editor.Core.Config
+namespace ReleaseGuard.Editor.Core.Config.Renderer
 {
     /// <summary>
-    /// Abstract base class providing IMGUI layout and list-field helpers for settings renderers.
-    /// All layout values are driven by an <see cref="ISettingsRendererLayout"/> instance supplied
-    /// at construction time. Subclass via <see cref="SettingsRenderer"/> rather than directly.
+    ///     Abstract base class providing IMGUI layout and list-field helpers for settings renderers.
+    ///     All layout values are driven by an <see cref="ISettingsRendererLayout" /> instance supplied
+    ///     at construction time. Subclass via <see cref="SettingsRenderer" /> rather than directly.
     /// </summary>
     public abstract class SettingsRenderPrimitives
     {
@@ -45,6 +45,7 @@ namespace ReleaseGuard.Editor.Core.Config
                         draw();
                         EditorGUILayout.Space(Layout.PageBottomSpacing);
                     }
+
                     GUILayout.Space(Layout.PageRightPadding);
                 }
             }
@@ -54,19 +55,27 @@ namespace ReleaseGuard.Editor.Core.Config
             }
         }
 
-        protected void Intro(string text) =>
+        internal static void Intro(string text)
+        {
             EditorGUILayout.HelpBox(text, MessageType.None);
+        }
 
-        public void HelpBox(string text, MessageType type) =>
+        public static void HelpBox(string text, MessageType type)
+        {
             EditorGUILayout.HelpBox(text, type);
+        }
 
-        public void Label(string text) =>
+        public static void Label(string text)
+        {
             EditorGUILayout.LabelField(text);
+        }
 
-        public void Row(Action draw)
+        public static void Row(Action draw)
         {
             using (new EditorGUILayout.HorizontalScope())
+            {
                 draw();
+            }
         }
 
         public void Section(string title)
@@ -75,10 +84,12 @@ namespace ReleaseGuard.Editor.Core.Config
             EditorGUILayout.LabelField(title, EditorStyles.boldLabel);
         }
 
-        public void RelatedFieldSpacing() =>
+        public void RelatedFieldSpacing()
+        {
             EditorGUILayout.Space(Layout.RelatedFieldSpacing);
+        }
 
-        public void SectionLink(string name, string path, string description)
+        internal static void SectionLink(string name, string path, string description)
         {
             using (new EditorGUILayout.HorizontalScope())
             {
@@ -88,34 +99,56 @@ namespace ReleaseGuard.Editor.Core.Config
             }
         }
 
-        public void ActionButton(string label, Action onClick)
+        internal void ActionButton(string label, Action onClick)
         {
             if (GUILayout.Button(label, GUILayout.Height(Layout.ActionButtonHeight), GUILayout.ExpandWidth(false)))
                 onClick();
         }
 
-        public HashSet<string> Keywords(params string[] keywords) => new(keywords);
+        protected static HashSet<string> Keywords(params string[] keywords)
+        {
+            return new HashSet<string>(keywords);
+        }
 
         // ------------------------------------------------------------------
         // List field rendering
         // ------------------------------------------------------------------
 
         /// <summary>
-        /// Draws a multiline text area for a serialized string array, one entry per line.
-        /// Uses <see cref="SerializedProperty.displayName"/> as the label.
+        ///     Draws a multiline text area for a serialized string array, one entry per line.
+        ///     Uses <see cref="SerializedProperty.displayName" /> as the label.
         /// </summary>
-        public virtual void LineListField(SerializedProperty prop, string hint) =>
+        public virtual void LineListField(SerializedProperty prop, string hint)
+        {
             RenderLineList(prop, prop.displayName, hint, Layout.LineListDefaultMinLines);
+        }
 
         /// <summary>
-        /// Draws a multiline text area for a serialized string array with an explicit minimum
-        /// line height.
+        ///     Draws a multiline text area with an explicit display name, overriding
+        ///     <see cref="SerializedProperty.displayName" />. Use when the property being rendered is
+        ///     a nested child whose display name differs from the parent field's label.
         /// </summary>
-        public virtual void LineListField(SerializedProperty prop, string hint, float minLines) =>
-            RenderLineList(prop, prop.displayName, hint, minLines);
+        public virtual void LineListField(SerializedProperty prop, string displayName, string hint)
+        {
+            RenderLineList(prop, displayName, hint, Layout.LineListDefaultMinLines);
+        }
 
-        /// <param name="displayName">Label to show above the text area (overrides
-        /// <see cref="SerializedProperty.displayName"/>).</param>
+        /// <summary>
+        ///     Draws a multiline text area for a serialized string array with an explicit minimum
+        ///     line height.
+        /// </summary>
+        public virtual void LineListField(SerializedProperty prop, string hint, float minLines)
+        {
+            RenderLineList(prop, prop.displayName, hint, minLines);
+        }
+
+        /// <param name="prop"></param>
+        /// <param name="displayName">
+        ///     Label to show above the text area (overrides
+        ///     <see cref="SerializedProperty.displayName" />).
+        /// </param>
+        /// <param name="hint"></param>
+        /// <param name="minLines"></param>
         protected void RenderLineList(SerializedProperty prop, string displayName, string hint, float minLines)
         {
             EditorGUILayout.LabelField(new GUIContent(displayName, hint));
@@ -139,6 +172,7 @@ namespace ReleaseGuard.Editor.Core.Config
                 if (i > 0) sb.Append('\n');
                 sb.Append(listProp.GetArrayElementAtIndex(i).stringValue);
             }
+
             return sb.ToString();
         }
 
