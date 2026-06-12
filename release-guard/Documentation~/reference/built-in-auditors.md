@@ -33,7 +33,7 @@ before being recorded (see [guides/asset-exclusions](../guides/asset-exclusions.
 If an auditor throws an uncaught exception, the executor catches it, logs the stack
 trace to the Console, and adds a `Warning`-severity finding attributed to that auditor
 with the message `"Auditor '{id}' failed to run: {message}"`. The run continues with
-the remaining auditors — one bad auditor never aborts the whole audit. Treat this
+the remaining auditors -- one bad auditor never aborts the whole audit. Treat this
 Warning as a bug in the auditor that needs fixing.
 
 ## Execution order
@@ -109,7 +109,7 @@ the default priority of `0`:
 
 > **Interaction with `skipOnDevelopmentBuilds`:** With the default settings
 > (`skipOnDevelopmentBuilds = true`), Release Guard skips every build stage entirely
-> when the Development Build flag is set — this auditor never runs during a real
+> when the Development Build flag is set -- this auditor never runs during a real
 > development build. This auditor becomes meaningful only when `skipOnDevelopmentBuilds`
 > is turned off (i.e. you want Release Guard to audit all builds regardless of the
 > development flag), and a development build slips through to the gate. With default

@@ -152,7 +152,7 @@ break a lookup. Matching is otherwise exact and case-sensitive except where note
 `IsTransformerDisabled`, `IsPluginDisabled`):** all ids are normalized to lowercase
 when they are registered in the registry. The lookup compares your list entry against
 the already-lowercased id. Entries in `disabledAuditorIds` (and the equivalent lists)
-must therefore be typed in lowercase — `"scripting_backend"` works; `"Scripting_Backend"`
+must therefore be typed in lowercase -- `"scripting_backend"` works; `"Scripting_Backend"`
 does not match.
 
 | Method | Returns |

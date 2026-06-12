@@ -102,8 +102,8 @@ that registered that id.
 
 > **`context.Settings` vs `context.Configuration`.** `context.Settings` is the raw settings
 > asset (committed values). `context.Configuration` is the resolved per-run state after
-> applying Build Profile overrides. For most auditors — reading a feature toggle, checking a
-> threshold — use `context.Settings`. Use `context.Configuration` only when you need the
+> applying Build Profile overrides. For most auditors -- reading a feature toggle, checking a
+> threshold -- use `context.Settings`. Use `context.Configuration` only when you need the
 > resolved `FailureThreshold` or `BuildProfileName`. See the
 > [custom auditors API](../api/custom-auditors.md) for details.
 
@@ -160,7 +160,7 @@ run only after successful builds.
 **Troubleshooting plugin loading:** if your plugin does not appear in the Plugins foldout, enable
 `General > Verbose Logging` in Project Settings, then trigger a domain reload (make any script
 change, save, and wait for recompile). Look in the Console for `[ReleaseGuard]`-prefixed log lines
-that mention your plugin id — they show whether the plugin was found, skipped, or produced an
+that mention your plugin id -- they show whether the plugin was found, skipped, or produced an
 error. The most common causes are a missing asmdef reference to `ReleaseGuard.Editor` (described
 in step 1) and a `PluginId` that matches an entry in `Plugins > Disabled Plugin Ids`.
 
@@ -174,7 +174,7 @@ The package ships a working example under `Samples~/Example Plugin`. To import i
 4. Click **Import** next to **Example Plugin**.
 
 Unity copies the sample into `Assets/Samples/Release Guard/<version>/Example Plugin/`. The
-sample contains an asmdef, a plugin class, a settings class, and an auditor — the exact
+sample contains an asmdef, a plugin class, a settings class, and an auditor -- the exact
 same pattern as this guide. After import, open `Edit > Project Settings > Release Guard`;
 the Example Plugin settings page appears under `Release Guard > Plugins`. Enable **Strict Mode**,
 then run `Tools > Release Guard > Audit` to see the example auditor fire a Warning.
@@ -194,7 +194,7 @@ collected issues:
 > in a test creates `Assets/ReleaseGuard/ReleaseGuardSettings.asset` on disk if it does not
 > already exist. In the `UnityDevHost` project this asset is already committed, so the call
 > just loads it. In a fresh project or on a CI machine without a committed settings asset, the
-> call creates the file — you may want to clean it up after the test or use
+> call creates the file -- you may want to clean it up after the test or use
 > `ScriptableObject.CreateInstance<ReleaseGuardSettings>()` instead for fully isolated tests
 > that don't touch the disk.
 

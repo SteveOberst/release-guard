@@ -132,7 +132,7 @@ On by default, severity Error. Blocks the build if the `Development Build` check
 complementary. With `skipOnDevelopmentBuilds = true` (the default), Release Guard skips all
 build stages when the Development Build flag is set, so this auditor never fires during a real
 development build. `forbidDevelopmentBuild` becomes meaningful only when `skipOnDevelopmentBuilds`
-is disabled — a project that audits all builds regardless of the development flag, where this
+is disabled -- a project that audits all builds regardless of the development flag, where this
 auditor then blocks any build that arrives at the gate with the development flag still set.
 
 With default settings, the value of `forbidDevelopmentBuild` is largely in the manual audit
@@ -181,7 +181,7 @@ aggressive: `Disabled`, `Minimal`, `Low`, `Medium`, `High`.
 
 **Note on advisories:** two advisories fire independently of this setting. The
 `managed_stripping.below_medium` advisory fires whenever the actual stripping level is below
-`Medium`, regardless of your configured minimum — so if you intentionally set the minimum to
+`Medium`, regardless of your configured minimum -- so if you intentionally set the minimum to
 `Low`, you will still receive that advisory until you suppress it via "Don't show again" in the
 audit window. The `managed_stripping.low_deprecated` advisory fires when the actual level is
 exactly `Low`, which Unity has marked for future deprecation. See

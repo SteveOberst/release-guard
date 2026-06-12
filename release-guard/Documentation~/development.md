@@ -91,7 +91,7 @@ The built-in sets are intentionally explicit static lists, not discovered via `T
 - `BuiltInTransformerRegistry.GetAll()` returns every shipped `ReleaseTransformer` (currently empty - transformers are an extension point with no built-ins).
 
 All three registry classes are `internal` to `ReleaseGuard.Editor`. They are contributor APIs,
-not consumer APIs — plugin authors cannot call `BuiltInAuditorRegistry.GetAll()` from their own
+not consumer APIs -- plugin authors cannot call `BuiltInAuditorRegistry.GetAll()` from their own
 assemblies.
 
 At startup `ReleaseGuardEnvironment.Initialize` feeds each `GetAll()` list into the matching `WeightedRegistry` through a registry definition, together with the auto-discover flag and the per-id "disabled" predicate from settings. The registry deduplicates by id (first registration for an id wins) and keeps items in priority-then-id order.

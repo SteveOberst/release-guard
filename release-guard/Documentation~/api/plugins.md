@@ -7,12 +7,12 @@ register it with `[InitializeOnLoad]`, and contribute your custom
 plugins while initializing the Editor-domain `ReleaseGuardEnvironment` and calls each
 plugin's `Register` once.
 
-**Unity Editor domain reloads** — The Unity Editor discards and rebuilds its entire C# scripting
+**Unity Editor domain reloads** -- The Unity Editor discards and rebuilds its entire C# scripting
 environment whenever scripts are recompiled, when you enter Play Mode (unless Domain Reload is
 disabled), or when you call `UnityEditor.EditorUtility.RequestScriptReload()`. Each rebuild is
 called a *domain reload*. Types annotated with `[InitializeOnLoad]` have their static constructors
 called once at the end of every domain reload, in assembly-dependency order. This is how Release
-Guard and your plugin loader both get a fresh, deterministic start after every compile — and why
+Guard and your plugin loader both get a fresh, deterministic start after every compile -- and why
 the environment is created once per domain reload rather than once per Editor session.
 
 Plugins are first-class in the tooling: every registered plugin appears by name in the
@@ -185,7 +185,7 @@ the single `ReleaseGuardEnvironment` instance for the current domain load.
 container was disposed. It never returns null.
 
 In normal operation `DI.Resolve<ReleaseGuardEnvironment>()` always succeeds when
-called from an `[InitializeOnLoad]` context with the correct asmdef dependency —
+called from an `[InitializeOnLoad]` context with the correct asmdef dependency --
 the environment is registered synchronously before any consumer assembly
 initializes. If `Resolve` throws, or `RegisterPlugin` logs a warning that
 initialization is incomplete, the asmdef dependency on `ReleaseGuard.Editor` is
@@ -223,7 +223,7 @@ It returns `false` (and registers nothing) for the normal guard cases:
 
 On success it wires settings (loading or creating the settings asset),
 calls `plugin.Register(...)`, and adds the plugin to the environment's plugin
-list. If `Register` itself throws, the exception is caught and logged — the plugin
+list. If `Register` itself throws, the exception is caught and logged -- the plugin
 is still added to the plugin list, but any contributions that `Register` had not
 yet registered before throwing are absent. This means a partially-initialized plugin
 can appear in the Plugins foldout while some of its auditors or post-processors are

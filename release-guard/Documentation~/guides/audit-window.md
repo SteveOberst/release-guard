@@ -42,7 +42,7 @@ After a run the window displays:
 **Disabled auditors are invisible.** Auditors disabled via `Auditors > Discovery > Disabled
 Auditor Ids` are excluded from the registry entirely and do not appear in the `Registered
 auditors` foldout. If a custom auditor is missing from the list, check that its id is not
-listed there — not just that `ShouldRun` is returning true. An auditor that returns `false`
+listed there -- not just that `ShouldRun` is returning true. An auditor that returns `false`
 from `ShouldRun` is present in the list (with "clean" and zero findings); one that is in
 `disabledAuditorIds` is absent entirely.
 
