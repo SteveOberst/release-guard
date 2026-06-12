@@ -7,7 +7,7 @@ This walks you from installing Release Guard to seeing it block a release build.
 Release Guard is a UPM package (`org.researchy.release-guard`, requires Unity `2022.3` or newer). It has no runtime dependencies.
 
 > **Two assemblies.** The package ships two assemblies. `ReleaseGuard.Runtime` is
-> `autoReferenced: true` — it contains only `[ReleaseForbidden]` and `ReleaseIssueSeverity`,
+> `autoReferenced: true` - it contains only `[ReleaseForbidden]` and `ReleaseIssueSeverity`,
 > which gameplay code can apply without pulling in Editor-only types. `ReleaseGuard.Editor`
 > contains the pipeline, settings, and extension API. You never reference it directly from
 > gameplay assemblies. For a plugin's `[InitializeOnLoad]` loader, add an explicit asmdef
@@ -91,9 +91,9 @@ The same checks run automatically before every non-development build. To see the
 The per-finding output in the Console looks like:
 
 ```
-[ReleaseGuard] [Error] scripting_backend — Scripting backend is Mono. IL2CPP is required for release builds.
+[ReleaseGuard] [Error] scripting_backend - Scripting backend is Mono. IL2CPP is required for release builds.
   Fix: Switch to IL2CPP in Edit > Project Settings > Player > Other Settings > Scripting Backend.
-[ReleaseGuard] [Error] development_build — Development Build flag is set.
+[ReleaseGuard] [Error] development_build - Development Build flag is set.
   Fix: Uncheck Development Build in File > Build Settings.
 [ReleaseGuard] Build blocked: 2 issue(s) at or above Error. See the Console (or the Release Guard window) for details and fixes.
 ```

@@ -72,7 +72,7 @@ fix-hint overload.
 | `OutputPath` | `public string OutputPath { get; }` | Always set. Path to the built product, e.g. `Builds/Windows/MyGame.exe`. |
 
 **No `Configuration` property.** Unlike the audit context, the post-process context exposes
-only `Settings` (the raw settings asset) — there is no `Configuration` property giving the
+only `Settings` (the raw settings asset) - there is no `Configuration` property giving the
 profile-resolved effective values. If your post-processor needs the effective failure threshold
 or build profile name for the current run, read them from `Settings.general.failureThreshold`
 and use `DI.Resolve<ReleaseGuardEnvironment>().ResolveConfiguration(BuildReport)` if you need

@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE.md)
 [![CI](https://github.com/SteveOberst/release-guard/actions/workflows/validate.yml/badge.svg)](https://github.com/SteveOberst/release-guard/actions/workflows/validate.yml)
 
-**Ever shipped a Unity build with Mono backend, the Development Build flag on, or the profiler still attached?** Release Guard blocks the build the moment it detects a problem — before the player is written to disk.
+**Ever shipped a Unity build with Mono backend, the Development Build flag on, or the profiler still attached?** Release Guard blocks the build the moment it detects a problem - before the player is written to disk.
 
 Install it. Commit one settings file. It runs automatically on every release build with no code changes required.
 
@@ -20,13 +20,13 @@ Built-in checks cover the most common release mistakes out of the box:
 
 | Check | What it enforces |
 |---|---|
-| Scripting backend | IL2CPP required — Mono ships decompilable .NET assemblies |
+| Scripting backend | IL2CPP required - Mono ships decompilable .NET assemblies |
 | Development build flag | Development Build must be off for release |
 | Script debugging | No managed debugger attachment in release builds |
 | Profiler connection | No Autoconnect Profiler in release builds |
 | Managed stripping | Warns when below the configured minimum stripping level |
 | Broad preserve rules | No assembly-wide `[Preserve]` or blanket `link.xml` rules that defeat stripping |
-| `[ReleaseForbidden]` | Annotated code must not reach a release build — see below |
+| `[ReleaseForbidden]` | Annotated code must not reach a release build - see below |
 | Android debuggable | No explicit `debuggable=true` in custom Android templates |
 | WebGL exceptions | Advisory: full exception support in release builds |
 | Engine code stripping | Advisory: suggests enabling Strip Engine Code |
@@ -34,15 +34,15 @@ Built-in checks cover the most common release mistakes out of the box:
 | Insecure HTTP | Advisory: `AlwaysAllowed` HTTP option in release builds |
 | Burst debug settings | Advisory (when Burst is installed): disabled optimizations or native debug mode |
 
-Post-build, the optional **debug symbol sweep** scans the build output for debug artifact folders Unity writes alongside the player (`*_BackUpThisFolder_ButDontShipItWithYourGame`, `*_BurstDebugInformation_DoNotShip`, loose `.pdb` files) and reports — or optionally deletes — them. An optional **build manifest** records the active hardening configuration as a CI artifact.
+Post-build, the optional **debug symbol sweep** scans the build output for debug artifact folders Unity writes alongside the player (`*_BackUpThisFolder_ButDontShipItWithYourGame`, `*_BurstDebugInformation_DoNotShip`, loose `.pdb` files) and reports - or optionally deletes - them. An optional **build manifest** records the active hardening configuration as a CI artifact.
 
-Findings marked **Advisory** are logged but never block the build by default — they flag best-practice gaps without enforcing them. They can be suppressed individually from the audit window or via settings.
+Findings marked **Advisory** are logged but never block the build by default - they flag best-practice gaps without enforcing them. They can be suppressed individually from the audit window or via settings.
 
 All built-in checks are individually toggleable. Custom checks, post-processors, and transformers can be registered through a plugin or auto-discovered.
 
 ---
 
-## `[ReleaseForbidden]` — keep debug code out of release builds
+## `[ReleaseForbidden]` - keep debug code out of release builds
 
 Mark any method, field, class, or property that must never ship:
 
@@ -55,7 +55,7 @@ public static void GrantAllCurrency() { /* ... */ }
 #endif
 ```
 
-If the annotated member is compiled into the player when a release build runs, **the build fails** with the member's full name, the reason, and a fix hint. Without a `#if` guard the attribute catches the symbol at build-time only — the code is still compiled into the player and stripped by Release Guard at the gate. Pairing it with a `#if UNITY_EDITOR || DEVELOPMENT_BUILD` guard also excludes it at compile time, which is the recommended pattern. The attribute lives in a runtime assembly so you can apply it from gameplay code without referencing any Editor types.
+If the annotated member is compiled into the player when a release build runs, **the build fails** with the member's full name, the reason, and a fix hint. Without a `#if` guard the attribute catches the symbol at build-time only - the code is still compiled into the player and stripped by Release Guard at the gate. Pairing it with a `#if UNITY_EDITOR || DEVELOPMENT_BUILD` guard also excludes it at compile time, which is the recommended pattern. The attribute lives in a runtime assembly so you can apply it from gameplay code without referencing any Editor types.
 
 ---
 
@@ -67,7 +67,7 @@ If the annotated member is compiled into the player when a release build runs, *
 https://github.com/SteveOberst/release-guard.git?path=/release-guard
 ```
 
-Open `Window > Package Manager → + → Add package from git URL` and paste the URL above. Pin to a release by appending `#<tag>`, e.g. `...release-guard#v1.0.0`. The `?path=/release-guard` suffix is required because the Unity package lives in a subdirectory of the repository, not at the repo root — omitting it will fail to resolve the package.
+Open `Window > Package Manager → + → Add package from git URL` and paste the URL above. Pin to a release by appending `#<tag>`, e.g. `...release-guard#v1.0.0`. The `?path=/release-guard` suffix is required because the Unity package lives in a subdirectory of the repository, not at the repo root - omitting it will fail to resolve the package.
 
 ### OpenUPM
 
@@ -86,20 +86,20 @@ Download `org.researchy.release-guard-<version>.tgz` from the [releases page](ht
 After installing, open `Edit > Project Settings > Release Guard`. The configuration asset is created at `Assets/ReleaseGuard/ReleaseGuardSettings.asset` on first use.
 
 1. **Review the defaults.** The built-in checks are on and strict. Read [Configuring](release-guard/Documentation~/configuring.md) before disabling anything.
-2. **Run a manual audit.** Open `Tools > Release Guard > Audit` and click **Run Audit** to see what fires against your current project — no build needed.
+2. **Run a manual audit.** Open `Tools > Release Guard > Audit` and click **Run Audit** to see what fires against your current project - no build needed.
 3. **Build.** Make a non-development release build. Release Guard runs automatically. A blocked build looks like this in the Console:
 
 ```
-[ReleaseGuard] [Error] scripting_backend — Scripting backend is Mono. IL2CPP is required for release builds.
+[ReleaseGuard] [Error] scripting_backend - Scripting backend is Mono. IL2CPP is required for release builds.
   Fix: Switch to IL2CPP in Edit > Project Settings > Player > Other Settings > Scripting Backend.
-[ReleaseGuard] [Error] development_build — Development Build flag is set.
+[ReleaseGuard] [Error] development_build - Development Build flag is set.
   Fix: Uncheck Development Build in File > Build Settings.
 [ReleaseGuard] Build blocked: 2 issue(s) at or above Error. See the Console for details and fixes.
 ```
 
 4. **Commit the settings asset.** Commit `Assets/ReleaseGuard/ReleaseGuardSettings.asset` and its `.meta` so every teammate and your CI pipeline share the same rules.
 
-**CI:** Release Guard runs in Unity's batchmode with no extra configuration. It hooks into `IPreprocessBuildWithReport` — any CI job that calls `BuildPipeline.BuildPlayer` automatically gets the gate. See [CI integration](release-guard/Documentation~/guides/ci-integration.md).
+**CI:** Release Guard runs in Unity's batchmode with no extra configuration. It hooks into `IPreprocessBuildWithReport` - any CI job that calls `BuildPipeline.BuildPlayer` automatically gets the gate. See [CI integration](release-guard/Documentation~/guides/ci-integration.md).
 
 ---
 
@@ -153,5 +153,5 @@ Register it with a one-time `[InitializeOnLoad]` plugin loader. The package ship
 
 | Path | Purpose |
 |---|---|
-| [`release-guard/`](release-guard/) | The UPM package — this is what gets installed |
+| [`release-guard/`](release-guard/) | The UPM package - this is what gets installed |
 | [`UnityDevHost/`](UnityDevHost/) | Development Unity project used to run the package's tests |

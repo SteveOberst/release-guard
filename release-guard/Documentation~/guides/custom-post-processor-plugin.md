@@ -7,7 +7,7 @@ class and context type differ.
 
 Post-processors run via Unity's `IPostprocessBuildWithReport` after the build succeeds and
 after every transformer, so they always see the final build output. A post-processor must not
-throw — exceptions are caught by the executor and recorded as post-process errors.
+throw - exceptions are caught by the executor and recorded as post-process errors.
 
 ## 1. Create an Editor assembly
 
@@ -82,7 +82,7 @@ namespace MyBuildReporter
             var outputFolder = ResolveOutputFolder(context.OutputPath);
             if (string.IsNullOrEmpty(outputFolder) || !Directory.Exists(outputFolder))
             {
-                context.Warning("Could not resolve build output folder — report not written.");
+                context.Warning("Could not resolve build output folder - report not written.");
                 return;
             }
 
@@ -144,7 +144,7 @@ namespace MyBuildReporter
 1. Open `Edit > Project Settings > Release Guard`.
 2. Confirm **Build Reporter** appears under `Release Guard > Plugins`.
 3. Open `Tools > Release Guard > Audit` and click `Run Audit`.
-4. Expand `Post-processors` — the post-processor should be listed (but note: post-processors
+4. Expand `Post-processors` - the post-processor should be listed (but note: post-processors
    do not run during a manual audit, only after a real build).
 5. Make a non-development release build. After a successful build, check the build output
    folder for `build-report.txt` and confirm a log line like
@@ -160,9 +160,9 @@ and look for `[ReleaseGuard]` log lines that mention your plugin id.
 | When it runs | Pre-build (before output is written) | Post-build (on the finished output folder) |
 | Can block the build | Yes (via findings at `failureThreshold`) | No (exceptions are caught; build already succeeded) |
 | Context type | `ReleaseAuditContext` | `ReleasePostProcessContext` |
-| Has `Configuration` | Yes | No — use `Settings` directly |
+| Has `Configuration` | Yes | No - use `Settings` directly |
 | `BuildReport` | `null` during manual audit | `null` outside an active Unity build |
-| Reporting | `context.Error(...)`, `context.Warning(...)` with messages, asset paths, fix hints | `context.Error(...)`, `context.Warning(...)`, `context.Info(...)` — message only |
+| Reporting | `context.Error(...)`, `context.Warning(...)` with messages, asset paths, fix hints | `context.Error(...)`, `context.Warning(...)`, `context.Info(...)` - message only |
 
 ## See also
 

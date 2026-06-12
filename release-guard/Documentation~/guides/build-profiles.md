@@ -5,7 +5,7 @@
 > here work only on Unity 6 or newer. On Unity 2022.3 or 2023.x (before Build Profiles were
 > added), the resolver always returns `null` for the active profile name, no override is ever
 > matched, and global settings apply unconditionally. The `profileOverrides` list is ignored
-> silently — it does not produce an error.
+> silently - it does not produce an error.
 
 Release Guard resolves an effective configuration for each run before any auditor, transformer, or post-processor executes. Resolution combines the raw settings asset, the active Unity Build Profile, and the development-build exemption into a single immutable configuration object (`ReleaseGuardConfiguration`). This guide explains that resolution and how to use per-Build-Profile overrides.
 
