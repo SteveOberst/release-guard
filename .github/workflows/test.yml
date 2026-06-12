@@ -1,6 +1,21 @@
 name: Tests
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'release-guard/Editor/**'
+      - 'release-guard/Runtime/**'
+      - 'release-guard/Tests/**'
+      - 'UnityDevHost/Packages/**'
+      - 'UnityDevHost/Assets/**'
+  pull_request:
+    paths:
+      - 'release-guard/Editor/**'
+      - 'release-guard/Runtime/**'
+      - 'release-guard/Tests/**'
+      - 'UnityDevHost/Packages/**'
+      - 'UnityDevHost/Assets/**'
   workflow_dispatch:
 
 # Runs the EditMode test suite against the UnityDevHost project, which embeds this
