@@ -37,6 +37,9 @@ jobs:
   editmode:
     name: EditMode tests
     runs-on: ubuntu-latest
+    # Secrets are not available for fork PRs (GitHub withholds them by design),
+    # so skip rather than fail with a confusing "missing license" error.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     steps:
       - name: Checkout
         uses: actions/checkout@v4
