@@ -98,11 +98,11 @@ state and the reporting API.
 and `BuildTarget` come from `UnityEditor.Build.Reporting` / `UnityEditor`.
 
 **`Settings` vs `Configuration`:** these are two distinct objects. `Settings` is the raw
-settings asset -- the committed values that live in version control. `Configuration` is the
+settings asset — the committed values that live in version control. `Configuration` is the
 resolved, per-run state after applying any Build Profile override and the development-build
 exemption. In the overwhelming majority of auditors, reading from `context.Settings` is
 correct (e.g. checking `context.Settings.auditors.requireIl2Cpp`). Use `context.Configuration`
-when you need the resolved gate behavior -- for example, to read the effective failure threshold
+when you need the resolved gate behavior — for example, to read the effective failure threshold
 or to check whether Release Guard is enabled for this particular run:
 
 ```csharp
@@ -123,12 +123,12 @@ public override void Evaluate(ReleaseAuditContext context)
 
 `Priority` orders auditors ascending: lower number runs first. The default is `0`, which
 runs alongside the built-ins. Use a negative value to run before them; a positive value to
-run after. `ShouldRun` is a gate -- return `false` to skip the auditor for the current run.
+run after. `ShouldRun` is a gate — return `false` to skip the auditor for the current run.
 Use `context.IsForPlatform(...)` to restrict to a platform.
 
 **`ShouldRun` vs early-returning inside `Evaluate`:** both work, but they have different
 visibility. An auditor that returns `false` from `ShouldRun` appears in the audit window's
-`Registered auditors` foldout with zero findings and a "clean" label -- confirming it ran but
+`Registered auditors` foldout with zero findings and a "clean" label — confirming it ran but
 had nothing to report. An auditor that returns early inside `Evaluate` produces the same
 outcome. Prefer `ShouldRun` for structural conditions (wrong platform, feature not installed,
 check turned off in settings) and early-return inside `Evaluate` for dynamic conditions found

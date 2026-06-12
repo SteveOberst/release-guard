@@ -32,7 +32,7 @@ namespace ExamplePlugin
         public bool strictMode = false;
 
         // ConditionalWarning draws a warning box beneath the field while the value is true.
-        [ConditionalWarning("Strict mode is on -- ensure this is intentional.")]
+        [ConditionalWarning("Strict mode is on — ensure this is intentional.")]
         public bool strictModeAcknowledged = false;
 
         [SettingsHeader("Reporting")]
@@ -50,7 +50,7 @@ namespace ExamplePlugin
 `ExclusionList` (namespace `ReleaseGuard.Editor.Core.Config.Types`) is the right field type for
 any setting that accepts asset-path exclusion patterns. It serializes as a `List<string>` but
 renders with a live "Preview matching assets" foldout in the settings UI. Use `List<string>`
-only for lists that are not asset-path exclusions -- the built-in renderer treats them differently.
+only for lists that are not asset-path exclusions — the built-in renderer treats them differently.
 
 Wire it to the plugin by returning its type from `SettingsType`, then read it with `GetSettings<T>()`:
 

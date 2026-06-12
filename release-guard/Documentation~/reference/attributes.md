@@ -146,7 +146,7 @@ public bool requireIl2Cpp = true;
 
 - Targets: `Field`
 - Applied to a `bool` field; while the value is `true`, a warning help box is drawn
-  beneath the toggle. The attribute targets `Field` with no type restriction in C# -- it is
+  beneath the toggle. The attribute targets `Field` with no type restriction in C# — it is
   the developer's responsibility to apply it only to `bool` fields. Applying it to a
   non-bool field will produce undefined rendering behavior.
 
