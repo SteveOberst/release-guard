@@ -24,46 +24,9 @@ It ships with built-in hardening checks for the failures teams actually leave be
 - release-only code marked with `[ReleaseForbidden]`
 - Android templates that explicitly set `debuggable=true`
 - output-folder cleanup and manifest generation after successful builds
+- and much more
 
 ![Release Guard blocking a build in the Unity Console](Documentation~/assets/build-blocked.png)
-
-## How it works
-
-Release Guard is built around three lifecycle events:
-
-- `pre-build`
-- `build`
-- `post-build`
-
-Everything is a `ReleaseGuardComponent`.
-
-The old split model is gone from the runtime. A component can subscribe to one event, several events, or all of them.
-
-## Built-in components
-
-Pre-build components:
-
-- `scripting_backend`
-- `managed_stripping`
-- `development_build`
-- `ci_development_build`
-- `script_debugging`
-- `profiler_connection`
-- `broad_preserve`
-- `release_forbidden`
-- `android_debuggable`
-- `webgl_exception_support`
-- `strip_engine_code`
-- `stack_trace_type`
-- `insecure_http`
-- `burst_debug`
-
-Post-build components:
-
-- `debug_symbol_sweep`
-- `build_manifest`
-
-See [Built-in components overview](Documentation~/reference/components.md).
 
 ## Install
 
@@ -125,7 +88,7 @@ The checks window only dispatches the `pre-build` event. Output-folder component
 | Local batchmode build | Uses the first matching profile and treats the run as CI |
 | CI build | Uses the first matching profile and treats the run as CI |
 
-The seeded `Development` profile is intentionally looser than `Release`, but it still keeps `ci_development_build`, `stack_trace_type`, and `strip_engine_code` enabled by default.
+The seeded `Development` profile is intentionally looser than `Release`, but it does not just disable three checks. It leaves some guardrails enabled and disables a broader set of release-only checks. See [Quickstart](Documentation~/quickstart.md) and [Build profiles](Documentation~/guides/build-profiles.md) for the actual seeded defaults.
 
 ## `[ReleaseForbidden]`
 
@@ -145,6 +108,8 @@ The built-in `release_forbidden` component scans player-shipping assemblies duri
 ## Custom components
 
 The extension point is `ReleaseGuardComponent`.
+
+Example:
 
 ```csharp
 using ReleaseGuard.Editor.Core.Components;
