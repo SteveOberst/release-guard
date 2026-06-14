@@ -1,0 +1,58 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8fb39805dad47c59a48a199c5e73401, type: 3}
+  m_Name: release
+  m_EditorClassIdentifier: ReleaseGuard.Editor::ReleaseGuard.Editor.Config.ReleaseGuardSettings
+  general:
+    enabled: 1
+    failureThreshold: 2
+    verboseLogging: 0
+  components:
+    excludedAssetPaths:
+      patterns: []
+    autoDiscoverComponents: 0
+    componentToggles:
+      entries:
+      - rid: 2078117984281559083
+      - rid: 2078117984281559084
+      - rid: 2078117984281559085
+      - rid: 2078117984281559086
+  plugins:
+    autoDiscoverPlugins: 0
+    disabledPluginIds: []
+  references:
+    version: 2
+    RefIds:
+    - rid: 2078117984281559083
+      type: {class: DebugSymbolSweep/Config, ns: ReleaseGuard.Editor.Builtins.PostBuild, asm: ReleaseGuard.Editor}
+      data:
+        componentId: debug_symbol_sweep
+        enabled: 1
+        delete: 0
+        extraPatterns: []
+    - rid: 2078117984281559084
+      type: {class: ReleaseGuardComponentSettings, ns: ReleaseGuard.Editor.Core.Components, asm: ReleaseGuard.Editor}
+      data:
+        componentId: broad_preserve
+        enabled: 1
+    - rid: 2078117984281559085
+      type: {class: ManagedStrippingCheck/Config, ns: ReleaseGuard.Editor.Builtins.PreBuild, asm: ReleaseGuard.Editor}
+      data:
+        componentId: managed_stripping
+        enabled: 1
+        minLevel: 2
+    - rid: 2078117984281559086
+      type: {class: ReleaseForbiddenCheck/Config, ns: ReleaseGuard.Editor.Builtins.PreBuild, asm: ReleaseGuard.Editor}
+      data:
+        componentId: release_forbidden
+        enabled: 1
+        excludedAssemblies: []

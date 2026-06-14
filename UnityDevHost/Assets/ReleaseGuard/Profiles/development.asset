@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e8fb39805dad47c59a48a199c5e73401, type: 3}
-  m_Name: ReleaseGuardSettings
+  m_Name: development
   m_EditorClassIdentifier: ReleaseGuard.Editor::ReleaseGuard.Editor.Config.ReleaseGuardSettings
   general:
     enabled: 1
@@ -24,7 +24,18 @@ MonoBehaviour:
     minManagedStrippingLevel: 2
     forbidBroadPreserve: 1
     autoDiscoverAuditors: 0
-    disabledAuditorIds: []
+    disabledAuditorIds:
+    - scripting_backend
+    - development_build
+    - script_debugging
+    - profiler_connection
+    - managed_stripping
+    - broad_preserve
+    - release_forbidden
+    - burst_debug
+    - webgl_exception_support
+    - android_debuggable
+    - insecure_http
     excludedAssetPaths:
       patterns: []
     releaseForbiddenExcludedAssemblies: []
@@ -40,5 +51,5 @@ MonoBehaviour:
     autoDiscoverTransformers: 0
     disabledTransformerIds: []
   plugins:
-    autoDiscoverPlugins: 1
+    autoDiscoverPlugins: 0
     disabledPluginIds: []
