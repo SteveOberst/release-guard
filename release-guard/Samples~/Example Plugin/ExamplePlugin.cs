@@ -15,7 +15,7 @@ namespace ReleaseGuard.ExamplePlugin
         public override void Register(PluginRegistrationContext context)
         {
             var settings = GetSettings<ExamplePluginSettings>();
-            context.ReleaseGuard.Registries.Auditors.Register(new ExampleAuditor(settings));
+            context.ReleaseGuard.Components.Register(new ExampleComponent(settings));
         }
     }
 

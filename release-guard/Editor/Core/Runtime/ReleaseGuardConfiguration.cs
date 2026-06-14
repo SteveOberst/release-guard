@@ -1,13 +1,13 @@
 using ReleaseGuard.Editor.Config;
-using ReleaseGuard.Editor.Util;
+using ReleaseGuard.Editor.Core.Build;
 using UnityEditor;
 using UnityEditor.Build.Reporting;
 
 namespace ReleaseGuard.Editor.Core.Runtime
 {
     /// <summary>
-    /// The effective configuration for a single run, after resolving the development-build
-    /// exemption and any Build Profile override against the raw <see cref="ReleaseGuardSettings"/>.
+    /// The effective configuration for a single run, resolved from a specific
+    /// <see cref="ReleaseGuardSettings"/> asset (the active profile for this build or manual run).
     /// </summary>
     public sealed class ReleaseGuardConfiguration
     {
@@ -16,49 +16,42 @@ namespace ReleaseGuard.Editor.Core.Runtime
 
         public bool IsDevelopmentBuild { get; }
 
-        /// <summary>Active Unity Build Profile name (Unity 6+), or null for classic platform settings.</summary>
-        // ReSharper disable once UnusedAutoPropertyAccessor.Global
-        public string BuildProfileName { get; }
-
         public ReleaseIssueSeverity FailureThreshold { get; }
 
-        private ReleaseGuardConfiguration(bool enabled, bool isDevelopmentBuild, string buildProfileName,
-            ReleaseIssueSeverity failureThreshold)
+        /// <summary>The profile-specific settings used for this run.</summary>
+        public ReleaseGuardSettings EffectiveSettings { get; }
+
+        private ReleaseGuardConfiguration(
+            bool enabled,
+            bool isDevelopmentBuild,
+            ReleaseIssueSeverity failureThreshold,
+            ReleaseGuardSettings effectiveSettings)
         {
             Enabled = enabled;
             IsDevelopmentBuild = isDevelopmentBuild;
-            BuildProfileName = buildProfileName;
             FailureThreshold = failureThreshold;
+            EffectiveSettings = effectiveSettings;
         }
 
         /// <summary>
-        /// Resolve settings for a run. Pass the <paramref name="report"/> during a build, or
-        /// <c>null</c> for a manual audit from the editor window (development state then comes
-        /// from the Build Settings checkbox).
+        /// Resolve configuration from the given profile-specific settings. The caller is
+        /// responsible for selecting the correct profile settings for this build.
+        /// Pass <paramref name="report"/> during a build, or <c>null</c> for a manual pre-build
+        /// from the editor window (development state then comes from Build Settings).
         /// </summary>
-        public static ReleaseGuardConfiguration Resolve(ReleaseGuardSettings settings, BuildReport report)
+        public static ReleaseGuardConfiguration Resolve(
+            ReleaseGuardSettings settings,
+            BuildReport report)
         {
             var isDevelopment = report is not null
                 ? BuildOptionState.IsDevelopmentBuild(report.summary.options)
                 : EditorUserBuildSettings.development;
 
-            var profileName = BuildProfileResolver.GetActiveProfileName();
-            var enabled = settings.general.enabled;
-            var threshold = settings.general.failureThreshold;
-
-            // Per-Build-Profile override (e.g. a "Staging" profile may use a stricter threshold).
-            var profileOverride = settings.GetProfileOverride(profileName);
-            if (profileOverride != null)
-            {
-                enabled = profileOverride.enabled;
-                threshold = profileOverride.failureThreshold;
-            }
-
-            // Development builds are exempt by default - release rules don't apply to debug builds.
-            if (isDevelopment && settings.general.skipOnDevelopmentBuilds)
-                enabled = false;
-
-            return new ReleaseGuardConfiguration(enabled, isDevelopment, profileName, threshold);
+            return new ReleaseGuardConfiguration(
+                enabled: settings.general.enabled,
+                isDevelopmentBuild: isDevelopment,
+                failureThreshold: settings.general.failureThreshold,
+                effectiveSettings: settings);
         }
     }
 }

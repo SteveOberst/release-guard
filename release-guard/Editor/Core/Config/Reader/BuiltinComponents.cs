@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using ReleaseGuard.Editor.Config;
 using ReleaseGuard.Editor.Core.Config.Attributes;
 using ReleaseGuard.Editor.Core.Config.Components;
 using ReleaseGuard.Editor.Core.Config.Types;
@@ -15,6 +16,8 @@ namespace ReleaseGuard.Editor.Core.Config.Reader
         {
             reader.RegisterReader(new DynamicContainerFieldReader());
             reader.RegisterReader(new ContainerFieldReader());
+            reader.RegisterReader(new ComponentToggleListReader());
+            reader.RegisterReader(new ProfileListFieldReader());
             reader.RegisterReader(new ExclusionListFieldReader());
             reader.RegisterReader(new StringListFieldReader());
             reader.RegisterReader(new InlineComponentFieldReader());
@@ -149,6 +152,50 @@ namespace ReleaseGuard.Editor.Core.Config.Reader
             }
         }
 
+        private sealed class ComponentToggleListReader : IComponentReader
+        {
+            public ComponentReadOrder Order => ComponentReadOrder.Primary;
+            public int Priority => 26;
+
+            public bool CanRead(object source)
+            {
+                return source is FieldInfo fi && fi.FieldType == typeof(ComponentToggleList);
+            }
+
+            public IEnumerable<SettingsComponent> Read(object source, ReadContext context)
+            {
+                var fi = (FieldInfo)source;
+                yield return new ComponentListComponent
+                {
+                    DisplayName = Label(fi),
+                    Tooltip = Tip(fi),
+                    FieldInfo = fi
+                };
+            }
+        }
+
+        private sealed class ProfileListFieldReader : IComponentReader
+        {
+            public ComponentReadOrder Order => ComponentReadOrder.Primary;
+            public int Priority => 25;
+
+            public bool CanRead(object source)
+            {
+                return source is FieldInfo fi && fi.FieldType == typeof(List<ReleaseGuardProfile>);
+            }
+
+            public IEnumerable<SettingsComponent> Read(object source, ReadContext context)
+            {
+                var fi = (FieldInfo)source;
+                yield return new ProfileListComponent
+                {
+                    DisplayName = Label(fi),
+                    Tooltip = Tip(fi),
+                    FieldInfo = fi
+                };
+            }
+        }
+
         private sealed class ExclusionListFieldReader : IComponentReader
         {
             public ComponentReadOrder Order => ComponentReadOrder.Primary;
@@ -200,8 +247,7 @@ namespace ReleaseGuard.Editor.Core.Config.Reader
 
             public bool CanRead(object source)
             {
-                return source is FieldInfo fi &&
-                       typeof(SettingsComponent).IsAssignableFrom(fi.FieldType);
+                return source is FieldInfo fi && typeof(SettingsComponent).IsAssignableFrom(fi.FieldType);
             }
 
             public IEnumerable<SettingsComponent> Read(object source, ReadContext context)

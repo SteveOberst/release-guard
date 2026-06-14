@@ -2,13 +2,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using ReleaseGuard.Editor.Core.Audit;
+using ReleaseGuard.Editor.Core.PreBuild;
 
 namespace ReleaseGuard.Editor.Util
 {
     /// <summary>
     /// Matches Unity asset paths against a list of gitignore-style glob patterns. Used to exclude
-    /// specific assets from release issues (see <see cref="ReleaseAuditContext.Report"/>).
+    /// specific assets from release issues (see <see cref="ReleaseGuardPreBuildContext.Report"/>).
     ///
     /// Patterns are compiled once to <see cref="Regex"/> (the idiomatic, dependency-free way to do
     /// glob matching in C#). Supported syntax, modelled on .gitignore:

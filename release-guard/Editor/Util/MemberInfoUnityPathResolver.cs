@@ -7,18 +7,18 @@ namespace ReleaseGuard.Editor.Util
 
     internal static class MemberInfoUnityPathResolver
     {
-        // Populated once per audit; cleared between audits by the caller.
+        // Populated once per pre-build run; cleared between runs by the caller.
         // ReSharper disable once InconsistentNaming
         private static Dictionary<Type, string> s_cache;
 
-        // Called by ReleaseGuardExecutor before starting an audit so each run
+        // Called before starting a pre-build dispatch so each run
         // gets a fresh scan rather than stale data from a previous run.
-        internal static void BeginAudit()
+        internal static void BeginPreBuildScope()
         {
             s_cache = BuildCache();
         }
 
-        internal static void EndAudit()
+        internal static void EndPreBuildScope()
         {
             s_cache = null;
         }
@@ -38,8 +38,8 @@ namespace ReleaseGuard.Editor.Util
             if (type == null)
                 return null;
 
-            // Fall back to a single live scan if called outside an audit
-            // (e.g. from the audit window without the executor lifecycle).
+            // Fall back to a single live scan if called outside a pre-build dispatch
+            // (for example from the Release Guard window).
             var map = s_cache ?? BuildCache();
             return map.GetValueOrDefault(type);
         }

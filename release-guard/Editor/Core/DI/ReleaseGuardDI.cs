@@ -13,7 +13,7 @@ namespace ReleaseGuard.Editor.Core.DI
     }
 
     // ReSharper disable once InconsistentNaming
-    public static class DI
+    public static class ReleaseGuardDI
     {
         private static volatile Container _container = new();
 

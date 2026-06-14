@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using ReleaseGuard.Editor.Core.Config.Components;
@@ -96,9 +97,7 @@ namespace ReleaseGuard.Editor.Core.Config.Renderer
             string rootPath,
             ScriptableObject settings)
         {
-            var reader = ComponentRenderer.ComponentReader;
-            var label = rootPath.Split('/').Last();
-            var root = reader.Read(settings, rootPath, label);
+            var root = ReadRootScreen(settings, rootPath);
 
             yield return root.CreateProvider(settings, this, GetRootKeywords());
 
@@ -110,6 +109,45 @@ namespace ReleaseGuard.Editor.Core.Config.Renderer
             if (root.DynamicProviderResolver == null) yield break;
             foreach (var p in root.DynamicProviderResolver(settings, this))
                 yield return p;
+        }
+
+        /// <summary>
+        ///     Generates a <see cref="SettingsProvider" /> for the root overview page and one for each
+        ///     child <see cref="ScreenComponent" />, using a getter that is called on each draw so
+        ///     that profile switches are reflected without re-registering providers.
+        /// </summary>
+        public IEnumerable<SettingsProvider> CreateProviders(
+            string rootPath,
+            Func<ScriptableObject> settingsGetter)
+        {
+            var initial = settingsGetter();
+            if (initial == null) yield break;
+            var root = ReadRootScreen(initial, rootPath);
+
+            yield return root.CreateProvider(settingsGetter, this, GetRootKeywords());
+
+            foreach (var child in root.Children)
+                if (child is ScreenComponent screen)
+                    foreach (var p in screen.CreateProviders(settingsGetter, this))
+                        yield return p;
+
+            if (root.DynamicProviderResolver == null) yield break;
+            var current = settingsGetter();
+            if (current != null)
+                foreach (var p in root.DynamicProviderResolver(current, this))
+                    yield return p;
+        }
+
+        /// <summary>
+        ///     Reads the component tree for <paramref name="settings" /> and returns the root
+        ///     <see cref="ScreenComponent" />. Exposed so callers (e.g. <c>CreateAll</c>) can
+        ///     attach a <c>DynamicProviderResolver</c> before generating providers.
+        /// </summary>
+        internal ScreenComponent ReadRootScreen(ScriptableObject settings, string rootPath)
+        {
+            var reader = ComponentRenderer.ComponentReader;
+            var label = rootPath.Split('/').Last();
+            return reader.Read(settings, rootPath, label);
         }
 
         /// <summary>

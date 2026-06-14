@@ -1,14 +1,13 @@
 namespace ReleaseGuard.Editor.Core.Runtime
 {
-    /// <summary>A single finding produced by an auditor.</summary>
+    /// <summary>A single finding produced by a component pre-build handler.</summary>
     public record ReleaseIssue(
-        string AuditorId,
+        string ComponentId,
         ReleaseIssueSeverity Severity,
         string Message,
         string AssetPath = null,
         string FixHint = null,
-        // When non-null, this issue is a dismissible advisory. The id is used as the key
-        // stored in <c>AuditorSettings.suppressedAdvisoryIds</c> when the user clicks
-        // "Don't show again" in the Release Guard window.
+        // When non-null, this issue is a dismissible advisory. The id is stored globally
+        // in AdvisorySuppressionStore (profile-independent) when the user clicks "Don't show again".
         string SuppressId = null);
 }

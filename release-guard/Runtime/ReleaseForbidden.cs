@@ -6,7 +6,7 @@ namespace ReleaseGuard
     /// Marks a type or member that must NOT ship in a release build - debug hooks, cheat
     /// commands, test scaffolding, dev-only backdoors, etc.
     ///
-    /// The built-in <c>ReleaseForbiddenAuditor</c> reports every usage so a release build
+    /// The built-in <c>release_forbidden</c> component reports every usage so a release build
     /// fails before such code can be shipped. Prefer also wrapping the implementation in a
     /// debug-only <c>#if</c> so it is physically excluded from the compiled release.
     /// </summary>

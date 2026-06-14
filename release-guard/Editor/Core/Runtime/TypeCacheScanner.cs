@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using ReleaseGuard.Editor.Core.Audit;
+using ReleaseGuard.Editor.Core.Components;
 using ReleaseGuard.Editor.Core.Plugins;
-using ReleaseGuard.Editor.Core.PostProcessing;
-using ReleaseGuard.Editor.Core.Transforming;
 using UnityEditor;
 
 namespace ReleaseGuard.Editor.Core.Runtime
@@ -41,15 +39,12 @@ namespace ReleaseGuard.Editor.Core.Runtime
         }
 
         /// <summary>
-        /// Returns true for types decorated with <see cref="TestAuditorFixture"/>,
-        /// <see cref="TestPostProcessorFixture"/>, <see cref="TestTransformerFixture"/>,
+        /// Returns true for types decorated with <see cref="TestReleaseGuardComponentFixture"/>
         /// or <see cref="TestReleaseGuardPlugin"/>.
         /// </summary>
         internal static bool IsTestFixture(Type type) =>
             type != null &&
-            (type.IsDefined(typeof(TestAuditorFixture), inherit: false) ||
-             type.IsDefined(typeof(TestPostProcessorFixture), inherit: false) ||
-             type.IsDefined(typeof(TestTransformerFixture), inherit: false) ||
+            (type.IsDefined(typeof(TestReleaseGuardComponentFixture), inherit: false) ||
              type.IsDefined(typeof(TestReleaseGuardPlugin), inherit: false));
     }
 }
