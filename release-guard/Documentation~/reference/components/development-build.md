@@ -55,6 +55,6 @@ The active profile may have disabled the component.
 
 ## Related docs
 
-- [Build profiles](../../guides/build-profiles.md)
+- [Build profiles](../../build-profiles.md)
 - [CI integration](../../guides/ci-integration.md)
 - [Development build in CI](ci-development-build.md)

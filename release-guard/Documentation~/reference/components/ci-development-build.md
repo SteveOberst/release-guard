@@ -64,5 +64,5 @@ Because this component remains enabled there by default. The seeded profile is l
 ## Related docs
 
 - [CI integration](../../guides/ci-integration.md)
-- [Build profiles](../../guides/build-profiles.md)
+- [Build profiles](../../build-profiles.md)
 - [Development build disabled](development-build.md)

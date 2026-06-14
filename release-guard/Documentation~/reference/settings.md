@@ -73,4 +73,4 @@ That data lives in:
 - `ReleaseGuardProfile`
 - `ProfileActivation`
 
-See [Build profiles](../guides/build-profiles.md).
+See [Build profiles](../build-profiles.md).

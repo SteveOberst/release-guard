@@ -71,4 +71,4 @@ The most common causes are that the containing assembly is editor-only, excluded
 
 - [Release-forbidden code](../../guides/release-forbidden.md)
 - [Asset exclusions](../../guides/asset-exclusions.md)
-- [Build profiles](../../guides/build-profiles.md)
+- [Build profiles](../../build-profiles.md)

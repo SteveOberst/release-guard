@@ -52,5 +52,5 @@ Because this component looks at the debugging flag directly. The development-bui
 ## Related docs
 
 - [Development build disabled](development-build.md)
-- [Build profiles](../../guides/build-profiles.md)
+- [Build profiles](../../build-profiles.md)
 - [Pre-Build Checks window](../../guides/checks-window.md)

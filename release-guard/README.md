@@ -88,7 +88,7 @@ The checks window only dispatches the `pre-build` event. Output-folder component
 | Local batchmode build | Uses the first matching profile and treats the run as CI |
 | CI build | Uses the first matching profile and treats the run as CI |
 
-The seeded `Development` profile is intentionally looser than `Release`, but it does not just disable three checks. It leaves some guardrails enabled and disables a broader set of release-only checks. See [Quickstart](Documentation~/quickstart.md) and [Build profiles](Documentation~/guides/build-profiles.md) for the actual seeded defaults.
+The seeded `Development` profile is intentionally looser than `Release`, but it does not just disable three checks. It leaves some guardrails enabled and disables a broader set of release-only checks. See [Quickstart](Documentation~/quickstart.md) and [Build profiles](Documentation~/build-profiles.md) for the actual seeded defaults.
 
 ## `[ReleaseForbidden]`
 
@@ -176,7 +176,7 @@ The optional `build_manifest` component writes `release-guard-manifest.json` int
 | [Documentation index](Documentation~/index.md) | Start here |
 | [Quickstart](Documentation~/quickstart.md) | Install to first blocked build |
 | [Configuring](Documentation~/configuring.md) | Minimal settings map |
-| [Build profiles](Documentation~/guides/build-profiles.md) | How build-time profile selection actually works |
+| [Build profiles](Documentation~/build-profiles.md) | How build-time profile selection actually works |
 | [CI integration](Documentation~/guides/ci-integration.md) | Batchmode behavior, manifest, and pipeline implications |
 | [Custom components](Documentation~/guides/custom-components.md) | Write your own `ReleaseGuardComponent` |
 | [Plugins](Documentation~/api/plugins.md) | Explicit registration and plugin settings |

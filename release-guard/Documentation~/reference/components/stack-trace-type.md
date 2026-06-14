@@ -74,5 +74,5 @@ If multiple channels are configured for full traces, you may still be seeing the
 ## Related docs
 
 - [Pre-Build Checks window](../../guides/checks-window.md)
-- [Build profiles](../../guides/build-profiles.md)
+- [Build profiles](../../build-profiles.md)
 - [WebGL exception support](webgl-exception-support.md)

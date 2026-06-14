@@ -13,7 +13,7 @@ Release Guard settings are profile-based.
 
 The profile selected in the Project Settings header controls what you are editing.
 
-Real builds do not use the currently edited profile. They use the first profile whose activation condition matches the build. See [Build profiles](guides/build-profiles.md).
+Real builds do not use the currently edited profile. They use the first profile whose activation condition matches the build. See [Build profiles](build-profiles.md).
 
 One important implementation detail from the live codebase:
 

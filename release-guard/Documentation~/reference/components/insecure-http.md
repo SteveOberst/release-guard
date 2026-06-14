@@ -60,5 +60,5 @@ Because the active profile may disable the component or suppress its advisory id
 ## Related docs
 
 - [Pre-Build Checks window](../../guides/checks-window.md)
-- [Build profiles](../../guides/build-profiles.md)
+- [Build profiles](../../build-profiles.md)
 - [CI integration](../../guides/ci-integration.md)

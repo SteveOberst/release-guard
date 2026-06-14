@@ -30,7 +30,7 @@ Use this as the compact mental model:
 - [CI integration](guides/ci-integration.md)  
   How Release Guard behaves in batchmode, how profile selection works in CI, and how to use the build manifest artifact.
 
-- [Build profiles](guides/build-profiles.md)  
+- [Build profiles](build-profiles.md)  
   How Release Guard chooses which settings asset to use for a real build, how the editing profile differs from the build-time profile, and how to create custom profiles safely.
 
 ## Core guides
