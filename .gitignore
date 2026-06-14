@@ -71,6 +71,7 @@ crashlytics-build.properties
 # is the tracked dev project, so equivalent paths there are unaffected.
 # -----------------------------------------------------------------------------
 /Assets/
+!/assets/
 /Assets.meta
 /ProjectSettings/
 /ProjectSettings.meta
