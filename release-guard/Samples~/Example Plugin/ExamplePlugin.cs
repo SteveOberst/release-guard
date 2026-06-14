@@ -24,7 +24,7 @@ namespace ReleaseGuard.ExamplePlugin
     {
         static ExamplePluginLoader()
         {
-            DI.Resolve<ReleaseGuardEnvironment>().RegisterPlugin(new ExamplePlugin());
+            ReleaseGuardDI.Resolve<ReleaseGuardEnvironment>().RegisterPlugin(new ExamplePlugin());
         }
     }
 }
