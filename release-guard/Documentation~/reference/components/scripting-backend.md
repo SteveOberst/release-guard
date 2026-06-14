@@ -53,6 +53,6 @@ The usual cause is profile selection, not backend detection. Real builds use the
 
 ## Related docs
 
-- [Build profiles](../../guides/build-profiles.md)
+- [Build profiles](../../build-profiles.md)
 - [Configuring](../../configuring.md)
 - [Built-in components overview](../components.md)

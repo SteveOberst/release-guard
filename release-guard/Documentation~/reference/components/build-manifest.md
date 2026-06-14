@@ -78,4 +78,4 @@ Yes. Register a custom post-build component with:
 
 - [CI integration](../../guides/ci-integration.md)
 - [Debug symbol sweep](debug-symbol-sweep.md)
-- [Build profiles](../../guides/build-profiles.md)
+- [Build profiles](../../build-profiles.md)

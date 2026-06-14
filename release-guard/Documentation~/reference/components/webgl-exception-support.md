@@ -64,5 +64,5 @@ It should. Suppression is stored project-wide, so a mismatch usually means you a
 ## Related docs
 
 - [Pre-Build Checks window](../../guides/checks-window.md)
-- [Build profiles](../../guides/build-profiles.md)
+- [Build profiles](../../build-profiles.md)
 - [Stack trace log types](stack-trace-type.md)

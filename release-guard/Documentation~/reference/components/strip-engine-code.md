@@ -56,4 +56,4 @@ Because seeded profiles are just starting assets. This advisory stays enabled th
 
 - [Managed code stripping](managed-stripping.md)
 - [Pre-Build Checks window](../../guides/checks-window.md)
-- [Build profiles](../../guides/build-profiles.md)
+- [Build profiles](../../build-profiles.md)

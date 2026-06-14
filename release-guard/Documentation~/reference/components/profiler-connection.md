@@ -53,4 +53,4 @@ The checks window reads the current editor-side build option when no `BuildRepor
 
 - [Development build disabled](development-build.md)
 - [Pre-Build Checks window](../../guides/checks-window.md)
-- [Build profiles](../../guides/build-profiles.md)
+- [Build profiles](../../build-profiles.md)

@@ -73,7 +73,7 @@ These built-in components are disabled by default in the seeded Development prof
 | `insecure_http` |
 | `burst_debug` |
 
-See [Build profiles](guides/build-profiles.md) for the exact selection rules.
+See [Build profiles](build-profiles.md) for the exact selection rules.
 
 ## 4. Run the checks window
 

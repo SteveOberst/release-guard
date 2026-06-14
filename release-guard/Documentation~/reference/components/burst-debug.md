@@ -65,5 +65,5 @@ Because many teams intentionally relax Burst settings in certain profiles during
 ## Related docs
 
 - [Pre-Build Checks window](../../guides/checks-window.md)
-- [Build profiles](../../guides/build-profiles.md)
+- [Build profiles](../../build-profiles.md)
 - [Development notes](../../development.md)

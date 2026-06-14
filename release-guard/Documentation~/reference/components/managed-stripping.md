@@ -68,5 +68,5 @@ The stripping-level logic is the same. A mismatch usually means a different prof
 ## Related docs
 
 - [Pre-Build Checks window](../../guides/checks-window.md)
-- [Build profiles](../../guides/build-profiles.md)
+- [Build profiles](../../build-profiles.md)
 - [Built-in settings reference](../settings.md)
