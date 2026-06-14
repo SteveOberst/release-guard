@@ -1,41 +1,39 @@
 using System.Linq;
+using System.Collections.Generic;
+using ReleaseGuard.Editor.Core.Components;
+using ReleaseGuard.Editor.Core.PreBuild;
 using ReleaseGuard.Editor.Config;
-using ReleaseGuard.Editor.Core.Audit;
 using ReleaseGuard.Editor.Core.DI;
 using ReleaseGuard.Editor.Core.Plugins;
-using ReleaseGuard.Editor.Core.PostProcessing;
 using ReleaseGuard.Editor.Core.Runtime;
-using ReleaseGuard.Editor.Core.Transforming;
 using UnityEditor;
 using UnityEngine;
 
 namespace ReleaseGuard.Editor.UI
 {
     /// <summary>
-    /// Editor window that runs the release audit on demand and shows the findings, grouped and
+    /// Editor window that runs the pre-build checks on demand and shows the findings, grouped and
     /// filterable by severity, each with a "ping asset" shortcut and a fix hint.
     ///
     /// Advisories (dismissible warnings) include a "Don't show again" button that writes the
-    /// advisory id into <see cref="AuditorSettings.suppressedAdvisoryIds"/> and re-runs
-    /// the audit so the dismissed item disappears immediately.
+    /// advisory id plus display context into <see cref="AdvisorySuppressionStore"/>
+    /// (profile-independent) and re-runs the checks so the dismissed item disappears immediately.
     ///
     /// Built with IMGUI (EditorGUILayout) -- the conventional, dependency-free choice for editor
     /// tooling.
     /// </summary>
     public sealed class ReleaseGuardWindow : EditorWindow
     {
-        private ReleaseGuardReport _report;
+        private ReleaseGuardPreBuildReport _report;
         private Vector2 _scroll;
 
         private bool _showErrors = true;
         private bool _showWarnings = true;
         private bool _showInfo = true;
-        private bool _showAuditors;
-        private bool _showPostProcessors;
-        private bool _showTransformers;
+        private bool _showComponents;
         private bool _showPlugins;
 
-        [MenuItem("Tools/Release Guard/Audit")]
+        [MenuItem("Tools/Release Guard/Pre-Build Checks")]
         public static void ShowWindow()
         {
             var window = GetWindow<ReleaseGuardWindow>("Release Guard");
@@ -43,12 +41,12 @@ namespace ReleaseGuard.Editor.UI
             window.Show();
         }
 
-        /// <summary>Open the window and immediately run an audit (handy for menu shortcuts / CI hooks).</summary>
+        /// <summary>Open the window and immediately run the checks (handy for menu shortcuts / CI hooks).</summary>
         // ReSharper disable once UnusedMember.Global
-        public static void ShowWindowAndRunAudit()
+        public static void ShowWindowAndRunChecks()
         {
             ShowWindow();
-            GetWindow<ReleaseGuardWindow>().RunAudit();
+            GetWindow<ReleaseGuardWindow>().RunPreBuildChecks();
         }
 
         private void OnGUI()
@@ -58,16 +56,14 @@ namespace ReleaseGuard.Editor.UI
             if (_report == null)
             {
                 EditorGUILayout.HelpBox(
-                    "Run an audit to check this project's release readiness.\n" +
+                    "Run the pre-build checks to inspect this project's release readiness.\n" +
                     "The same checks run automatically before every non-development build.",
                     MessageType.Info);
                 return;
             }
 
             DrawSummary();
-            DrawDiscoveredAuditors();
-            DrawDiscoveredPostProcessors();
-            DrawDiscoveredTransformers();
+            DrawRegisteredComponents();
             DrawDiscoveredPlugins();
             DrawFilters();
             DrawIssues();
@@ -79,8 +75,8 @@ namespace ReleaseGuard.Editor.UI
         {
             using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
             {
-                if (GUILayout.Button("Run Audit", EditorStyles.toolbarButton, GUILayout.Width(90)))
-                    RunAudit();
+                if (GUILayout.Button("Run Checks", EditorStyles.toolbarButton, GUILayout.Width(90)))
+                    RunPreBuildChecks();
 
                 if (GUILayout.Button("Settings", EditorStyles.toolbarButton, GUILayout.Width(90)))
                     SettingsService.OpenProjectSettings("Project/Release Guard");
@@ -88,9 +84,9 @@ namespace ReleaseGuard.Editor.UI
                 GUILayout.FlexibleSpace();
 
                 if (_report == null) return;
-                var auditorCount = _report.DiscoveredAuditors.Count;
+                var componentCount = _report.RegisteredComponents.Count;
                 GUILayout.Label(
-                    $"{auditorCount} auditor(s), highest: {_report.HighestSeverity}",
+                    $"{componentCount} component(s), highest: {_report.HighestSeverity}",
                     EditorStyles.miniLabel);
             }
         }
@@ -104,7 +100,7 @@ namespace ReleaseGuard.Editor.UI
 
             if (!_report.HasIssues)
             {
-                message = "No issues found -- this project looks ready to release.";
+                message = "No issues found. This project looks ready to release.";
                 type = MessageType.Info;
             }
             else
@@ -122,28 +118,30 @@ namespace ReleaseGuard.Editor.UI
             EditorGUILayout.HelpBox(message, type);
         }
 
-        // --- Registered auditors foldout ---
+        // --- Registered components foldout ---
 
-        private void DrawDiscoveredAuditors()
+        private void DrawRegisteredComponents()
         {
-            var auditors = _report.DiscoveredAuditors;
-            if (auditors.Count == 0)
+            var environment = ReleaseGuardDI.Resolve<ReleaseGuardEnvironment>();
+            var components = environment.Components.Items;
+            if (components.Count == 0)
                 return;
 
             EditorGUILayout.Space(2);
-            _showAuditors = EditorGUILayout.Foldout(
-                _showAuditors,
-                $"Registered auditors ({auditors.Count})",
+            _showComponents = EditorGUILayout.Foldout(
+                _showComponents,
+                $"Registered components ({components.Count})",
                 toggleOnLabelClick: true);
 
-            if (!_showAuditors)
+            if (!_showComponents)
                 return;
 
             EditorGUI.indentLevel++;
 
-            foreach (var auditor in auditors)
+            foreach (var component in components)
             {
-                var issueCount = _report.Issues.Count(i => i.AuditorId == auditor.Id);
+                var issueCount = _report.Issues.Count(i => i.ComponentId == component.Id);
+                var phases = DescribePhases(component.Id, environment);
 
                 using (new EditorGUILayout.HorizontalScope())
                 {
@@ -154,13 +152,14 @@ namespace ReleaseGuard.Editor.UI
                     EditorGUILayout.LabelField("[*]", GUILayout.Width(28));
                     GUI.contentColor = prevColor;
 
-                    EditorGUILayout.LabelField(auditor.Id, GUILayout.Width(180));
+                    EditorGUILayout.LabelField(component.Id, GUILayout.Width(180));
 
                     EditorGUILayout.LabelField(
-                        auditor.DisplayName,
+                        component.DisplayName,
                         EditorStyles.miniLabel,
                         GUILayout.MinWidth(120));
 
+                    EditorGUILayout.LabelField(phases, EditorStyles.miniLabel, GUILayout.Width(180));
                     GUILayout.FlexibleSpace();
 
                     var countLabel = issueCount > 0 ? $"{issueCount} issue(s)" : "clean";
@@ -169,99 +168,9 @@ namespace ReleaseGuard.Editor.UI
             }
 
             EditorGUI.indentLevel--;
-            EditorGUILayout.Space(4);
-        }
-
-        // --- Discovered post-processors foldout ---
-
-        private void DrawDiscoveredPostProcessors()
-        {
-            EditorGUILayout.Space(2);
-
-            _showPostProcessors = EditorGUILayout.Foldout(
-                _showPostProcessors,
-                "Post-processors (post-build)",
-                toggleOnLabelClick: true);
-
-            if (!_showPostProcessors)
-                return;
-
-            var postProcessors = DI.Resolve<ReleaseGuardEnvironment>().Registries.PostProcessors.Items;
-
-            if (postProcessors.Count == 0)
-            {
-                EditorGUI.indentLevel++;
-                EditorGUILayout.LabelField(
-                    "No post-processors registered.",
-                    EditorStyles.miniLabel);
-                EditorGUI.indentLevel--;
-                EditorGUILayout.Space(4);
-                return;
-            }
-
-            EditorGUI.indentLevel++;
-            foreach (var pp in postProcessors)
-            {
-                using (new EditorGUILayout.HorizontalScope())
-                {
-                    EditorGUILayout.LabelField(pp.Id, GUILayout.Width(200));
-                    EditorGUILayout.LabelField(pp.DisplayName, EditorStyles.miniLabel, GUILayout.MinWidth(120));
-                    GUILayout.FlexibleSpace();
-                    EditorGUILayout.LabelField($"Priority {pp.Priority}", EditorStyles.miniLabel, GUILayout.Width(80));
-                }
-            }
-
-            EditorGUI.indentLevel--;
-
             EditorGUILayout.HelpBox(
-                "Post-processors run automatically after every release build. " +
-                "They are not triggered by the manual 'Run Audit' button.",
+                "Run Checks dispatches the pre-build event without an active BuildReport. Build and post-build subscriptions run only during real builds.",
                 MessageType.None);
-            EditorGUILayout.Space(4);
-        }
-
-        // --- Discovered transformers foldout ---
-
-        private void DrawDiscoveredTransformers()
-        {
-            EditorGUILayout.Space(2);
-
-            _showTransformers = EditorGUILayout.Foldout(
-                _showTransformers,
-                "Transformers (artifact-level)",
-                toggleOnLabelClick: true);
-
-            if (!_showTransformers)
-                return;
-
-            var transformers = DI.Resolve<ReleaseGuardEnvironment>().Registries.Transformers.Items;
-
-            if (transformers.Count == 0)
-            {
-                EditorGUI.indentLevel++;
-                EditorGUILayout.LabelField(
-                    "No transformers registered. Register one through a plugin or enable transformer auto-discovery.",
-                    EditorStyles.miniLabel);
-                EditorGUI.indentLevel--;
-                EditorGUILayout.Space(4);
-                return;
-            }
-
-            EditorGUI.indentLevel++;
-            foreach (var transformer in transformers)
-            {
-                using (new EditorGUILayout.HorizontalScope())
-                {
-                    EditorGUILayout.LabelField(transformer.Id, GUILayout.Width(200));
-                    EditorGUILayout.LabelField(transformer.DisplayName, EditorStyles.miniLabel,
-                        GUILayout.MinWidth(120));
-                    GUILayout.FlexibleSpace();
-                    EditorGUILayout.LabelField($"Priority {transformer.Priority}", EditorStyles.miniLabel,
-                        GUILayout.Width(80));
-                }
-            }
-
-            EditorGUI.indentLevel--;
             EditorGUILayout.Space(4);
         }
 
@@ -279,7 +188,7 @@ namespace ReleaseGuard.Editor.UI
             if (!_showPlugins)
                 return;
 
-            var plugins = DI.Resolve<ReleaseGuardEnvironment>().Plugins;
+            var plugins = ReleaseGuardDI.Resolve<ReleaseGuardEnvironment>().Plugins;
 
             EditorGUI.indentLevel++;
 
@@ -362,7 +271,7 @@ namespace ReleaseGuard.Editor.UI
 
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    EditorGUILayout.LabelField($"Auditor: {issue.AuditorId}", EditorStyles.miniLabel);
+                    EditorGUILayout.LabelField($"Component: {issue.ComponentId}", EditorStyles.miniLabel);
                     GUILayout.FlexibleSpace();
 
                     // "Don't show again" button for dismissible advisories.
@@ -370,9 +279,16 @@ namespace ReleaseGuard.Editor.UI
                     {
                         if (GUILayout.Button("Don't show again", EditorStyles.miniButton, GUILayout.Width(118)))
                         {
-                            DI.Resolve<ReleaseGuardEnvironment>().Settings.SuppressAdvisory(issue.SuppressId);
+                            var environment = ReleaseGuardDI.Resolve<ReleaseGuardEnvironment>();
+                            var displayName = environment.Components.Items
+                                .FirstOrDefault(c => c.Id == issue.ComponentId)?.DisplayName ?? issue.ComponentId;
+                            environment.Settings.SuppressAdvisory(
+                                issue.SuppressId,
+                                issue.Message,
+                                issue.ComponentId,
+                                displayName);
                             ReleaseGuardStartup.Reload();
-                            RunAudit(); // re-run so the dismissed advisory disappears
+                            RunPreBuildChecks(); // re-run so the dismissed advisory disappears
                             return; // DrawIssue may no longer be safe to continue; bail out
                         }
                     }
@@ -392,11 +308,35 @@ namespace ReleaseGuard.Editor.UI
 
         // --- Helpers ---
 
-        private void RunAudit()
+        private void RunPreBuildChecks()
         {
-            _report = DI.Resolve<ReleaseGuardEnvironment>().AuditPipeline.RunInEditor();
+            var environment = ReleaseGuardDI.Resolve<ReleaseGuardEnvironment>();
+            var configuration = ReleaseGuardConfiguration.Resolve(environment.Settings, report: null);
+            _report = environment.Pipeline.DispatchWithResult(
+                ReleaseGuardPreBuildEvent.ForManualRun(
+                    environment.Settings,
+                    configuration,
+                    environment.Logger,
+                    EditorUserBuildSettings.activeBuildTarget),
+                releaseEvent => releaseEvent.Report);
             Repaint();
         }
+
+        private static string DescribePhases(string componentId, ReleaseGuardEnvironment environment)
+        {
+            var phases = environment.EventBus.GetSubscribedEvents(componentId)
+                .Select(DescribePhase)
+                .ToList();
+            return string.Join(", ", phases);
+        }
+
+        private static string DescribePhase(ReleaseGuardLifecycleEventKind releaseEvent) => releaseEvent switch
+        {
+            ReleaseGuardLifecycleEventKind.PreBuild => "pre-build",
+            ReleaseGuardLifecycleEventKind.Build => "build",
+            ReleaseGuardLifecycleEventKind.PostBuild => "post-build",
+            _ => releaseEvent.ToString()
+        };
 
         private static MessageType ToMessageType(ReleaseIssueSeverity severity) => severity switch
         {
