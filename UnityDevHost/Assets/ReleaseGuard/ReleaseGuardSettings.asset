@@ -14,13 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: ReleaseGuard.Editor::ReleaseGuard.Editor.Config.ReleaseGuardSettings
   general:
     enabled: 1
-    skipOnDevelopmentBuilds: 1
     failureThreshold: 2
     verboseLogging: 0
-    profileOverrides:
-    - buildProfileName: 
-      enabled: 0
-      failureThreshold: 0
   auditors:
     requireIl2Cpp: 1
     forbidDevelopmentBuild: 1
@@ -28,7 +23,7 @@ MonoBehaviour:
     forbidProfilerConnection: 1
     minManagedStrippingLevel: 2
     forbidBroadPreserve: 1
-    autoDiscoverAuditors: 1
+    autoDiscoverAuditors: 0
     disabledAuditorIds: []
     excludedAssetPaths:
       patterns: []
@@ -39,10 +34,10 @@ MonoBehaviour:
     debugSymbolSweepDelete: 0
     debugSymbolSweepExtraPatterns: []
     writeBuildManifest: 0
-    autoDiscoverPostProcessors: 1
+    autoDiscoverPostProcessors: 0
     disabledPostProcessorIds: []
   transformers:
-    autoDiscoverTransformers: 1
+    autoDiscoverTransformers: 0
     disabledTransformerIds: []
   plugins:
     autoDiscoverPlugins: 1

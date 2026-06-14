@@ -10,16 +10,16 @@ from [Conventional Commits](https://www.conventionalcommits.org/). Do not edit i
 ### Added
 
 - **Auditor pipeline** -- pre-build checks via `IPreprocessBuildWithReport`. Subclass
-  `ReleaseAuditor` and implement `Audit(ReleaseAuditContext)` to contribute custom rules.
+  `ReleaseAuditor` and implement `Audit(ReleaseGuardPreBuildContext)` to contribute custom rules.
   Discovery is automatic via TypeCache; built-ins are registered explicitly through
   `BuiltInAuditorRegistry`.
 - **Post-processor pipeline** -- late post-build operations via `IPostprocessBuildWithReport`
   (`callbackOrder = int.MaxValue`). Subclass `ReleasePostProcessor` and implement
-  `PostProcess(ReleasePostProcessContext)` for output-folder cleanup, metadata writing, and
+  `PostProcess(ReleaseGuardPostBuildContext)` for output-folder cleanup, metadata writing, and
   similar tasks that must run after the build is fully assembled.
 - **Transformer pipeline** -- early post-build artifact transformations (`callbackOrder = 0`,
   runs before post-processors). Subclass `ReleaseTransformer` and implement
-  `Transform(ReleaseTransformContext)` for IL manipulation, obfuscation, binary patching, and
+  `Transform(ReleaseGuardBuildContext)` for IL manipulation, obfuscation, binary patching, and
   similar artifact-level transforms. No built-in transformers ship in this release.
 - **Plugin architecture** -- `ReleaseGuardPlugin` base class provides a single `Register()`
   entry point to contribute auditors, post-processors, and/or transformers from one place.

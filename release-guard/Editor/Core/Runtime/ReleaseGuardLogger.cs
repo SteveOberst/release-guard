@@ -17,7 +17,7 @@ namespace ReleaseGuard.Editor.Core.Runtime
 
         public ReleaseGuardLogger(bool verbose) => _verbose = verbose;
 
-        public void LogReport(ReleaseGuardReport report, ReleaseIssueSeverity failureThreshold)
+        public void LogReport(ReleaseGuardPreBuildReport report, ReleaseIssueSeverity failureThreshold)
         {
             if (!report.HasIssues)
             {

@@ -1,21 +1,15 @@
-using ReleaseGuard.Editor.Core.Audit;
-using ReleaseGuard.Editor.Core.PostProcessing;
-using ReleaseGuard.Editor.Core.Transforming;
+using ReleaseGuard.Editor.Core.Components;
 
 namespace ReleaseGuard.Editor.Core.Registries
 {
-    /// <summary>Runtime registries for every Release Guard registry item type.</summary>
+    /// <summary>Runtime registries for Release Guard components.</summary>
     public sealed class ReleaseGuardRegistries
     {
         internal ReleaseGuardRegistries()
         {
-            Auditors = new WeightedRegistry<ReleaseAuditor>();
-            PostProcessors = new WeightedRegistry<ReleasePostProcessor>();
-            Transformers = new WeightedRegistry<ReleaseTransformer>();
+            Components = new WeightedRegistry<ReleaseGuardComponent>();
         }
 
-        public WeightedRegistry<ReleaseAuditor> Auditors { get; }
-        public WeightedRegistry<ReleasePostProcessor> PostProcessors { get; }
-        public WeightedRegistry<ReleaseTransformer> Transformers { get; }
+        public WeightedRegistry<ReleaseGuardComponent> Components { get; }
     }
 }

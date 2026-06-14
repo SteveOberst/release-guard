@@ -15,7 +15,7 @@ namespace ExamplePlugin
         public override void Register(PluginRegistrationContext context)
         {
             var settings = GetSettings<ExamplePluginSettings>();
-            context.ReleaseGuard.Registries.Auditors.Register(new ExampleAuditor(settings));
+            context.ReleaseGuard.Registries.Components.Register(new ExampleAuditor(settings));
         }
     }
 
@@ -29,7 +29,7 @@ namespace ExamplePlugin
     {
         static ExamplePluginLoader()
         {
-            DI.Resolve<ReleaseGuardEnvironment>().RegisterPlugin(new ExamplePlugin());
+            ReleaseGuardDI.Resolve<ReleaseGuardEnvironment>().RegisterPlugin(new ExamplePlugin());
         }
     }
 }

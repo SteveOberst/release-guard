@@ -5,8 +5,8 @@ using System.Linq;
 namespace ReleaseGuard.Editor.Core.Registries
 {
     /// <summary>
-    /// Registry that keeps items in priority-then-id order using a natively sorted structure.
-    /// Deduplicates by id; the first registration for a given id wins.
+    /// Registry that keeps items in stable id order. Deduplicates by id; the first registration
+    /// for a given id wins.
     ///
     /// Registration guards (added via <see cref="AddRegistrationGuard"/>) are enforced on every
     /// <see cref="Register"/> call regardless of the caller -- built-in loaders, plugin
@@ -15,7 +15,7 @@ namespace ReleaseGuard.Editor.Core.Registries
     public sealed class WeightedRegistry<T> : IRegistry<string, T>
         where T : class, IReleaseGuardRegistryItem
     {
-        private readonly SortedList<(int priority, string id), T> _sorted = new();
+        private readonly SortedList<string, T> _sorted = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, T> _byId = new(StringComparer.OrdinalIgnoreCase);
         private readonly List<Func<string, T, bool>> _guards = new();
         private IReadOnlyList<T> _itemsCache;
@@ -43,7 +43,7 @@ namespace ReleaseGuard.Editor.Core.Registries
 
             if (!_byId.TryAdd(normalizedId, item)) return false;
 
-            _sorted[(item.Priority, normalizedId)] = item;
+            _sorted[normalizedId] = item;
             _itemsCache = null;
             return true;
         }

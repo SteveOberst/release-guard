@@ -1,140 +1,147 @@
-# Guide: CI integration
+# CI Integration
 
-Release Guard does not require a separate command-line tool. It hooks into Unity's normal build
-callbacks, so any CI job that creates a non-development player build automatically runs the
-pre-build audit and fails when findings meet the configured threshold.
+Release Guard does not need a special CI entry point.
 
-## Recommended CI shape
+If your CI job triggers a Unity build through the normal build pipeline, the package hooks run automatically.
 
-1. Commit `Assets/ReleaseGuard/ReleaseGuardSettings.asset` and its `.meta` file.
-2. Make CI run the same Unity build method used for production builds.
-3. Ensure that build method creates a non-development build unless the job is intentionally for
-   development builds.
-4. Archive the Unity Editor log on failure.
-5. If `Post-Processors > Build Manifest > Write Build Manifest` is enabled, archive
-   `release-guard-manifest.json` as a CI artifact and exclude it from shipped builds.
+## What actually runs in CI
 
-> **Missing settings asset in CI.** If the settings asset is not committed, `ReleaseGuardSettings.LoadOrCreate()` creates a fresh asset with all defaults when the Editor starts. This means CI would run with permissive defaults rather than your team's committed policy, and changes to thresholds or disabled auditor ids made locally would have no effect in CI. Always commit the asset before onboarding CI.
+During a build, Release Guard uses:
 
-When Release Guard blocks a build, Unity throws a `BuildFailedException` with a message like:
+- `IPreprocessBuildWithReport` for the blocking `pre-build` event
+- `IPostprocessBuildWithReport` for the `build` event
+- `IPostprocessBuildWithReport` again, at `callbackOrder = int.MaxValue`, for the final `post-build` event
+
+If the pre-build report contains any issue at or above the configured failure threshold, Release Guard throws `BuildFailedException` and Unity returns a failed build.
+
+## CI environment detection
+
+Release Guard treats batchmode as the CI boundary.
+
+The current implementation is:
+
+- when `Application.isBatchMode` is false, the environment is `UnityEditor`
+- when `Application.isBatchMode` is true, the run is treated as CI
+- after that, Release Guard tries to refine the CI provider label
+
+Provider labeling uses common CI variables for:
+
+- GitHub Actions
+- GitLab CI
+- Jenkins
+- CircleCI
+- Azure DevOps
+- TeamCity
+
+If none match, the environment is still treated as CI, but labeled `CI_Unknown`.
+
+Unity Cloud Build is separate: the current implementation detects it through the `UNITY_CLOUD_BUILD` compile symbol, not through an environment-variable probe.
+
+This matters mainly for profile activation and for the built-in `ci_development_build` component.
+
+## Important consequence: local batchmode also counts
+
+This is easy to miss on a first rollout.
+
+If you run Unity locally in batchmode, Release Guard still treats that build as CI even if no vendor-specific CI variable is present.
+
+So a local command-line build can:
+
+- activate `IsCI` profiles
+- activate `IsCIAndDevelopmentBuild` profiles
+- fail on `ci_development_build`
+
+with the environment labeled `CI_Unknown`.
+
+Example shape:
 
 ```text
-[ReleaseGuard] Build blocked: N issue(s) at or above Error. See the Console (or the Release Guard window) for details and fixes.
+Unity.exe -batchmode -quit -projectPath <project> -executeMethod <your build method>
 ```
 
-The detailed findings are written to the Unity Console and Editor log.
+If that build also sets Development Build, the default Development profile can still be selected, and `ci_development_build` can still report because batchmode alone is enough to classify the run as CI.
 
-## Batchmode example
+## Recommended profile strategy for CI
 
-The exact Unity executable path and project path are CI-provider-specific, but the pattern is:
+The simplest stable setup is:
 
-```bash
-Unity \
-  -batchmode \
-  -quit \
-  -nographics \
-  -projectPath "$PROJECT_PATH" \
-  -executeMethod Company.Build.PerformReleaseBuild \
-  -logFile "$CI_ARTIFACTS/unity.log"
-```
+- `Release` profile for non-development builds
+- `Development` profile for development builds
+- optional CI-specific profile only when your pipeline really needs different Release Guard behavior than local builds
 
-`Company.Build.PerformReleaseBuild` should call `BuildPipeline.BuildPlayer` with production
-options. Release Guard runs from Unity's `IPreprocessBuildWithReport` hook before output is
-written.
+Do not assume the profile selected in the Project Settings header affects CI. It does not.
 
-## Development builds
+## Build manifest
 
-`General > Skip On Development Builds` is on by default. If CI accidentally builds with
-`BuildOptions.Development`, Release Guard skips every stage. For production jobs, make the build
-method fail fast when the development flag is present so the job does not silently bypass the
-release gate.
+The `build_manifest` component is off by default.
 
-If you intentionally produce development builds in CI, keep them in a separate job or Build
-Profile. Do not use the production job as both a debug-build and release-build pipeline.
+When enabled, it writes `release-guard-manifest.json` into the resolved build output folder after a successful build and after the default-priority post-build work has already run.
 
-## Failure thresholds in CI
+Use it as a CI artifact, not a shipped file.
 
-The default threshold is `Error`. Warnings and advisories are logged but do not fail the build.
-For a stricter CI gate, set `General > Failure Threshold` to `Warning` globally or add a Build
-Profile override for the profile used by CI.
+Useful downstream uses:
 
-There is no "report-only" threshold above `Error`. For report-only CI, run a separate manual-audit
-Editor script or use a Build Profile with Release Guard disabled and rely on the log as advisory
-output.
+- artifact validation
+- provenance records
+- packaging assertions
+- verifying that the expected component set was active for a given build
+- release pipeline checks that compare expected disabled components or suppressed advisories against what actually produced the build
 
-**Advisory interaction with a stricter threshold:** several built-in advisories are `Warning`
-severity (for example `managed_stripping.below_medium` and `insecure_http.always_allowed`).
-If you raise `failureThreshold` to `Warning`, these advisories start blocking the build. You
-must either fix the underlying issue, lower the threshold back to `Error` for those builds, or
-use "Don't show again" in the audit window to permanently suppress specific advisories you have
-reviewed and accepted. Plan for this extra suppression management work before enabling a
-`Warning` threshold in CI.
+The manifest records:
 
-## Multi-platform builds
+- Release Guard package version
+- Unity version
+- build target
+- product name
+- output file name
+- failure threshold
+- build GUID and timestamps when a `BuildReport` is available
+- registered components and their subscribed phases
+- disabled component ids
+- disabled plugin ids
+- suppressed advisory ids
 
-Release Guard resolves the effective configuration once per build. In batchmode, each call to
-`BuildPipeline.BuildPlayer` triggers an independent pre-build audit (targeting that call's
-`BuildTarget`) and an independent post-build pipeline. There is no cross-build state. If your
-CI script builds for multiple targets sequentially in one Editor session, each build gets a
-fresh audit against the current build target with the same settings asset. You will see one set
-of audit log entries per target in the Editor log.
+What it deliberately does not record:
 
-## Post-build artifacts
+- absolute file system paths
+- VCS revision information
 
-The debug symbol sweep post-processor is report-only by default. If you enable deletion, archive
-symbol folders to your crash-reporting storage before Release Guard deletes them from the build
-output.
+If you want commit metadata in the manifest, add your own post-build component with a higher priority than the built-in writer.
 
-The build manifest is intended for CI artifact storage. It records Unity version, build target,
-active registry ids, disabled ids, suppressions, and build summary fields when a build report is
-available. It deliberately does not record VCS revision or absolute paths; add those in your own
-post-processor with a priority greater than `100` if it must amend the built-in manifest, or keep
-them in CI metadata.
+## Debug symbol sweep in CI
 
-Useful ways to use the manifest in CI:
+`debug_symbol_sweep` is the other CI-relevant built-in post-build component.
 
-- Attach it to every build artifact so you can later answer which Release Guard version, Unity
-  version, target, threshold, auditors, post-processors, transformers, disabled ids, and suppressed
-  advisories produced that artifact.
-- Compare manifests between staging and production builds to catch policy drift before promotion,
-  for example a plugin disabled in staging but enabled in production, or a new advisory suppression
-  added without review.
-- Fail a promotion job if the manifest is missing, belongs to the wrong build target, or was
-  produced with a weaker threshold than the destination environment requires.
-- Include the manifest in release evidence for security reviews, store submissions, or incident
-  response. It gives reviewers a compact, machine-readable snapshot of the hardening gate.
-- Use it as input to dashboards or release notes that show which hardening checks were active for
-  each build.
+Default behavior:
 
-If you need commit SHA, branch, CI run id, signing status, or artifact hashes in the same evidence
-bundle, either store those beside the manifest in CI metadata or write a custom post-processor that
-adds a second project-specific manifest file. The built-in manifest intentionally avoids repository
-and machine-specific data.
+- enabled
+- report-only
 
-## Ordering with other build callbacks
+Optional behavior:
 
-Release Guard hooks at `callbackOrder = 0` for the pre-build gate (`IPreprocessBuildWithReport`)
-and at `callbackOrder = int.MaxValue` for post-processors (`IPostprocessBuildWithReport`). If
-you have custom build scripts that also implement `IPreprocessBuildWithReport`, their
-`callbackOrder` value determines whether they run before or after the Release Guard gate:
+- delete matched artifacts from the output folder
 
-- `callbackOrder < 0`: runs before the Release Guard gate. Use this for scripts that prepare
-  the build (e.g. setting `BuildOptions`).
-- `callbackOrder > 0`: runs after the gate. Those scripts will not run when a blocked build throws.
-- `callbackOrder = 0` (the default): runs alongside Release Guard; Unity does not guarantee
-  order among same-priority callbacks.
-
-If a script must fire before the Release Guard check (e.g. to set a `Development Build` flag
-that the gate then reads), give it a negative `callbackOrder`.
+Only enable deletion after you have decided where symbol folders and `.pdb` files should be archived for crash symbolication. Once they are deleted from the output folder, they are gone unless you rebuild.
 
 ## Troubleshooting
 
-- No Release Guard output: confirm the package is installed and `General > Enabled` is on.
-- Build unexpectedly skipped: confirm the build is not a Development build and no Build Profile
-  override disables Release Guard.
-- Different behavior between local and CI: confirm `Assets/ReleaseGuard/ReleaseGuardSettings.asset`
-  is committed. Without the asset, CI uses freshly-created defaults, not your local settings.
-- Custom plugin missing: confirm the plugin assembly has an explicit asmdef reference to
-  `ReleaseGuard.Editor` and that the plugin id is not listed in `Plugins > Disabled Plugin Ids`.
-- Custom auditor missing: confirm it is registered by a plugin, or enable
-  `Auditors > Discovery > Auto Discover Auditors` for prototypes.
+### "Why did CI use different settings than my manual run?"
+
+That depends on which "manual run" you mean:
+
+| Action | How settings are chosen |
+|---|---|
+| Checks window | Uses the currently edited profile |
+| Local editor build | Uses the first profile whose activation matches the real build |
+| Local batchmode build | Uses the first matching profile and counts as CI |
+| CI build | Uses the first matching profile and counts as CI |
+
+So the common mismatch is not "manual versus CI". It is "checks window versus real build".
+
+### "Why did the checks window not catch a post-build problem?"
+
+Because the checks window only dispatches the `pre-build` event.
+
+### "Why did a development build still fail in CI?"
+
+The built-in `ci_development_build` component exists specifically to catch that case.

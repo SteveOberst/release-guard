@@ -2,7 +2,7 @@
   "name": "org.researchy.release-guard",
   "version": "0.1.0",
   "displayName": "Release Guard",
-  "description": "Build-time security auditor for Unity. Blocks release builds failing hardening checks (IL2CPP, dev-build flags, debugger/profiler hooks, forbidden code). Extensible auditor, transformer, post-processor, and plugin pipeline.",
+  "description": "Build-time release hardening for Unity. Blocks bad release builds, runs profile-selected components across pre-build/build/post-build events, and supports custom components and plugins.",
   "unity": "2022.3",
   "unityRelease": "0f1",
   "keywords": [
@@ -12,7 +12,7 @@
     "il2cpp",
     "stripping",
     "security",
-    "audit",
+    "components",
     "hardening"
   ],
   "author": {
@@ -27,7 +27,7 @@
   "samples": [
     {
       "displayName": "Example Plugin",
-      "description": "A minimal Release Guard plugin with settings and one custom auditor.",
+      "description": "A minimal Release Guard plugin with settings and one custom component.",
       "path": "Samples~/Example Plugin"
     }
   ],

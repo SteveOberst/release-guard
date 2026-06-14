@@ -1,14 +1,14 @@
 using System;
-using ReleaseGuard.Editor.Core.Audit;
-using ReleaseGuard.Editor.Core.PostProcessing;
+using ReleaseGuard.Editor.Core.Components;
+using ReleaseGuard.Editor.Core.PostBuild;
 using ReleaseGuard.Editor.Core.Runtime;
-using ReleaseGuard.Editor.Core.Transforming;
+using ReleaseGuard.Editor.Core.Build;
 
 namespace ReleaseGuard.Editor.Core.Plugins
 {
     /// <summary>
     /// Base class for Release Guard plugins. A plugin is the primary entry point for
-    /// contributing custom auditors, post-processors, and transformers from a single,
+    /// contributing custom components from a single,
     /// identifiable entry point.
     ///
     /// <para>Create a non-abstract subclass in an Editor-included assembly and register it with
@@ -17,15 +17,14 @@ namespace ReleaseGuard.Editor.Core.Plugins
     /// off by default.</para>
     ///
     /// <para><b>When to use a plugin vs. a direct subclass:</b><br/>
-    /// Subclassing <see cref="ReleaseAuditor"/>, <see cref="ReleasePostProcessor"/>, or
-    /// <see cref="ReleaseTransformer"/> directly is simpler for single-item contributions and
-    /// is still fully supported. Use a plugin when you want to contribute multiple items from
+    /// Subclassing <see cref="ReleaseGuardComponent"/> directly is simpler for single-item
+    /// contributions. Use a plugin when you want to contribute multiple items from
     /// one place, attach identity metadata (author, id) for tooling visibility, or read
-    /// settings inside contributed items such as <c>ShouldRun</c>.</para>
+    /// settings inside contributed items.</para>
     ///
     /// <para><b>Register() contract:</b><br/>
     /// Register() is called once per environment initialization. Register contributions through
-    /// <c>context.ReleaseGuard.Registries</c> and keep side effects limited to registration.</para>
+    /// <c>context.ReleaseGuard.Components.Register(...)</c> and keep side effects limited to registration.</para>
     /// </summary>
     public abstract class ReleaseGuardPlugin
     {
@@ -58,7 +57,7 @@ namespace ReleaseGuard.Editor.Core.Plugins
         public virtual Type SettingsType => null;
 
         /// <summary>
-        /// Register auditors, transformers, and other contributions.
+        /// Register components and other contributions.
         ///
         /// <para>Called once per environment initialization -- keep it free of side-effects
         /// beyond registering contributions in <see cref="Environment"/>.</para>

@@ -1,77 +1,59 @@
-# Asset exclusions
+# Asset Exclusions
 
-Some findings are tied to a specific asset path - for example a finding about a third-party package or a generated file you cannot change. Release Guard lets you exclude those asset paths with a list of gitignore-style glob patterns so they never appear as findings, for both builds and manual audits.
+`components.excludedAssetPaths` lets you suppress findings tied to specific asset paths.
 
-The list lives on the Auditors settings page in the `excludedAssetPaths` field (a multi-line text area, one pattern per line). The Project Settings UI renders a live "Preview matching assets" foldout below the field so you can see which assets your patterns currently match.
+This only affects issues reported with an `assetPath`. Findings with no asset path, such as assembly-level `ReleaseForbidden` or some player-setting checks, cannot be filtered this way.
 
-## Where exclusion is enforced
+## Where exclusions apply
 
-Exclusion happens at a single chokepoint: every auditor reports findings through `ReleaseAuditContext.Report` (and its `Info` / `Warning` / `Error` wrappers). When a finding carries an asset path, that path is normalized and tested against the exclusion list there. If it matches, the finding is dropped before it is recorded. Because this is the only place findings are added, exclusion applies uniformly to every auditor - built-in or custom - and to both build-time and manual audit runs.
+Exclusions are enforced centrally in `ReleaseGuardPreBuildContext.Report(...)`.
 
-Findings with no asset path are never excluded by these patterns. Asset patterns only filter findings that are attributed to an asset.
+That means the behavior is uniform across:
 
-## Pattern syntax
+- manual runs from the Pre-Build Checks window
+- real builds
+- built-in components
+- custom components
 
-Patterns are modelled on `.gitignore`. The matcher compiles each pattern to a regular expression once. The following is the exact, complete set of features the engine implements:
+There is no per-component exclusion system on top of this one.
 
-- `*` matches any run of characters except `/` (a single path segment).
-- `**` matches any run of characters including `/` (recursive). The special form `**/` matches zero or more directories.
-- `?` matches exactly one character except `/`.
-- A pattern with no `/` in it matches by file or folder name at any depth. For example `*.tmp` matches a `.tmp` file anywhere in the project.
-- A pattern that contains a `/` (anywhere after trimming a trailing slash), or that starts with a leading `/`, is anchored to the start of the asset path. Asset paths begin with `Assets/`, so anchored patterns are matched from there. A leading `/` is stripped after it marks the pattern as anchored.
-- A trailing `/` marks a directory pattern: it matches that directory and everything under it.
-- A leading `!` negates the pattern, re-including a path that an earlier pattern excluded.
-- Blank lines are ignored. Lines whose first non-space character is `#` are treated as comments and ignored.
+That scope is narrower than "all Release Guard output". It applies to pre-build issue reporting only. It does not suppress:
 
-Matching is case-insensitive (Unity's primary platforms use case-insensitive filesystems). Backslashes in both the pattern and the asset path are normalized to forward slashes before matching.
+- `build` event log entries
+- `post-build` event log entries
+- output-folder actions like `debug_symbol_sweep` warnings or deletions
 
-### Last match wins
+## Pattern format
 
-When several patterns match the same path, the last matching pattern in the list decides the outcome: a normal pattern excludes, a `!` pattern re-includes. Order your patterns so broad excludes come first and the `!` re-includes that carve out exceptions come after.
+Patterns live in `components.excludedAssetPaths` and are matched by `AssetExclusionMatcher`.
 
-## Examples
+The docs and tooltips describe them as gitignore-style globs. Typical uses:
 
-Exclude an entire third-party folder and everything under it:
-
-```
-Assets/ThirdParty/
-```
-
-Exclude all generated C# files anywhere in the project:
-
-```
-*.generated.cs
-```
-
-Exclude a samples folder using a recursive match:
-
-```
+```text
+Assets/ThirdParty/**
 Assets/Samples/**
+*.generated.cs
+!Assets/ThirdParty/MySecurityCriticalFile.cs
 ```
 
-Exclude a vendor folder but keep one subfolder under audit (last match wins, so the `!` line comes last):
+![Excluded asset paths with preview of matching assets](../assets/exclusion_list_showcase.png)
 
-```
-Assets/Vendor/
-!Assets/Vendor/OurFork/
-```
+## When to use it
 
-Exclude every `.tmp` file at any depth, then comment a reminder:
+Good uses:
 
-```
-# editor scratch files
-*.tmp
-```
+- third-party Android templates you cannot safely modify
+- vendor `link.xml` files that intentionally preserve more than you would
+- generated code or sample content included in the repository but not relevant to your shipping build
 
-Anchored vs. unanchored - the first is anchored because it contains a slash, the second matches the folder name at any depth:
+Bad uses:
 
-```
-Assets/Plugins/Acme/
-Acme/
-```
+- suppressing a real problem instead of fixing it
+- using path exclusions to silence assembly-level or player-setting findings
+- hiding entire directories without documenting why
 
-## Tips
+## Important limitation
 
-- Use the Preview foldout in Project Settings to confirm a pattern matches what you expect before committing.
-- Prefer narrow patterns. Excluding `Assets/` would silence everything, which defeats the gate.
-- Exclusions are not a substitute for fixing real issues - use them only for paths you genuinely cannot or should not change.
+Asset exclusions do not stop components from running. They only drop matching reported issues after the component has already detected them.
+
+If you want a component to stop running entirely for a profile, turn it off in the Components page for that profile. Under the hood, that writes `enabled = false` into that component's `componentToggles` entry.

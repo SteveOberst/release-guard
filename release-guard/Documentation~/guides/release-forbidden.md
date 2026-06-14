@@ -1,101 +1,111 @@
-# Release-forbidden code
+# Release-forbidden Code
 
-Some code must never ship in a release build: debug hooks, cheat commands, test scaffolding, dev-only backdoors. Release Guard ships an attribute that marks such code and a built-in auditor that scans for it, so a release build fails before that code can reach production.
+`[ReleaseForbidden]` is the package's explicit "this must not ship" marker.
 
-## The `[ReleaseForbidden]` attribute
+It is useful for code that is too dangerous or too embarrassing to accidentally leave in a release build:
 
-> **Detection, not removal.** `[ReleaseForbidden]` does not strip, exclude, or conditionally
-> compile anything. It is a build-time tripwire: if marked code exists in a shipping assembly
-> when you run a release build, the build fails. The recommended practice is to also wrap the
-> implementation in a `#if` guard so the code is physically excluded from the compiled release
-> in addition to being flagged - but that is separate from the attribute itself.
+- debug menus
+- admin commands
+- cheat hooks
+- developer backdoors
+- temporary test scaffolding
 
-`ReleaseForbidden` lives in the `ReleaseGuard` runtime assembly (`ReleaseGuard.Runtime`), so you can apply it from gameplay and runtime code without referencing any Editor-only types. The assembly is `autoReferenced`, so it is visible from your scripts with no asmdef changes. In C# attribute usage, write it as `[ReleaseForbidden]`.
+## What the attribute is
 
-Apply it to a type or member that must not ship:
+The attribute lives in the runtime assembly:
+
+`ReleaseGuard.Runtime`
+
+That means gameplay code can use it without any editor-only dependency.
+
+Example:
 
 ```csharp
 using ReleaseGuard;
 
-[ReleaseForbidden(ReleaseIssueSeverity.Error, "Gives infinite money")]
-public static void GrantAllCurrency() { /* ... */ }
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+[ReleaseForbidden(ReleaseIssueSeverity.Error, "Debug-only currency grant")]
+public static void GrantAllCurrency() { }
+#endif
 ```
 
 Constructor parameters:
 
-- `severity` - how serious shipping the member is. Defaults to `ReleaseIssueSeverity.Error`, which blocks a release build under the default failure threshold. Use `Warning` or `Info` for less serious markers.
-- `reason` - an optional human-readable explanation. When present it is appended to the reported message and the Console log.
+- `severity`  
+  defaults to `ReleaseIssueSeverity.Error`
+- `reason`  
+  optional text appended to the reported message
 
-Valid targets: classes, structs, enums, methods, fields, and properties. The attribute is not inherited (`Inherited = false`), so a subclass does not pick up a base type's marker.
+## What the built-in component does
 
-The attribute does not strip anything from the build - it makes the build fail so you notice. Also wrap the implementation in a debug-only `#if` so the code is physically excluded from the compiled release in addition to being flagged.
+The built-in component is:
 
-## The auditor
+- id: `release_forbidden`
+- event: `pre-build`
 
-The built-in `ReleaseForbiddenAuditor` (id `release_forbidden`, display name "Release-forbidden members") performs the scan.
+It scans player-shipping assemblies only. That point matters a lot: the component is trying to answer "would this reach the player build?", not "is this loaded somewhere in the editor domain?"
 
-### What it scans
+## What counts as a shipping assembly
 
-> **Silent pass on compilation failure.** If `CompilationPipeline.GetAssemblies()` throws (which
-> can happen in certain Editor states, such as immediately after a script error), the auditor
-> catches the exception and silently returns an empty shipping set. This means it reports zero
-> findings - as if no `[ReleaseForbidden]` members exist - rather than reporting an error. If
-> you run a manual audit and see no `release_forbidden` findings when you expect some, check the
-> Console for compilation errors and resolve them before trusting the audit result.
+The component asks Unity's compilation pipeline for `AssembliesType.Player`, then inspects the currently loaded assemblies whose names are in that shipping set.
 
-The auditor scans the assemblies that would ship in the player build. "Shipping" assemblies are
-determined from `CompilationPipeline.GetAssemblies(AssembliesType.Player)`; their names form the
-shipping set.
+That generally includes:
 
-In practice this includes:
-- Your runtime assemblies in `Assets/` (any asmdef without an Editor-only `includePlatforms`).
-- Runtime assemblies from packages in `Packages/` (same rule).
-- Any assembly that compiles into the player without an Editor-only or `UNITY_EDITOR` constraint.
+- runtime asmdefs in `Assets/`
+- runtime package assemblies
 
-It explicitly **excludes**:
-- Editor-only assemblies (those with `"Editor"` in `includePlatforms` or under an `Editor/`
-  folder without an explicit asmdef).
-- Test assemblies (those gated by `UNITY_INCLUDE_TESTS`).
+and excludes:
 
-The auditor then walks every currently loaded assembly whose name is in the shipping set and
-inspects its types and members. For each type it checks the type-level attribute and every
-declared method, field, and property (public and non-public, instance and static, declared-only)
-for `[ReleaseForbidden]`. Every match is reported at the severity carried by the attribute, with
-the member's full name and the optional reason.
+- editor-only assemblies
+- test assemblies
 
-If a finding is at or above the failure threshold, the build is blocked like any other finding.
+## What gets scanned
 
-### Per-assembly exclusion
+For each matched assembly, the component inspects:
 
-Sometimes a third-party assembly you cannot modify legitimately contains a `[ReleaseForbidden]` member. To stop the auditor flagging it, add the assembly name to `releaseForbiddenExcludedAssemblies` on the Auditors settings page. Enter names without the `.dll` extension - for example `MyPlugin.Runtime`; matching is case-insensitive. Any assembly in that list is skipped entirely by this auditor.
+- type attributes
+- declared methods
+- declared fields
+- declared properties
 
-This per-assembly exclusion is independent of the [asset-path exclusion list](asset-exclusions.md): release-forbidden findings are attributed to a code member, not an asset path, so they are not affected by the gitignore-style patterns.
+using public and non-public, instance and static members.
 
-## Workflow
+## What the attribute does not do
 
-1. Mark debug-only or dangerous code with `[ReleaseForbidden]`, giving a clear `reason`.
-2. Wrap the implementation in a debug-only `#if` where practical so it is also physically excluded.
-   The most common guards:
-   - `UNITY_EDITOR` - code exists only in the Editor. Use this for Editor-only helpers.
-   - `DEVELOPMENT_BUILD` - code compiles into a player only when `Development Build` is checked.
-   - `UNITY_EDITOR || DEVELOPMENT_BUILD` - the typical combination that covers both Editor and
-     development player builds.
+It does not remove code from the player build.
 
-   ```csharp
-   using ReleaseGuard;
+It is a build-time tripwire:
 
-   // The attribute fires during the build gate if the code is in a shipping assembly.
-   // The #if ensures the code is not compiled into a release player at all.
-   [ReleaseForbidden(ReleaseIssueSeverity.Error, "Gives infinite money")]
-   #if UNITY_EDITOR || DEVELOPMENT_BUILD
-   public static void GrantAllCurrency() { /* ... */ }
-   #endif
-   ```
+- if the code would ship, Release Guard reports it
+- if the report crosses the threshold, the build fails
 
-   Without the `#if`, a release build still fails - but the code exists in the compiled assembly
-   until compilation is excluded. With the `#if`, the code simply does not compile into release
-   builds, so the attribute is an additional safety net rather than the only gate.
+That is why the recommended pattern is both:
 
-3. Run an audit from `Tools > Release Guard > Audit` to confirm the marker is detected.
-4. Make a release build. The build fails listing every release-forbidden member that would have shipped.
-5. Remove or guard the code, then rebuild. Only add an assembly to `releaseForbiddenExcludedAssemblies` when you cannot change the offending assembly yourself.
+1. mark the code with `[ReleaseForbidden]`
+2. wrap the implementation in `#if UNITY_EDITOR || DEVELOPMENT_BUILD` or a similar compile-time guard
+
+The preprocessor guard prevents compilation into release players. The attribute catches mistakes when that guard is missing, removed, or incomplete.
+
+## Third-party assemblies
+
+If a third-party runtime assembly legitimately contains `[ReleaseForbidden]` members and you cannot change it, add its assembly name to the `release_forbidden` component settings entry inside `components.componentToggles`.
+
+Use the assembly name without `.dll`, for example:
+
+`MyPlugin.Runtime`
+
+This exclusion is specific to the release-forbidden scan. Asset exclusions do not apply because most release-forbidden findings are member-based rather than asset-path based.
+
+## Failure modes worth knowing
+
+If Unity's compilation pipeline is unavailable in a bad editor state, the component falls back to an empty shipping set instead of guessing. In practice that means:
+
+- no release-forbidden findings appear
+- you should not trust that result until compilation is healthy again
+
+If a loaded assembly throws `ReflectionTypeLoadException`, the component still scans the loadable subset of types rather than failing the entire run.
+
+## Related docs
+
+- [Runtime attributes](../reference/attributes.md)
+- [Release-forbidden members](../reference/components/release-forbidden.md)
