@@ -1,379 +1,114 @@
 # Configuring Release Guard
 
-Release Guard ships with strict defaults that are the right starting point for almost every
-release build. For most projects: install, commit the settings asset, ship. The defaults are
-not one-size-fits-all, though. This guide explains what each setting does, why the default is
-what it is, and when it makes sense to deviate.
+This page is intentionally short. The detailed behavior lives in the individual component pages, because the important question is not just "what does this checkbox toggle?" but "what exact problem does this component exist to prevent?"
 
-Settings live at `Edit > Project Settings > Release Guard`. The asset is
-`Assets/ReleaseGuard/ReleaseGuardSettings.asset` - commit it so the whole team and CI share
-the same gate.
+![Components settings page](assets/components_screen.png)
 
----
+## Settings model
 
-## General
+Release Guard settings are profile-based.
 
-| Setting | Default | Summary |
-| --- | --- | --- |
-| [`enabled`](#enabled) | on | Master switch. |
-| [`skipOnDevelopmentBuilds`](#skipondevelopmentbuilds) | on | Skip all checks for Development builds. |
-| [`failureThreshold`](#failurethreshold) | `Error` | Severity at which a build is blocked. |
-| [`verboseLogging`](#verboselogging) | off | Extra Console diagnostics. |
-| [`profileOverrides`](#profileoverrides) | empty | Per-Build-Profile settings overrides (Unity 6+). |
+- `registry.asset` stores the profile list and activation conditions
+- each profile has its own `ReleaseGuardSettings` asset under `Assets/ReleaseGuard/Profiles/`
 
----
+The profile selected in the Project Settings header controls what you are editing.
 
-### `enabled`
+Real builds do not use the currently edited profile. They use the first profile whose activation condition matches the build. See [Build profiles](guides/build-profiles.md).
 
-On by default. The master switch for real build stages - when off, Release Guard does not gate
-builds and does not run post-build pipelines.
+One important implementation detail from the live codebase:
 
-Every real build stage silently skips: no pre-build audit gate, no post-build transforms, no
-post-processors. The manual audit window remains informational and can still run auditors on
-demand. **When to disable:** temporarily, to unblock a build during a debugging session. For
-environment-specific relaxation, reach for `profileOverrides` instead so the gate still applies
-everywhere else.
+- per-component enablement and component-specific settings live inside `components.componentToggles`
+- advisory suppression is not stored in the profile asset; it is project-scoped state in `AdvisorySuppressionStore`
 
-### `skipOnDevelopmentBuilds`
+## Project Settings pages
 
-On by default. Skips all Release Guard build stages for builds made with `Development Build`
-enabled.
+Release Guard currently exposes five first-class Project Settings pages:
 
-Development builds are internal. They intentionally carry debugger attachments, profiler
-connections, and test scaffolding - auditing them against release rules produces noise for no
-benefit. **When to disable:** you want to enforce specific checks (like `[ReleaseForbidden]`
-scanning) across all builds regardless of the development flag.
+- `Profiles`
+- `General`
+- `Components`
+- `Advisories`
+- `Plugins`
 
-### `failureThreshold`
+![Release Guard start page in Project Settings](assets/start_page.png)
 
-Defaults to `Error`. A build is blocked when any finding is at or above this severity.
+`Profiles` is where you create, reorder, duplicate, and delete Release Guard profiles. `General`, `Components`, and `Plugins` edit the currently selected profile. `Advisories` manages dismissed advisory ids project-wide.
 
-- `Error` - only hard errors stop the build. Warnings and advisories appear in the Console
-  but do not block.
-- `Warning` - warnings become blocking too. Good for CI: forces resolution instead of
-  accumulation.
-- `Info` - everything blocks, including advisories. Usually too strict to be practical.
+### General
 
-The default is strict about hard release mistakes such as Mono scripting backend, development
-build flags, script debugging, profiler connection, broad preserve rules, and
-`[ReleaseForbidden]` errors. It is intentionally advisory for several best-practice checks.
-For example, a managed stripping level below the configured minimum reports a `Warning`, so it
-does not block while the threshold remains `Error`.
+- `enabled`  
+  Master switch for real build stages. When off, Release Guard skips pre-build, build, and post-build handling for that profile.
 
-Advisories carry their own severity, commonly `Info` or `Warning`. They pass through at the
-default `Error` threshold. Warning-level advisories become blocking only if you set
-`failureThreshold` to `Warning` or lower. Use the "Don't show again" button in the audit window
-to permanently suppress specific advisories you have reviewed and accepted.
+- `failureThreshold`  
+  The severity that starts blocking builds. `Info < Warning < Error`.
 
-### `verboseLogging`
+- `verboseLogging`  
+  Enables extra console diagnostics for discovery, opt-outs, and skips.
 
-Off by default. Emits extra diagnostics to the Console: which auditors were registered, which
-skipped and why, finding counts per auditor, and timing. **When to enable:** diagnosing why
-a custom check is not running, or verifying a new plugin is being picked up. Leave it off in
-production.
+### Components
 
-### `profileOverrides`
+This page has three kinds of settings:
 
-Empty by default. Per-Build-Profile overrides for Unity 6+ Build Profiles. Each entry maps
-an exact profile name (case-sensitive) to an `enabled` toggle and a `failureThreshold`, which
-replace the global values for that build.
+- central asset-path exclusions
+- discovery settings for custom `ReleaseGuardComponent` subclasses
+- the `componentToggles` list, which stores one polymorphic entry per component
 
-Common patterns:
+![Expanding an individual component to edit its settings](assets/configure_individual_component.png)
 
-- A "Staging" profile with `failureThreshold: Warning` to catch problems early by blocking on
-  warnings before they reach production.
-- A "QA Distribution" profile with `enabled: false` for internal builds where the full gate
-  is not yet appropriate.
-- A "Production" profile with a stricter threshold than the global default.
+Every component entry has:
 
-If no profile matches the active Build Profile, the global settings apply. See
-[guides/build-profiles](guides/build-profiles.md).
+- `enabled`
 
----
+Some components also expose extra fields in their own settings type.
 
-## Auditors
+Component-specific fields in the live codebase:
 
-| Setting | Default | Summary |
-| --- | --- | --- |
-| [`requireIl2Cpp`](#requireil2cpp) | on | IL2CPP required (Error). |
-| [`forbidDevelopmentBuild`](#forbiddevelopmentbuild) | on | Development Build flag must be off (Error). |
-| [`forbidScriptDebugging`](#forbidscriptdebugging) | on | Script debugging must be disabled (Error). |
-| [`forbidProfilerConnection`](#forbidprofilerconnection) | on | Autoconnect Profiler must be off (Error). |
-| [`minManagedStrippingLevel`](#minmanagedstrippinglevel) | `Medium` | Minimum managed stripping level. |
-| [`forbidBroadPreserve`](#forbidbroadpreserve) | on | Broad preserve rules flagged (Error). |
-| [`autoDiscoverAuditors`](#autodiscoverauditors) | off | Discover auditors via TypeCache. Keep off. |
-| [`disabledAuditorIds`](#disabledauditorids) | empty | Auditor ids to skip. |
-| [`excludedAssetPaths`](#excludedassetpaths) | empty | Gitignore-style asset path exclusions. |
-| [`releaseForbiddenExcludedAssemblies`](#releaseforbiddenexcludedassemblies) | empty | Assemblies exempt from `[ReleaseForbidden]` scanning. |
-| [`suppressedAdvisoryIds`](#suppressedadvisoryids) | empty | Permanently dismissed advisory ids. |
+| Stored under `componentToggles` entry for | Extra fields |
+|---|---|
+| `managed_stripping` | `minLevel` |
+| `release_forbidden` | `excludedAssemblies` |
+| `debug_symbol_sweep` | `delete`, `extraPatterns` |
+| `build_manifest` | no extra fields; just the shared `enabled` toggle, defaulting to off |
+| most other built-ins | no extra fields; just the shared `enabled` toggle |
 
----
+Other `ComponentSettings` fields:
 
-### `requireIl2Cpp`
+| Field | Purpose |
+|---|---|
+| `excludedAssetPaths` | Central asset-path suppression list for pre-build findings with an `assetPath` |
+| `autoDiscoverComponents` | Enables TypeCache discovery of custom components |
+| `componentToggles` | Per-component enabled state plus any component-specific settings |
 
-On by default, severity Error. Requires IL2CPP as the scripting backend for release builds.
+### Plugins
 
-Mono ships your C# as .NET assemblies that decompile almost trivially with tools like dnSpy
-or ILSpy - anyone who downloads your game can read your game logic in close-to-source form.
-IL2CPP compiles C# to C++ then to native code, raising the bar for reverse-engineering
-significantly. For any game with monetization, anti-cheat, or sensitive IP, IL2CPP is the
-standard choice.
+- `autoDiscoverPlugins`  
+  Enables TypeCache discovery of `ReleaseGuardPlugin` subclasses with a public parameterless constructor.
 
-**When to disable:** your target platform does not support IL2CPP (some older Android targets,
-certain server configurations), or you have explicitly accepted the decompilation risk. If you
-do, also review `minManagedStrippingLevel` - stripping reduces what can be extracted even from
-Mono builds.
+- `disabledPluginIds`  
+  Prevents whole plugins from registering anything.
 
-### `forbidDevelopmentBuild`
+See [Plugins](api/plugins.md).
 
-On by default, severity Error. Blocks the build if the `Development Build` checkbox is on.
+## Advisory suppression
 
-**Interaction with `skipOnDevelopmentBuilds`:** these two settings are independent, not
-complementary. With `skipOnDevelopmentBuilds = true` (the default), Release Guard skips all
-build stages when the Development Build flag is set, so this auditor never fires during a real
-development build. `forbidDevelopmentBuild` becomes meaningful only when `skipOnDevelopmentBuilds`
-is disabled - a project that audits all builds regardless of the development flag, where this
-auditor then blocks any build that arrives at the gate with the development flag still set.
+`Don't show again` in the checks window does not write into the profile asset.
 
-With default settings, the value of `forbidDevelopmentBuild` is largely in the manual audit
-window, where it reports the current Build Settings state as an Error.
+The live implementation stores advisory suppressions in `AdvisorySuppressionStore`, backed by `EditorPrefs` and keyed to the current project.
 
-**When to disable:** your team intentionally distributes development builds to a tester group
-and considers it acceptable. The cleaner approach is a Build Profile override so the check
-still applies to production.
+That means suppressions are:
 
-### `forbidScriptDebugging`
+- project-scoped
+- profile-independent
+- persisted outside `ReleaseGuardSettings`
 
-On by default, severity Error. Blocks the build if `Script Debugging` is enabled.
+![Dismissed advisories managed on the dedicated Advisories page](assets/dismissed_advisories.png)
 
-An open debugger port on the player means an attacker on the same network can attach, pause
-execution, and read and modify variables. This is a real attack surface in a shipped build.
-**When to disable:** almost never. If you need to debug a field build, use a dedicated Build
-Profile rather than shipping with script debugging on.
+## A useful rule of thumb
 
-### `forbidProfilerConnection`
+If you are trying to understand whether a setting is safe to change, do not stop on this page. Open the component's own reference page and read:
 
-On by default, severity Error. Blocks the build if Autoconnect Profiler is enabled.
-
-The profiler connection exposes internal performance data and some runtime state to any machine
-that can connect. It has no purpose in a release build. **When to disable:** a closed-beta
-build produced specifically for field profiling with a controlled audience. Use a Build Profile
-for that case, not the global setting.
-
-### `minManagedStrippingLevel`
-
-Defaults to `Medium`. Sets a minimum managed code stripping level. If the project is configured
-below it, Release Guard reports a `Warning`; that warning blocks only when `failureThreshold` is
-`Warning` or lower.
-
-Stripping removes unreachable types, methods, and fields from compiled assemblies. Less code
-ships, the binary is smaller, and reverse-engineering is harder. Options from least to most
-aggressive: `Disabled`, `Minimal`, `Low`, `Medium`, `High`.
-
-`Medium` removes unused members without requiring the extensive `[Preserve]` annotations that
-`High` demands. **When to change:**
-
-- Set `Disabled` to skip the check entirely if you have a tested compatibility reason not to
-  strip (reflection-heavy code, some plugins). Do not use it as a shortcut - validate the
-  consequences first.
-- Raise to `High` for maximum hardening. Expect to write `link.xml` rules or add `[Preserve]`
-  attributes for anything accessed by reflection. Test thoroughly.
-
-**Note on advisories:** two advisories fire independently of this setting. The
-`managed_stripping.below_medium` advisory fires whenever the actual stripping level is below
-`Medium`, regardless of your configured minimum - so if you intentionally set the minimum to
-`Low`, you will still receive that advisory until you suppress it via "Don't show again" in the
-audit window. The `managed_stripping.low_deprecated` advisory fires when the actual level is
-exactly `Low`, which Unity has marked for future deprecation. See
-[reference/built-in-auditors](reference/built-in-auditors.md).
-
-### `forbidBroadPreserve`
-
-On by default, severity Error. Flags preservation rules that effectively disable stripping
-for entire assemblies.
-
-Specifically it catches assembly-level `[Preserve]` attributes and `link.xml` entries that
-preserve a whole assembly or namespace with no type filter. Both mean you could have a high
-stripping level set and still be shipping most of an assembly's code untouched - the stripping
-configuration becomes misleading. **When to disable:** you are knowingly using broad
-preservation as a workaround for a third-party package that breaks under stripping, and you
-have accepted that tradeoff. Document it.
-
-### `autoDiscoverAuditors`
-
-Off by default. When on, discovers every `ReleaseAuditor` subclass via TypeCache and runs
-them all (excluding test fixtures and types that live in the `ReleaseGuard.Editor` package
-assembly itself).
-
-Leave this off. Register custom auditors explicitly through a plugin with `[InitializeOnLoad]`.
-Auto-discovery picks up any subclass in any Editor-included assembly, including experimental
-or in-progress code you may not want running in production. Explicit registration gives you
-full control over what runs. See [api/plugins](api/plugins.md).
-
-**Test auditor exclusion:** any `ReleaseAuditor` subclass you write solely for tests must be
-marked with `[TestAuditorFixture]` (from `ReleaseGuard.Editor.Core.Audit`) to prevent
-auto-discovery from picking it up in real audit runs. Without this attribute, a test auditor
-class in any Editor assembly is treated as a production auditor when `autoDiscoverAuditors` is
-on. See [reference/attributes](reference/attributes.md).
-
-### `disabledAuditorIds`
-
-Empty by default. Auditor ids to exclude from every run. Works for both built-in and custom
-auditors. See [reference/built-in-auditors](reference/built-in-auditors.md) for the id of
-each built-in.
-
-**Ids are matched case-sensitively and must be lowercase.** Internally, all auditor ids are
-normalized to lowercase on registration. The lookup `e == id` compares your entry against
-the normalized (lowercase) id, so `"Scripting_Backend"` would never match `"scripting_backend"`.
-Always enter ids exactly as shown in the documentation (all lowercase, snake_case).
-
-Prefer this over removing or commenting out an auditor's source code - it is reversible and
-communicates intent clearly in version control.
-
-### `excludedAssetPaths`
-
-Empty by default. Gitignore-style glob patterns matched against asset paths. Any finding tied
-to a matching path is silently dropped.
-
-Use this for assets you have deliberately accepted as exceptions: third-party packages,
-generated code, or platform-specific assets carrying flags you cannot control. Do not use it
-to silence findings you intend to fix - once excluded, the finding disappears and you lose
-the reminder to address it. See [guides/asset-exclusions](guides/asset-exclusions.md).
-
-### `releaseForbiddenExcludedAssemblies`
-
-Empty by default. Assembly names to skip entirely during the `[ReleaseForbidden]` scan. Enter
-the assembly name without the `.dll` extension; matching is case-insensitive.
-
-The main use case: a third-party assembly you cannot modify that contains `[ReleaseForbidden]`
-members that do not apply to your build. See [guides/release-forbidden](guides/release-forbidden.md).
-
-### `suppressedAdvisoryIds`
-
-Empty by default. Advisory ids that have been permanently dismissed via the "Don't show again"
-button in the audit window. A suppressed advisory is silently dropped on every run and build.
-
-To restore an advisory, remove its id from this list manually. Each advisory-producing
-built-in auditor lists its suppress id in [reference/built-in-auditors](reference/built-in-auditors.md).
-
----
-
-## Post-Processors
-
-| Setting | Default | Summary |
-| --- | --- | --- |
-| [`debugSymbolSweepEnabled`](#debugsymbolsweepenabled) | on | Scan build output for debug artifacts after a release build. |
-| [`debugSymbolSweepDelete`](#debugsymbolsweepdelete) | off | Delete found artifacts. Destructive - read the entry before enabling. |
-| [`debugSymbolSweepExtraPatterns`](#debugsymbolsweepextrapatterns) | empty | Extra file/folder names to sweep. |
-| [`writeBuildManifest`](#writebuildmanifest) | off | Write a `release-guard-manifest.json` CI artifact next to the build. |
-| [`autoDiscoverPostProcessors`](#autodiscoverpostprocessors) | off | Discover post-processors via TypeCache. Keep off. |
-| [`disabledPostProcessorIds`](#disabledpostprocessorids) | empty | Post-processor ids to skip. |
-
----
-
-### `debugSymbolSweepEnabled`
-
-On by default. Scans the build output folder after a release build for debug artifacts Unity
-writes alongside the player:
-
-- `*_BackUpThisFolder_ButDontShipItWithYourGame` folders
-- `*_BurstDebugInformation_DoNotShip` folders
-- Loose `.pdb` files at the output root
-
-Report-only by default - it logs a warning per artifact but does not touch anything. Deletion
-is a separate opt-in. **When to disable:** your pipeline already excludes these reliably (for
-example, a packaging script that explicitly lists what enters the archive). Otherwise keep it
-on; it is easy to accidentally include these folders when zipping the entire output directory.
-
-### `debugSymbolSweepDelete`
-
-Off by default. When on, found artifacts are deleted rather than reported. **Destructive.**
-
-Debug symbol folders are required for crash symbolication. Deleting them before archiving
-means you permanently lose the ability to attribute crash addresses to source lines. The safe
-sequence before enabling deletion:
-
-1. Run report-only mode first to confirm exactly what the sweep finds.
-2. Set up your pipeline to archive symbol folders to your crash-reporting service.
-3. Only then enable deletion.
-
-The Project Settings page shows a warning while this is on.
-
-### `debugSymbolSweepExtraPatterns`
-
-Empty by default. Additional file or folder names to treat as debug artifacts. Matched against
-entries directly inside the output folder root (not recursive); `*` wildcards are supported.
-Examples: `*.map`, `DebugData`. Subject to the same report/delete behavior as the built-in
-patterns.
-
-### `writeBuildManifest`
-
-Off by default. When on, writes `release-guard-manifest.json` next to the build output after
-every release build. The manifest records the Release Guard version, Unity version, build
-target, build GUID, and the active auditors, post-processors, and transformers.
-
-This is a CI artifact, not a file to ship to players. It answers "what was the exact hardening
-configuration for this build?" useful for compliance audits and incident analysis. **When to
-enable:** you have a place to store it (CI artifact storage, build logs) and your packaging
-step excludes it from the shipped archive.
-
-### `autoDiscoverPostProcessors`
-
-Off by default. Same guidance as `autoDiscoverAuditors` - prefer explicit plugin registration.
-Auto-discovery runs every `ReleasePostProcessor` subclass it finds, including experimental ones.
-
-### `disabledPostProcessorIds`
-
-Empty by default. Post-processor ids to skip. Built-in ids: `debug_symbol_sweep`,
-`build_manifest`. See [reference/built-in-post-processors](reference/built-in-post-processors.md).
-
----
-
-## Transformers
-
-| Setting | Default | Summary |
-| --- | --- | --- |
-| [`autoDiscoverTransformers`](#autodiscovertransformers) | off | Discover transformers via TypeCache. Keep off. |
-| [`disabledTransformerIds`](#disabledtransformerids) | empty | Transformer ids to skip. |
-
----
-
-### `autoDiscoverTransformers`
-
-Off by default. Same guidance as the other auto-discover flags. Transformers operate on build
-artifacts at a low level (IL manipulation, binary patching, obfuscation) - unintended
-activation has more potential for silent damage than a reporting-only auditor.
-
-### `disabledTransformerIds`
-
-Empty by default. Transformer ids to skip. No built-in transformers ship, so this is only
-relevant for custom transformers contributed by a plugin.
-
----
-
-## Plugins
-
-| Setting | Default | Summary |
-| --- | --- | --- |
-| [`autoDiscoverPlugins`](#autodiscoverplugins) | off | Discover plugins via TypeCache. Keep off; prefer `[InitializeOnLoad]` registration. |
-| [`disabledPluginIds`](#disabledpluginids) | empty | Plugin ids to disable entirely. |
-
----
-
-### `autoDiscoverPlugins`
-
-Off by default. Discovers every `ReleaseGuardPlugin` subclass via TypeCache and invokes it
-without any explicit registration.
-
-Prefer explicit `[InitializeOnLoad]` registration: it is predictable, carries no scanning
-overhead, and places no constraints on the plugin constructor. Auto-discovery is useful for
-rapid prototyping - you want a plugin active by simply existing in the project, with no
-registration ceremony. For anything you ship, register explicitly. See [api/plugins](api/plugins.md).
-
-### `disabledPluginIds`
-
-Empty by default. Plugin ids to disable entirely. When an id appears here, the plugin's
-`Register` is not called and none of its contributions enter the registries.
-
-Use this to temporarily disable a third-party plugin without removing it, or to disable a
-plugin for a specific environment by committing a modified settings asset for that environment.
+- when it runs
+- what it inspects
+- which live settings object actually controls it
+- whether it blocks or only advises
+- what false assumptions teams commonly make about it

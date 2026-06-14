@@ -1,113 +1,141 @@
 # Quickstart
 
-This walks you from installing Release Guard to seeing it block a release build.
+This walkthrough assumes a clean install and treats the current implementation as the source of truth.
 
-## 1. Install
+## 1. Install the package
 
-Release Guard is a UPM package (`org.researchy.release-guard`, requires Unity `2022.3` or newer). It has no runtime dependencies.
+Git URL:
 
-> **Two assemblies.** The package ships two assemblies. `ReleaseGuard.Runtime` is
-> `autoReferenced: true` - it contains only `[ReleaseForbidden]` and `ReleaseIssueSeverity`,
-> which gameplay code can apply without pulling in Editor-only types. `ReleaseGuard.Editor`
-> contains the pipeline, settings, and extension API. You never reference it directly from
-> gameplay assemblies. For a plugin's `[InitializeOnLoad]` loader, add an explicit asmdef
-> reference to `ReleaseGuard.Editor` so Unity's assembly-initialization order is deterministic.
-> For just writing auditors in a plain Editor assembly, auto-reference is sufficient.
-
-### From a Git URL
-
-Open `Window > Package Manager`, choose `+ > Add package from git URL...`, and enter the repository URL with the `?path` query pointing at the package folder inside the repo:
-
-```
+```text
 https://github.com/SteveOberst/release-guard.git?path=/release-guard
 ```
 
-The package lives in the `release-guard` subdirectory of the repository, so the `?path=/release-guard` suffix is required.
+Open `Window > Package Manager`, choose `+ > Add package from git URL`, and paste the URL.
 
-### From OpenUPM
+The `?path=/release-guard` suffix is required because the Unity package lives in a subdirectory of the repository.
 
-If you use OpenUPM, install the package with:
+## 2. Know the import side effects
 
-```bash
-openupm add org.researchy.release-guard
-```
+Release Guard creates its registry and default profile assets during editor startup, not only after you intentionally start configuring it.
 
-### From a local checkout
+In practice, soon after import you should expect these files to appear:
 
-If you have the repository cloned next to your project, add it as a local `file:` dependency in your project's `Packages/manifest.json`. This is exactly how the bundled dev host references it:
+- `Assets/ReleaseGuard/registry.asset`
+- `Assets/ReleaseGuard/Profiles/release.asset`
+- `Assets/ReleaseGuard/Profiles/development.asset`
 
-```json
-{
-  "dependencies": {
-    "org.researchy.release-guard": "file:../../release-guard"
-  }
-}
-```
+Those are the real settings assets now. Release Guard no longer relies on one global package settings asset for all build modes.
 
-Adjust the relative path so it points at the folder that contains `package.json`.
+Open `Edit > Project Settings > Release Guard` to inspect and edit them.
 
-## 2. Open Project Settings
+If those assets do not appear, check this first:
 
-After Unity reimports the package, confirm it compiled correctly: open `Window > Package Manager`, find **Release Guard** in the list, and ensure there are no errors in the Console. If `Edit > Project Settings > Release Guard` does not appear, check the Console for compilation errors in the `ReleaseGuard.Editor` assembly.
+- the project compiles without editor errors
+- Unity has finished the domain reload after import
+- the Console does not show a Release Guard initialization exception
+- `Assets/ReleaseGuard/` is not blocked by a VCS or file-permission issue
 
-Go to `Edit > Project Settings > Release Guard`. Opening the settings creates the configuration asset at `Assets/ReleaseGuard/ReleaseGuardSettings.asset` if it does not exist yet. The settings are split into five pages: General, Auditors, Post-Processors, Transformers, and Plugins.
+Release Guard seeds those assets during editor initialization. If the editor domain never initializes cleanly, the assets will not be created.
 
-## 3. Review the defaults
+## 3. Understand the default profiles
 
-On the General page:
+Release Guard seeds two built-in profiles:
 
-- `enabled` is on. This is the master switch.
-- `skipOnDevelopmentBuilds` is on. Development builds are exempt - only non-development (release) builds are gated.
-- `failureThreshold` is `Error`. A build is blocked when any finding is at severity `Error` or above.
+- `Release`  
+  Matches non-development builds.
 
-On the Auditors page the built-in rules are on by default, including require IL2CPP, forbid development build, forbid script debugging, forbid profiler connection, a minimum managed stripping level of `Medium`, forbid broad `[Preserve]`, and the `[ReleaseForbidden]` scan. Several advisory checks (engine code stripping, stack trace type, insecure HTTP, Burst debug) are dismissible and do not block under the default threshold.
+- `Development`  
+  Matches development builds.
 
-Leave the defaults as a starting point and tighten later.
+The Development profile deliberately disables the stricter release-only checks so local dev builds stay usable, but it does not collapse to "almost nothing".
 
-## 4. Understand first audit output
+These built-in components stay enabled by default in the seeded Development profile:
 
-A fresh Unity project commonly reports a mix of hard errors, warnings, and advisories:
+| Component id | Why it stays enabled |
+|---|---|
+| `ci_development_build` | A CI job should not accidentally ship a development build. |
+| `stack_trace_type` | Development builds still need a deliberate stack trace policy. |
+| `strip_engine_code` | Engine-code stripping should still match the intended build shape. |
 
-- `Error` findings block release builds with the default threshold. Common examples are Mono
-  scripting backend, Development Build, Script Debugging, Autoconnect Profiler, broad preserve
-  rules, or `[ReleaseForbidden]` code.
-- `Warning` findings are visible but do not block while `failureThreshold` is `Error`. Managed
-  stripping below the configured minimum is a warning by default.
-- Advisory findings are dismissible best-practice prompts. They are useful review items, but
-  they do not block at the default threshold unless you lower the threshold to their severity.
+These built-in components are disabled by default in the seeded Development profile:
 
-## 5. Run a manual audit
+| Component id |
+|---|
+| `scripting_backend` |
+| `managed_stripping` |
+| `development_build` |
+| `script_debugging` |
+| `profiler_connection` |
+| `broad_preserve` |
+| `release_forbidden` |
+| `android_debuggable` |
+| `webgl_exception_support` |
+| `insecure_http` |
+| `burst_debug` |
 
-Open the audit window from `Tools > Release Guard > Audit` (or click `Open Audit Window` on the settings overview page). Click `Run Audit`. The window lists every registered auditor and every finding grouped by severity, each with a fix hint and an asset ping where applicable. A manual audit never blocks anything - it just reports. See the [audit window guide](guides/audit-window.md) for filtering and advisory dismissal.
+See [Build profiles](guides/build-profiles.md) for the exact selection rules.
 
-## 6. Trigger the build gate
+## 4. Run the checks window
 
-The same checks run automatically before every non-development build. To see the gate in action, make a release build (`File > Build Settings...`, ensure `Development Build` is off, then `Build`). If any finding is at or above the failure threshold, the build aborts with a `BuildFailedException` and a message like:
+Open `Tools > Release Guard > Pre-Build Checks` and click `Run Checks`.
 
-```
-[ReleaseGuard] Build blocked: N issue(s) at or above Error. See the Console (or the Release Guard window) for details and fixes.
-```
+This dispatches the `pre-build` event without an active `BuildReport`. That means:
 
-The per-finding output in the Console looks like:
+- pre-build component subscriptions run
+- build subscriptions do not run
+- post-build subscriptions do not run
 
-```
-[ReleaseGuard] [Error] scripting_backend - Scripting backend is Mono. IL2CPP is required for release builds.
-  Fix: Switch to IL2CPP in Edit > Project Settings > Player > Other Settings > Scripting Backend.
-[ReleaseGuard] [Error] development_build - Development Build flag is set.
-  Fix: Uncheck Development Build in File > Build Settings.
-[ReleaseGuard] Build blocked: 2 issue(s) at or above Error. See the Console (or the Release Guard window) for details and fixes.
-```
+The window is useful for checking player settings before you start a build, but it is not a full simulation of the entire pipeline.
 
-Each line names the auditor id, the finding message, and a fix hint. Fix the reported issues (or adjust settings) and rebuild. A development build is skipped entirely while `skipOnDevelopmentBuilds` is on.
+## 5. Make a real build
 
-## 7. Commit the settings asset
+Build your project normally.
 
-Commit `Assets/ReleaseGuard/ReleaseGuardSettings.asset` (and its `.meta`) to version control. The asset is the single source of truth for the gate, so committing it gives every teammate and your CI pipeline the same rules and the same failure threshold.
+On a successful build attempt, Release Guard runs in this order:
 
-## Next steps
+1. `pre-build` event  
+   Blocking. If any issue is at or above the selected failure threshold, the build is aborted with `BuildFailedException`.
+2. `build` event  
+   Runs only after a successful pre-build phase.
+3. `post-build` event  
+   Runs last, at `callbackOrder = int.MaxValue`.
 
-- [Asset exclusions](guides/asset-exclusions.md) to silence findings for third-party or generated assets.
-- [Build profiles](guides/build-profiles.md) to tune thresholds or disable the gate per Build Profile.
-- [Release-forbidden code](guides/release-forbidden.md) to mark debug-only code that must never ship.
-- [First custom auditor plugin](guides/custom-auditor-plugin.md) to add a project-specific rule.
-- [CI integration](guides/ci-integration.md) to run the gate from your build pipeline.
+Failures in `build` and `post-build` handlers are logged, not rethrown.
+
+## 6. Commit the assets
+
+Commit the registry and profile assets:
+
+- `Assets/ReleaseGuard/registry.asset`
+- `Assets/ReleaseGuard/registry.asset.meta`
+- `Assets/ReleaseGuard/Profiles/*.asset`
+- `Assets/ReleaseGuard/Profiles/*.asset.meta`
+
+Without those files, teammates and CI will not evaluate builds the same way you do locally.
+
+This is not optional cleanup. Those files are part of the package's intended operating model.
+
+## 7. Review the built-ins before disabling anything
+
+Start with:
+
+- [Built-in components overview](reference/components.md)
+- [Configuring](configuring.md)
+
+The strict-looking defaults are intentional. Most of the package's value comes from blocking easy-to-miss release mistakes early.
+
+## 8. What a first rollout usually looks like
+
+For a typical team, the first useful loop is:
+
+1. import the package
+2. commit the new `Assets/ReleaseGuard/` assets
+3. run `Pre-Build Checks`
+4. fix obvious player-setting problems
+5. make one real release build
+6. decide whether to enable `build_manifest`
+7. decide whether `debug_symbol_sweep` should stay report-only or become destructive in CI
+
+That sequence gets you from installation to a stable baseline without inventing custom profiles or components too early.
+
+
