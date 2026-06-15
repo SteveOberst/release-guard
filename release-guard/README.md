@@ -169,6 +169,16 @@ Important: Release Guard treats any batchmode run as CI. That includes local com
 
 The optional `build_manifest` component writes `release-guard-manifest.json` into the build output folder after a successful build. Treat it as a CI artifact, not as a player-facing file. Useful downstream uses include artifact validation, provenance, packaging assertions, and release-pipeline conformance checks.
 
+## Roadmap
+
+The current built-ins cover build hygiene - settings that are wrong, code that should not ship, artifacts left in the output folder. That is a useful floor but not a full hardening story.
+
+The longer-term goal is to add meaningful code and asset protection so that smaller studios have a free, low-complexity option rather than paying for a commercial solution. Planned areas include code obfuscation, asset protection, build integrity verification, and basic runtime hardening hooks.
+
+This project is intentionally not trying to become an aggressive protection layer in the vein of tools like Themida or VMProtect. That level of complexity introduces its own stability and maintenance cost that is not a good fit for most Unity studios. The aim is practical, composable protection that a small team can adopt, understand, and trust.
+
+Contributions are welcome. If you are working in one of these areas or have a use case not yet covered, open an issue.
+
 ## Documentation
 
 | Document | Purpose |

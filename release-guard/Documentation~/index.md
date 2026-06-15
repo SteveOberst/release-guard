@@ -74,6 +74,10 @@ Post-build components:
 - [Debug symbol sweep](reference/components/debug-symbol-sweep.md)
 - [Build manifest](reference/components/build-manifest.md)
 
+## Roadmap
+
+The current built-ins cover build hygiene. The longer-term goal is to add code obfuscation, asset protection, build integrity verification, and basic runtime hardening - a free, low-complexity option for studios that do not want to pay for a commercial solution. See the [project README](https://github.com/SteveOberst/release-guard#roadmap) for the full planned scope and ways to contribute.
+
 ## Development and internals
 
 - [Development notes](development.md)
