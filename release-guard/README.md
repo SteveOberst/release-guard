@@ -167,7 +167,7 @@ If a CI job already builds through Unity normally, Release Guard is already in t
 
 Important: Release Guard treats any batchmode run as CI. That includes local command-line batchmode builds, which will be labeled `CI_Unknown` when no known CI vendor variable is present.
 
-The optional `build_manifest` component writes `release-guard-manifest.json` into the build output folder after a successful build. Treat it as a CI artifact, not as a player-facing file. Useful downstream uses include artifact validation, provenance, packaging assertions, and release-pipeline conformance checks.
+The optional `build_manifest` component writes `release-guard-manifest.json` after a successful build. Treat it as a CI artifact, not a player-facing file. The `outputPath` setting lets you redirect the file to a dedicated artifacts folder so it never lands next to shippable binaries. Useful downstream uses include artifact validation, provenance, packaging assertions, and release-pipeline conformance checks.
 
 ## Roadmap
 
