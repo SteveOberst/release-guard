@@ -75,7 +75,15 @@ Do not assume the profile selected in the Project Settings header affects CI. It
 
 The `build_manifest` component is off by default.
 
-When enabled, it writes `release-guard-manifest.json` into the resolved build output folder after a successful build and after the default-priority post-build work has already run.
+When enabled, it writes `release-guard-manifest.json` after a successful build, after the default-priority post-build work has already run.
+
+By default the file lands next to the build output. Set `outputPath` in the component's settings to redirect it to a separate artifacts folder so it is never adjacent to shippable player files. The setting accepts:
+
+- absolute paths (`/ci/artifacts`, `C:\ci\artifacts`)
+- project-relative paths (`../ci-artifacts`)
+- environment variables (`$ARTIFACT_DIR`, `${ARTIFACT_DIR}`, `%ARTIFACT_DIR%`)
+
+The target folder is created automatically if it does not exist.
 
 Use it as a CI artifact, not a shipped file.
 

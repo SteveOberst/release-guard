@@ -36,7 +36,7 @@ Components with extra live settings:
 | `managed_stripping` | `ManagedStrippingCheck.Config` | `minLevel` |
 | `release_forbidden` | `ReleaseForbiddenCheck.Config` | `excludedAssemblies` |
 | `debug_symbol_sweep` | `DebugSymbolSweep.Config` | `delete`, `extraPatterns` |
-| `build_manifest` | base `ReleaseGuardComponentSettings` | no extra fields; `enabled` defaults to `false` |
+| `build_manifest` | `BuildManifestWriter.Config` | `outputPath` (string) -- write destination; empty means next to build output; `enabled` defaults to `false` |
 
 All other current built-in components are toggle-only and use only the shared `enabled` field.
 

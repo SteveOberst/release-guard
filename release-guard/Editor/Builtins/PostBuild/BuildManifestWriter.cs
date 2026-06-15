@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using ReleaseGuard.Editor.Config;
 using ReleaseGuard.Editor.Core.Components;
 using ReleaseGuard.Editor.Core.DI;
@@ -13,47 +14,70 @@ using UnityEngine;
 namespace ReleaseGuard.Editor.Builtins.PostBuild
 {
     /// <summary>
-    /// Writes <c>release-guard-manifest.json</c> into the resolved build output folder, recording which
-    /// Release Guard configuration produced the build: package version, Unity version, build
-    /// target and GUID, and the components that were active.
+    /// Writes <c>release-guard-manifest.json</c> recording which Release Guard configuration
+    /// produced the build: package version, Unity version, build target and GUID, and the
+    /// components that were active.
     ///
-    /// <para><b>Why opt-in (off by default):</b> this component adds a file to the build
-    /// output folder. Anything next to the shipped binaries risks being packaged and shipped by
-    /// accident, and this particular file intentionally documents the project's hardening
+    /// <para><b>Why opt-in (off by default):</b> the manifest documents the project's hardening
     /// configuration -- information you may not want in players' hands. It is designed as a CI
-    /// artifact: enable <c>writeBuildManifest</c> in settings only when your packaging step picks
-    /// up the manifest separately (or excludes it from the shipped archive).</para>
+    /// artifact: enable it only when your pipeline picks up or excludes the file before packaging
+    /// the player.</para>
+    ///
+    /// <para><b>Output path:</b> by default the manifest is written next to the build output.
+    /// Set <c>outputPath</c> in settings to redirect it to a dedicated CI artifacts folder so it
+    /// never ends up adjacent to shippable binaries.</para>
     ///
     /// <para><b>What is deliberately NOT recorded:</b> absolute paths (which can embed the build
     /// machine's user name) and VCS revision info (reading it would mean spawning external
-    /// processes at build time). If you need a commit hash in the manifest, write your own
-    /// post-build component with a priority greater than 100 and amend the file, or stamp the hash
-    /// elsewhere in your CI pipeline.</para>
+    /// processes at build time).</para>
     ///
-    /// <para>Runs at priority 100 so it executes after the built-in sweep and any default-priority
-    /// custom post-build components, and therefore records the state the output folder actually shipped in.</para>
+    /// <para>Runs at priority 100 so it executes after the built-in sweep and any
+    /// default-priority custom post-build components.</para>
     /// </summary>
-    public sealed class BuildManifestWriter : ReleaseGuardComponent
+    public sealed class BuildManifestWriter : ReleaseGuardComponent<BuildManifestWriter.Config>
     {
         public override string Id => "build_manifest";
         public override string DisplayName => "Build manifest";
 
-        // ReSharper disable once MemberCanBePrivate.Global
         public const string ManifestFileName = "release-guard-manifest.json";
 
+        [Serializable]
+        public sealed class Config : ReleaseGuardComponentSettings
+        {
+            [Tooltip(
+                "Where to write the manifest file. Leave empty to write it next to the build " +
+                "output (default). Supports absolute paths, project-relative paths " +
+                "(e.g. ../ci-artifacts), and environment variables ($VAR or ${VAR} on " +
+                "Unix/macOS, %VAR% on Windows). The folder is created automatically if it " +
+                "does not exist. Use this to keep the manifest out of the player directory.")]
+            public string outputPath = "";
+        }
+
         public override ReleaseGuardComponentSettings CreateDefaultSettings() =>
-            new ReleaseGuardComponentSettings { componentId = Id, enabled = false };
+            new Config { componentId = Id, enabled = false };
 
         public override void Register(ReleaseGuardComponentBinder binder) =>
-            binder.OnPostBuild(releaseEvent => PostProcess(releaseEvent.Context), priority: 100);
+            binder.OnPostBuild(releaseEvent => PostProcess(releaseEvent.Context, Settings), priority: 100);
 
-        private static void PostProcess(ReleaseGuardPostBuildContext context)
+        internal static void PostProcess(ReleaseGuardPostBuildContext context, Config config = null)
         {
-            var folder = ResolveOutputFolder(context.OutputPath);
-            if (folder == null || !Directory.Exists(folder))
+            config ??= new Config();
+
+            var folder = ResolveManifestFolder(config.outputPath, context.OutputPath);
+            if (folder == null)
             {
                 context.Warning(
-                    $"Output folder could not be resolved from '{context.OutputPath}'; manifest not written.");
+                    $"Manifest output folder could not be resolved from '{context.OutputPath}'; manifest not written.");
+                return;
+            }
+
+            try
+            {
+                Directory.CreateDirectory(folder);
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                context.Error($"Could not create manifest output folder '{folder}': {e.Message}");
                 return;
             }
 
@@ -63,13 +87,56 @@ namespace ReleaseGuard.Editor.Builtins.PostBuild
             try
             {
                 File.WriteAllText(path, JsonUtility.ToJson(manifest, prettyPrint: true));
-                context.Info($"Wrote '{ManifestFileName}' to the build output folder. " +
-                             "Do not ship this file to players -- it documents your hardening configuration.");
+                context.Info(
+                    $"Wrote '{ManifestFileName}' to '{folder}'. " +
+                    "Do not ship this file to players -- it documents your hardening configuration.");
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
             {
                 context.Error($"Could not write '{path}': {e.Message}");
             }
+        }
+
+        // -----------------------------------------------------------------
+        // Path resolution
+        // -----------------------------------------------------------------
+
+        internal static string ResolveManifestFolder(string configuredPath, string buildOutputPath)
+        {
+            if (string.IsNullOrWhiteSpace(configuredPath))
+                return ResolveBuildOutputFolder(buildOutputPath);
+
+            var expanded = ExpandEnvVars(configuredPath);
+
+            if (Path.IsPathRooted(expanded))
+                return expanded;
+
+            // Relative path: resolve from the Unity project root (parent of Assets).
+            var projectRoot = Path.GetDirectoryName(Application.dataPath);
+            return string.IsNullOrEmpty(projectRoot) ? null : Path.GetFullPath(Path.Combine(projectRoot, expanded));
+        }
+
+        private static string ResolveBuildOutputFolder(string outputPath)
+        {
+            if (string.IsNullOrEmpty(outputPath))
+                return null;
+
+            return Directory.Exists(outputPath)
+                ? outputPath
+                : Path.GetDirectoryName(outputPath);
+        }
+
+        internal static string ExpandEnvVars(string path)
+        {
+            // %VAR% -- Windows style (ExpandEnvironmentVariables handles this on all platforms)
+            path = Environment.ExpandEnvironmentVariables(path);
+            // ${VAR} -- must precede $VAR so braces are consumed first
+            path = Regex.Replace(path, @"\$\{([^}]+)\}",
+                m => Environment.GetEnvironmentVariable(m.Groups[1].Value) ?? m.Value);
+            // $VAR -- bare dollar sign followed by an identifier
+            path = Regex.Replace(path, @"\$([A-Za-z_][A-Za-z0-9_]*)",
+                m => Environment.GetEnvironmentVariable(m.Groups[1].Value) ?? m.Value);
+            return path;
         }
 
         // -----------------------------------------------------------------
@@ -121,16 +188,6 @@ namespace ReleaseGuard.Editor.Builtins.PostBuild
 
         private static List<string> Copy(List<string> source) =>
             source != null ? new List<string>(source) : new List<string>();
-
-        private static string ResolveOutputFolder(string outputPath)
-        {
-            if (string.IsNullOrEmpty(outputPath))
-                return null;
-
-            return Directory.Exists(outputPath)
-                ? outputPath
-                : Path.GetDirectoryName(outputPath);
-        }
 
         private static IEnumerable<string> ResolvePhases(string componentId, ReleaseGuardEnvironment environment)
         {
