@@ -26,3 +26,9 @@ MonoBehaviour:
     activation:
       strategy: 1
       unityBuildProfileNames: []
+  - id: new-profile
+    displayName: New Profile
+    isDefault: 0
+    activation:
+      strategy: 5
+      unityBuildProfileNames: []

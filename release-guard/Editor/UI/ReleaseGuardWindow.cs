@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using ReleaseGuard.Editor.Core.Components;
@@ -310,7 +311,18 @@ namespace ReleaseGuard.Editor.UI
 
         private void RunPreBuildChecks()
         {
-            var environment = ReleaseGuardDI.Resolve<ReleaseGuardEnvironment>();
+            ReleaseGuardEnvironment environment;
+            try
+            {
+                environment = ReleaseGuardDI.Resolve<ReleaseGuardEnvironment>();
+            }
+            catch (InvalidOperationException)
+            {
+                // Container was cleared (e.g. by a domain-reload event) and startup hasn't re-run yet.
+                ReleaseGuardStartup.Reload();
+                environment = ReleaseGuardDI.Resolve<ReleaseGuardEnvironment>();
+            }
+
             var configuration = ReleaseGuardConfiguration.Resolve(environment.Settings, report: null);
             _report = environment.Pipeline.DispatchWithResult(
                 ReleaseGuardPreBuildEvent.ForManualRun(
@@ -347,7 +359,7 @@ namespace ReleaseGuard.Editor.UI
 
         private static void PingAsset(string assetPath)
         {
-            var asset = AssetDatabase.LoadAssetAtPath<Object>(assetPath);
+            var asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(assetPath);
             if (asset == null)
                 return;
 

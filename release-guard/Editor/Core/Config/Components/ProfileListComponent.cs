@@ -602,7 +602,10 @@ namespace ReleaseGuard.Editor.Core.Config.Components
             AssetDatabase.SaveAssets();
             Property.serializedObject.Update();
             _list = null;
-            GUIUtility.ExitGUI();
+            // ExitGUI is only valid inside an IMGUI event (OnGUI). Menu callbacks run
+            // outside the event loop, so skipping it there avoids a logged ExitGUIException.
+            if (Event.current != null)
+                GUIUtility.ExitGUI();
         }
 
         // -----------------------------------------------------------------------

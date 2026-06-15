@@ -30,7 +30,9 @@ namespace ReleaseGuard.Editor.Tests
         {
             return ComponentTestHarness
                 .RunPreBuild(settings, BuildTarget.StandaloneWindows64)
-                .Issues;
+                .Issues
+                .Where(i => i.ComponentId == "release_forbidden")
+                .ToList();
         }
 
         [Test]

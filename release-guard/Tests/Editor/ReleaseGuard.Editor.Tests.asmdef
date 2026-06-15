@@ -4,7 +4,7 @@
   "references": [
     "ReleaseGuard.Editor",
     "ReleaseGuard.Runtime",
-    "ReleaseGuard.Editor.TestFixtures",
+    "ReleaseGuard.TestFixtures",
     "UnityEngine.TestRunner",
     "UnityEditor.TestRunner"
   ],

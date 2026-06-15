@@ -36,12 +36,22 @@ namespace ReleaseGuard.Editor.Core.DI
 
         public static T Resolve<T>()
         {
-            return _container.Resolve<T>();
+            var container = _container;
+            if (container == null)
+                throw new InvalidOperationException(
+                    "Release Guard DI container is not initialized. " +
+                    "Startup may have failed — check earlier console errors.");
+            return container.Resolve<T>();
         }
 
         public static object Resolve(Type serviceType)
         {
-            return _container.Resolve(serviceType);
+            var container = _container;
+            if (container == null)
+                throw new InvalidOperationException(
+                    "Release Guard DI container is not initialized. " +
+                    "Startup may have failed — check earlier console errors.");
+            return container.Resolve(serviceType);
         }
 
         public static void RegisterSingleton<TService, TImplementation>()

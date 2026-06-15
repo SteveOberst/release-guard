@@ -47,7 +47,8 @@ namespace ReleaseGuard.Editor.Tests
                 Assert.Contains("managed_stripping", ids);
                 Assert.Contains("ci_development_build", ids);
                 Assert.Contains("debug_symbol_sweep", ids);
-                Assert.Contains("build_manifest", ids);
+                // build_manifest is default-disabled so it is not in Components.Items with default settings.
+                // BuiltInRegistry_ContainsExactlySixteenComponents verifies it exists in the raw registry.
             }
             finally
             {

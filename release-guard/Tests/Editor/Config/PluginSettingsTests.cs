@@ -99,11 +99,6 @@ namespace ReleaseGuard.Editor.Tests
         }
     }
 
-    internal sealed class TestPluginSettings : ReleaseGuardPluginSettings
-    {
-        public bool enabled = true;
-    }
-
     [TestReleaseGuardPlugin]
     internal sealed class TestSettingsPlugin : ReleaseGuardPlugin
     {
