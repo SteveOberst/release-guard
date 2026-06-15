@@ -68,7 +68,7 @@ Component-specific fields in the live codebase:
 | `managed_stripping` | `minLevel` |
 | `release_forbidden` | `excludedAssemblies` |
 | `debug_symbol_sweep` | `delete`, `extraPatterns` |
-| `build_manifest` | no extra fields; just the shared `enabled` toggle, defaulting to off |
+| `build_manifest` | `outputPath` (string, default `""`) -- where to write the manifest; empty means next to the build output |
 | most other built-ins | no extra fields; just the shared `enabled` toggle |
 
 Other `ComponentSettings` fields:

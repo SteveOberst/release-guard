@@ -38,9 +38,12 @@ Its priority is `100`, and lower priority values run earlier while higher values
 
 ## Settings
 
-| Setting | Effect | Typical use |
-|---|---|---|
-| `enabled` | Enables manifest writing for the active profile. | Turn on when CI or artifact handling wants provenance data. |
+| Setting | Type | Default | Effect |
+|---|---|---|---|
+| `enabled` | `bool` | `false` | Enables manifest writing for the active profile. Turn on when CI or artifact handling wants provenance data. |
+| `outputPath` | `string` | `""` (empty) | Where to write the manifest file. Empty means next to the build output. Supports absolute paths, project-relative paths (e.g. `../ci-artifacts`), and environment variables (`$VAR` or `${VAR}` on Unix/macOS, `%VAR%` on Windows). The folder is created automatically if it does not exist. |
+
+Leave `outputPath` empty if writing next to the build output is acceptable. Set it when you need the manifest in a dedicated artifacts folder that is never adjacent to shippable binaries.
 
 ## Active-profile defaults
 
