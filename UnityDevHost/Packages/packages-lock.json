@@ -17,15 +17,6 @@
       },
       "hash": "85c101f5329ec1b0c6f70cba44614166dd78f53c"
     },
-    "com.unity.asset-store-validation": {
-      "version": "0.6.0",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {
-        "com.unity.nuget.newtonsoft-json": "2.0.2"
-      },
-      "url": "https://packages.unity.com"
-    },
     "com.unity.ext.nunit": {
       "version": "2.0.5",
       "depth": 1,
@@ -67,7 +58,7 @@
         "com.unity.modules.imgui": "1.0.0"
       }
     },
-    "org.researchy.release-guard": {
+    "io.researchy.release-guard": {
       "version": "file:../../release-guard",
       "depth": 0,
       "source": "local",

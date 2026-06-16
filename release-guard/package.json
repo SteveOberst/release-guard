@@ -1,10 +1,11 @@
 {
-  "name": "org.researchy.release-guard",
+  "name": "io.researchy.release-guard",
   "version": "0.1.0",
   "displayName": "Release Guard",
   "description": "Build-time release hardening for Unity. Blocks bad release builds, runs profile-selected components across pre-build/build/post-build events, and supports custom components and plugins.",
   "unity": "2022.3",
   "unityRelease": "0f1",
+  "license": "MIT",
   "keywords": [
     "build",
     "release",
@@ -31,6 +32,10 @@
       "path": "Samples~/Example Plugin"
     }
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SteveOberst/release-guard.git"
+  },
   "documentationUrl": "https://github.com/SteveOberst/release-guard/blob/main/release-guard/Documentation~/index.md",
   "changelogUrl": "https://github.com/SteveOberst/release-guard/blob/main/release-guard/CHANGELOG.md",
   "licensesUrl": "https://github.com/SteveOberst/release-guard/blob/main/release-guard/LICENSE.md",
@@ -40,7 +45,6 @@
     "Runtime/",
     "Runtime.meta",
     "Samples~/",
-    "Samples~.meta",
     "Documentation~/",
     "CHANGELOG.md",
     "LICENSE.md",

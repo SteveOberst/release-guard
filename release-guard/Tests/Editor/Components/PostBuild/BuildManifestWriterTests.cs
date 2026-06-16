@@ -96,6 +96,57 @@ namespace ReleaseGuard.Editor.Tests
         }
 
         [Test]
+        public void ResolveManifestFolder_RelativePath_ReturnsRootedPath()
+        {
+            var resolved = BuildManifestWriter.ResolveManifestFolder("../ci-artifacts", "/some/build/Game.exe");
+            Assert.IsNotNull(resolved);
+            Assert.IsTrue(Path.IsPathRooted(resolved));
+            StringAssert.EndsWith("ci-artifacts", resolved);
+        }
+
+        [Test]
+        public void ResolveManifestFolder_NullOutputPath_ReturnsNull()
+        {
+            Assert.IsNull(BuildManifestWriter.ResolveManifestFolder("", null));
+        }
+
+        [Test]
+        public void ResolveManifestFolder_EmptyOutputPath_ReturnsNull()
+        {
+            Assert.IsNull(BuildManifestWriter.ResolveManifestFolder("", ""));
+        }
+
+        [Test]
+        public void ExpandEnvVars_ExpandsDollarBraceStyle()
+        {
+            Environment.SetEnvironmentVariable("RG_TEST_VAR", "testvalue");
+            try
+            {
+                var result = BuildManifestWriter.ExpandEnvVars("${RG_TEST_VAR}/artifacts");
+                Assert.AreEqual("testvalue/artifacts", result);
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("RG_TEST_VAR", null);
+            }
+        }
+
+        [Test]
+        public void ExpandEnvVars_ExpandsBareStyle()
+        {
+            Environment.SetEnvironmentVariable("RG_TEST_VAR", "testvalue");
+            try
+            {
+                var result = BuildManifestWriter.ExpandEnvVars("$RG_TEST_VAR/artifacts");
+                Assert.AreEqual("testvalue/artifacts", result);
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("RG_TEST_VAR", null);
+            }
+        }
+
+        [Test]
         public void ExpandEnvVars_ExpandsPercentStyle()
         {
             var original = Environment.GetEnvironmentVariable("TEMP") ?? Environment.GetEnvironmentVariable("TMP");

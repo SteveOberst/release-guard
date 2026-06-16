@@ -17,7 +17,8 @@ namespace ReleaseGuard.Editor.Config
     {
         private const int CurrentVersion = 1;
 
-        public static void Run()
+        /// <summary>Returns true the first time the registry is created or migrated in this project.</summary>
+        public static bool Run()
         {
             var registry = ReleaseGuardRegistry.LoadOrCreate();
 
@@ -33,9 +34,13 @@ namespace ReleaseGuard.Editor.Config
                 changed = true;
             }
 
-            if (!changed) return;
-            EditorUtility.SetDirty(registry);
-            AssetDatabase.SaveAssets();
+            if (changed)
+            {
+                EditorUtility.SetDirty(registry);
+                AssetDatabase.SaveAssets();
+            }
+
+            return isFirstRun;
         }
 
         /// <summary>

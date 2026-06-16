@@ -25,6 +25,28 @@ namespace ReleaseGuard.Editor.UI
     /// </summary>
     public sealed class ReleaseGuardWindow : EditorWindow
     {
+        private static class Layout
+        {
+            public const float MinWidth = 560f;
+            public const float MinHeight = 380f;
+            public const float ToolbarButtonWidth = 90f;
+            public const float TightSpacing = 2f;
+            public const float SectionSpacing = 4f;
+            public const float StatusIconWidth = 28f;
+            public const float ComponentIdWidth = 180f;
+            public const float ComponentNameMinWidth = 120f;
+            public const float PhasesWidth = 180f;
+            public const float IssueCountWidth = 70f;
+            public const float PluginIdWidth = 220f;
+            public const float PluginAuthorWidth = 120f;
+            public const float FilterLabelWidth = 40f;
+            public const float DismissButtonWidth = 118f;
+            public const float PingButtonWidth = 80f;
+
+            public static readonly Color IssueIndicatorColor = new Color(1f, 0.75f, 0.35f);
+            public static readonly Color CleanIndicatorColor = new Color(0.6f, 1f, 0.6f);
+        }
+
         private ReleaseGuardPreBuildReport _report;
         private Vector2 _scroll;
 
@@ -38,7 +60,7 @@ namespace ReleaseGuard.Editor.UI
         public static void ShowWindow()
         {
             var window = GetWindow<ReleaseGuardWindow>("Release Guard");
-            window.minSize = new Vector2(560, 380);
+            window.minSize = new Vector2(Layout.MinWidth, Layout.MinHeight);
             window.Show();
         }
 
@@ -76,10 +98,10 @@ namespace ReleaseGuard.Editor.UI
         {
             using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
             {
-                if (GUILayout.Button("Run Checks", EditorStyles.toolbarButton, GUILayout.Width(90)))
+                if (GUILayout.Button("Run Checks", EditorStyles.toolbarButton, GUILayout.Width(Layout.ToolbarButtonWidth)))
                     RunPreBuildChecks();
 
-                if (GUILayout.Button("Settings", EditorStyles.toolbarButton, GUILayout.Width(90)))
+                if (GUILayout.Button("Settings", EditorStyles.toolbarButton, GUILayout.Width(Layout.ToolbarButtonWidth)))
                     SettingsService.OpenProjectSettings("Project/Release Guard");
 
                 GUILayout.FlexibleSpace();
@@ -128,7 +150,7 @@ namespace ReleaseGuard.Editor.UI
             if (components.Count == 0)
                 return;
 
-            EditorGUILayout.Space(2);
+            EditorGUILayout.Space(Layout.TightSpacing);
             _showComponents = EditorGUILayout.Foldout(
                 _showComponents,
                 $"Registered components ({components.Count})",
@@ -148,23 +170,23 @@ namespace ReleaseGuard.Editor.UI
                 {
                     var prevColor = GUI.contentColor;
                     GUI.contentColor = issueCount > 0
-                        ? new Color(1f, 0.75f, 0.35f)
-                        : new Color(0.6f, 1f, 0.6f);
-                    EditorGUILayout.LabelField("[*]", GUILayout.Width(28));
+                        ? Layout.IssueIndicatorColor
+                        : Layout.CleanIndicatorColor;
+                    EditorGUILayout.LabelField("[*]", GUILayout.Width(Layout.StatusIconWidth));
                     GUI.contentColor = prevColor;
 
-                    EditorGUILayout.LabelField(component.Id, GUILayout.Width(180));
+                    EditorGUILayout.LabelField(component.Id, GUILayout.Width(Layout.ComponentIdWidth));
 
                     EditorGUILayout.LabelField(
                         component.DisplayName,
                         EditorStyles.miniLabel,
-                        GUILayout.MinWidth(120));
+                        GUILayout.MinWidth(Layout.ComponentNameMinWidth));
 
-                    EditorGUILayout.LabelField(phases, EditorStyles.miniLabel, GUILayout.Width(180));
+                    EditorGUILayout.LabelField(phases, EditorStyles.miniLabel, GUILayout.Width(Layout.PhasesWidth));
                     GUILayout.FlexibleSpace();
 
                     var countLabel = issueCount > 0 ? $"{issueCount} issue(s)" : "clean";
-                    EditorGUILayout.LabelField(countLabel, EditorStyles.miniLabel, GUILayout.Width(70));
+                    EditorGUILayout.LabelField(countLabel, EditorStyles.miniLabel, GUILayout.Width(Layout.IssueCountWidth));
                 }
             }
 
@@ -172,14 +194,14 @@ namespace ReleaseGuard.Editor.UI
             EditorGUILayout.HelpBox(
                 "Run Checks dispatches the pre-build event without an active BuildReport. Build and post-build subscriptions run only during real builds.",
                 MessageType.None);
-            EditorGUILayout.Space(4);
+            EditorGUILayout.Space(Layout.SectionSpacing);
         }
 
         // --- Discovered plugins foldout ---
 
         private void DrawDiscoveredPlugins()
         {
-            EditorGUILayout.Space(2);
+            EditorGUILayout.Space(Layout.TightSpacing);
 
             _showPlugins = EditorGUILayout.Foldout(
                 _showPlugins,
@@ -205,17 +227,17 @@ namespace ReleaseGuard.Editor.UI
                 {
                     using (new EditorGUILayout.HorizontalScope())
                     {
-                        EditorGUILayout.LabelField(plugin.PluginId, GUILayout.Width(220));
-                        EditorGUILayout.LabelField(plugin.DisplayName, EditorStyles.miniLabel, GUILayout.MinWidth(120));
+                        EditorGUILayout.LabelField(plugin.PluginId, GUILayout.Width(Layout.PluginIdWidth));
+                        EditorGUILayout.LabelField(plugin.DisplayName, EditorStyles.miniLabel, GUILayout.MinWidth(Layout.ComponentNameMinWidth));
                         GUILayout.FlexibleSpace();
                         if (!string.IsNullOrEmpty(plugin.Author))
-                            EditorGUILayout.LabelField(plugin.Author, EditorStyles.miniLabel, GUILayout.Width(120));
+                            EditorGUILayout.LabelField(plugin.Author, EditorStyles.miniLabel, GUILayout.Width(Layout.PluginAuthorWidth));
                     }
                 }
             }
 
             EditorGUI.indentLevel--;
-            EditorGUILayout.Space(4);
+            EditorGUILayout.Space(Layout.SectionSpacing);
         }
 
         // --- Severity filters ---
@@ -224,7 +246,7 @@ namespace ReleaseGuard.Editor.UI
         {
             using (new EditorGUILayout.HorizontalScope())
             {
-                GUILayout.Label("Show:", GUILayout.Width(40));
+                GUILayout.Label("Show:", GUILayout.Width(Layout.FilterLabelWidth));
                 _showErrors = GUILayout.Toggle(_showErrors, $"Errors ({_report.ErrorCount})", EditorStyles.miniButton);
                 _showWarnings = GUILayout.Toggle(_showWarnings, $"Warnings ({_report.WarningCount})",
                     EditorStyles.miniButton);
@@ -250,7 +272,7 @@ namespace ReleaseGuard.Editor.UI
             {
                 any = true;
                 DrawIssue(issue);
-                EditorGUILayout.Space(4);
+                EditorGUILayout.Space(Layout.SectionSpacing);
             }
 
             if (!any && _report.HasIssues)
@@ -278,7 +300,7 @@ namespace ReleaseGuard.Editor.UI
                     // "Don't show again" button for dismissible advisories.
                     if (!string.IsNullOrEmpty(issue.SuppressId))
                     {
-                        if (GUILayout.Button("Don't show again", EditorStyles.miniButton, GUILayout.Width(118)))
+                        if (GUILayout.Button("Don't show again", EditorStyles.miniButton, GUILayout.Width(Layout.DismissButtonWidth)))
                         {
                             var environment = ReleaseGuardDI.Resolve<ReleaseGuardEnvironment>();
                             var displayName = environment.Components.Items
@@ -295,7 +317,7 @@ namespace ReleaseGuard.Editor.UI
                     }
 
                     if (!string.IsNullOrEmpty(issue.AssetPath) &&
-                        GUILayout.Button("Ping asset", EditorStyles.miniButton, GUILayout.Width(80)))
+                        GUILayout.Button("Ping asset", EditorStyles.miniButton, GUILayout.Width(Layout.PingButtonWidth)))
                         PingAsset(issue.AssetPath);
                 }
 

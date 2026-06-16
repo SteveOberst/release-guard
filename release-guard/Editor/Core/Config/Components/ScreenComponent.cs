@@ -32,14 +32,15 @@ namespace ReleaseGuard.Editor.Core.Config.Components
             var capturedIntro = Intro;
             var capturedChildren = Children;
 
+            var so = settings != null ? new SerializedObject(settings) : null;
+
             return new SettingsProvider(Path, SettingsScope.Project)
             {
                 label = DisplayName,
                 keywords = keywords ?? new HashSet<string>(),
                 guiHandler = _ =>
                 {
-                    if (settings == null) return;
-                    var so = new SerializedObject(settings);
+                    if (settings == null || so == null) return;
                     so.Update();
                     renderer.DrawPaddedContent(() =>
                     {
@@ -99,6 +100,7 @@ namespace ReleaseGuard.Editor.Core.Config.Components
                     if (settings == null) return;
                     if (settings != lastSettings)
                     {
+                        cachedSo?.Dispose();
                         lastSettings = settings;
                         cachedSo = new SerializedObject(settings);
                     }

@@ -1,6 +1,7 @@
 using ReleaseGuard.Editor.Config;
 using ReleaseGuard.Editor.Core.DI;
 using UnityEditor;
+using UnityEngine;
 
 namespace ReleaseGuard.Editor.Core.Runtime
 {
@@ -10,6 +11,7 @@ namespace ReleaseGuard.Editor.Core.Runtime
     {
         static ReleaseGuardStartup()
         {
+            AssemblyReloadEvents.beforeAssemblyReload -= ReleaseGuardDI.Clear;
             AssemblyReloadEvents.beforeAssemblyReload += ReleaseGuardDI.Clear;
 
             // When the user switches editing profile, reinitialize so the environment reflects
@@ -25,7 +27,7 @@ namespace ReleaseGuard.Editor.Core.Runtime
         /// </summary>
         public static void Reload()
         {
-            ProfileMigration.Run();
+            var isFirstRun = ProfileMigration.Run();
 
             var registry = ReleaseGuardRegistry.LoadOrCreate();
             var settings = ActiveProfileState.CurrentSettings();
@@ -34,6 +36,36 @@ namespace ReleaseGuard.Editor.Core.Runtime
             ReleaseGuardDI.Configure(c => c.RegisterInstance(environment));
             environment.Initialize(settings);
             environment.SetRegistry(registry);
+
+            if (isFirstRun)
+                ShowOnboardingPrompt();
+        }
+
+        /// <summary>
+        /// One-time welcome dialog shown the first time Release Guard initializes in a project.
+        /// Gated by an EditorPrefs flag so it never repeats, and skipped entirely in batch mode
+        /// so CI/build agents never block on a dialog.
+        /// </summary>
+        private static void ShowOnboardingPrompt()
+        {
+            if (Application.isBatchMode) return;
+
+            var shownKey = $"ReleaseGuard.OnboardingShown.{Application.dataPath.GetHashCode():X8}";
+            if (EditorPrefs.GetBool(shownKey, false)) return;
+            EditorPrefs.SetBool(shownKey, true);
+
+            EditorApplication.delayCall += () =>
+            {
+                if (EditorUtility.DisplayDialog(
+                        "Release Guard",
+                        "Release Guard is set up with default Release and Development profiles.\n\n" +
+                        "Open the Checks window to review this project's release readiness.",
+                        "Open Checks Window",
+                        "Later"))
+                {
+                    EditorApplication.ExecuteMenuItem("Tools/Release Guard/Pre-Build Checks");
+                }
+            };
         }
     }
 }
