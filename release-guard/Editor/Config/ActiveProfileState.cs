@@ -1,5 +1,6 @@
 using System;
 using UnityEditor;
+using UnityEngine;
 
 namespace ReleaseGuard.Editor.Config
 {
@@ -10,7 +11,8 @@ namespace ReleaseGuard.Editor.Config
     /// </summary>
     internal static class ActiveProfileState
     {
-        private const string PrefKey = "ReleaseGuard.ActiveProfileId";
+        private static readonly string PrefKey =
+            $"ReleaseGuard.ActiveProfileId.{Application.dataPath.GetHashCode():X8}";
 
         private static ReleaseGuardSettings _cache;
 

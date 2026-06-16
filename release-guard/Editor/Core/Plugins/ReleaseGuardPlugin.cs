@@ -60,7 +60,7 @@ namespace ReleaseGuard.Editor.Core.Plugins
         /// Register components and other contributions.
         ///
         /// <para>Called once per environment initialization -- keep it free of side-effects
-        /// beyond registering contributions in <see cref="Environment"/>.</para>
+        /// beyond registering contributions through <paramref name="context"/>.</para>
         /// </summary>
         public abstract void Register(PluginRegistrationContext context);
 
