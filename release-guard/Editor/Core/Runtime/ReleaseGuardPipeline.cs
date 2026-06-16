@@ -59,8 +59,8 @@ namespace ReleaseGuard.Editor.Core.Runtime
             Func<TEvent, TResult> resultSelector)
             where TEvent : ReleaseGuardLifecycleEvent
         {
-            return resultSelector == null 
-                ? throw new ArgumentNullException(nameof(resultSelector)) 
+            return resultSelector == null
+                ? throw new ArgumentNullException(nameof(resultSelector))
                 : resultSelector(Dispatch(releaseEvent));
         }
 

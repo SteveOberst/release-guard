@@ -27,7 +27,9 @@ namespace ReleaseGuard.Editor.Core.Components
         /// serialized settings by id. Override to read settings into a local field.
         /// The default implementation is a no-op.
         /// </summary>
-        public virtual void Initialize(Func<string, ReleaseGuardComponentSettings> settingsLookup) { }
+        public virtual void Initialize(Func<string, ReleaseGuardComponentSettings> settingsLookup)
+        {
+        }
 
         /// <summary>
         /// Creates a default settings instance for this component. Used when pre-populating the

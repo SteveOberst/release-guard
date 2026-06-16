@@ -25,7 +25,8 @@ namespace ReleaseGuard.Editor.Core.Components
         internal abstract void SetRegisteredComponents(IReadOnlyList<ReleaseGuardComponent> components);
         internal virtual IDisposable BeginDispatchScope() => NoopScope.Instance;
 
-        internal abstract void HandleComponentException(ReleaseGuardLogger logger, ReleaseGuardComponent component, Exception exception);
+        internal abstract void HandleComponentException(ReleaseGuardLogger logger, ReleaseGuardComponent component,
+            Exception exception);
 
         internal virtual void LogCompletion(ReleaseGuardLogger logger)
         {

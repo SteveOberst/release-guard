@@ -98,10 +98,12 @@ namespace ReleaseGuard.Editor.UI
         {
             using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
             {
-                if (GUILayout.Button("Run Checks", EditorStyles.toolbarButton, GUILayout.Width(Layout.ToolbarButtonWidth)))
+                if (GUILayout.Button("Run Checks", EditorStyles.toolbarButton,
+                        GUILayout.Width(Layout.ToolbarButtonWidth)))
                     RunPreBuildChecks();
 
-                if (GUILayout.Button("Settings", EditorStyles.toolbarButton, GUILayout.Width(Layout.ToolbarButtonWidth)))
+                if (GUILayout.Button("Settings", EditorStyles.toolbarButton,
+                        GUILayout.Width(Layout.ToolbarButtonWidth)))
                     SettingsService.OpenProjectSettings("Project/Release Guard");
 
                 GUILayout.FlexibleSpace();
@@ -186,7 +188,8 @@ namespace ReleaseGuard.Editor.UI
                     GUILayout.FlexibleSpace();
 
                     var countLabel = issueCount > 0 ? $"{issueCount} issue(s)" : "clean";
-                    EditorGUILayout.LabelField(countLabel, EditorStyles.miniLabel, GUILayout.Width(Layout.IssueCountWidth));
+                    EditorGUILayout.LabelField(countLabel, EditorStyles.miniLabel,
+                        GUILayout.Width(Layout.IssueCountWidth));
                 }
             }
 
@@ -228,10 +231,12 @@ namespace ReleaseGuard.Editor.UI
                     using (new EditorGUILayout.HorizontalScope())
                     {
                         EditorGUILayout.LabelField(plugin.PluginId, GUILayout.Width(Layout.PluginIdWidth));
-                        EditorGUILayout.LabelField(plugin.DisplayName, EditorStyles.miniLabel, GUILayout.MinWidth(Layout.ComponentNameMinWidth));
+                        EditorGUILayout.LabelField(plugin.DisplayName, EditorStyles.miniLabel,
+                            GUILayout.MinWidth(Layout.ComponentNameMinWidth));
                         GUILayout.FlexibleSpace();
                         if (!string.IsNullOrEmpty(plugin.Author))
-                            EditorGUILayout.LabelField(plugin.Author, EditorStyles.miniLabel, GUILayout.Width(Layout.PluginAuthorWidth));
+                            EditorGUILayout.LabelField(plugin.Author, EditorStyles.miniLabel,
+                                GUILayout.Width(Layout.PluginAuthorWidth));
                     }
                 }
             }
@@ -300,7 +305,8 @@ namespace ReleaseGuard.Editor.UI
                     // "Don't show again" button for dismissible advisories.
                     if (!string.IsNullOrEmpty(issue.SuppressId))
                     {
-                        if (GUILayout.Button("Don't show again", EditorStyles.miniButton, GUILayout.Width(Layout.DismissButtonWidth)))
+                        if (GUILayout.Button("Don't show again", EditorStyles.miniButton,
+                                GUILayout.Width(Layout.DismissButtonWidth)))
                         {
                             var environment = ReleaseGuardDI.Resolve<ReleaseGuardEnvironment>();
                             var displayName = environment.Components.Items
@@ -317,7 +323,8 @@ namespace ReleaseGuard.Editor.UI
                     }
 
                     if (!string.IsNullOrEmpty(issue.AssetPath) &&
-                        GUILayout.Button("Ping asset", EditorStyles.miniButton, GUILayout.Width(Layout.PingButtonWidth)))
+                        GUILayout.Button("Ping asset", EditorStyles.miniButton,
+                            GUILayout.Width(Layout.PingButtonWidth)))
                         PingAsset(issue.AssetPath);
                 }
 

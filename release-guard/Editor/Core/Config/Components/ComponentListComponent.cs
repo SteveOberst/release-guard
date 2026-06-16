@@ -54,6 +54,7 @@ namespace ReleaseGuard.Editor.Core.Config.Components
                 DrawToolbar();
                 DrawList();
             }
+
             DrawAdvisoriesLink(renderer);
         }
 
@@ -201,6 +202,7 @@ namespace ReleaseGuard.Editor.Core.Config.Components
                     }
                 }
             }
+
             EditorGUILayout.EndVertical();
         }
 
@@ -242,6 +244,7 @@ namespace ReleaseGuard.Editor.Core.Config.Components
                     enabledProp.boolValue = enabled;
                     entriesProp.serializedObject.ApplyModifiedProperties();
                 }
+
                 return;
             }
 
@@ -273,6 +276,7 @@ namespace ReleaseGuard.Editor.Core.Config.Components
                 if (cid != null && string.Equals(cid.stringValue, componentId, StringComparison.OrdinalIgnoreCase))
                     return el;
             }
+
             return null;
         }
 

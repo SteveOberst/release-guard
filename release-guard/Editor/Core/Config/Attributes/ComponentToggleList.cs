@@ -20,8 +20,7 @@ namespace ReleaseGuard.Editor.Core.Config.Types
     [Serializable]
     public sealed class ComponentToggleList
     {
-        [UnityEngine.SerializeReference]
-        public List<ReleaseGuardComponentSettings> entries = new();
+        [UnityEngine.SerializeReference] public List<ReleaseGuardComponentSettings> entries = new();
 
         /// <summary>
         /// Component ids that are disabled when no explicit entry exists (i.e., their default state
@@ -72,6 +71,7 @@ namespace ReleaseGuard.Editor.Core.Config.Types
                 entry.enabled = enabled;
                 return;
             }
+
             if (!enabled)
                 entries.Add(new ReleaseGuardComponentSettings { componentId = componentId, enabled = false });
         }

@@ -100,7 +100,8 @@ namespace ReleaseGuard.Editor.Core.Runtime
                 string.Compare(a.PluginId, b.PluginId, StringComparison.OrdinalIgnoreCase));
             Plugins = list;
 
-            Func<string, ReleaseGuardComponentSettings> settingsLookup = id => Settings.components.componentToggles.FindEntry(id);
+            Func<string, ReleaseGuardComponentSettings> settingsLookup = id =>
+                Settings.components.componentToggles.FindEntry(id);
             foreach (var component in Registries.Components.Items)
             {
                 if (existingComponentIds.Contains(component.Id))
