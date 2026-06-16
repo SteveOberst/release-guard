@@ -1,4 +1,4 @@
-name: org.researchy.release-guard
+name: io.researchy.release-guard
 displayName: Release Guard
 description: Configurable, build-time release hardening for Unity with profile-selected components and an extensible API.
 repoUrl: https://github.com/SteveOberst/release-guard

@@ -121,7 +121,7 @@ If you want to distribute a Release Guard extension as its own UPM package, the 
 - keep your custom components, plugin type, and plugin settings in an Editor assembly inside your package
 - reference `ReleaseGuard.Editor` from that Editor asmdef
 - reference `ReleaseGuard.Runtime` too if your settings or shared code use runtime types like `ReleaseIssueSeverity`
-- declare `org.researchy.release-guard` as a package dependency in your package manifest
+- declare `io.researchy.release-guard` as a package dependency in your package manifest
 
 Recommended package split:
 

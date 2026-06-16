@@ -41,7 +41,7 @@ Open `Window > Package Manager`, choose `+ > Add package from git URL`, and past
 OpenUPM:
 
 ```bash
-openupm add org.researchy.release-guard
+openupm add io.researchy.release-guard
 ```
 
 ## First-use behavior
