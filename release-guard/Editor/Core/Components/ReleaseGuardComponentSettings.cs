@@ -11,8 +11,7 @@ namespace ReleaseGuard.Editor.Core.Components
     [Serializable]
     public class ReleaseGuardComponentSettings
     {
-        [HideInInspector]
-        public string componentId;
+        [HideInInspector] public string componentId;
 
         [Tooltip("When disabled, this component is skipped in every build phase.")]
         public bool enabled = true;

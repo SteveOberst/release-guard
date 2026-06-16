@@ -78,7 +78,7 @@ Safer ordering:
 
 The list order is editable in the Profiles page. Drag and drop changes the registry order, and that directly changes which profile wins.
 
-![Profiles can be reordered by drag and drop](../assets/profile_drag_and_drop.png)
+![Profiles can be reordered by drag and drop](assets/profile_drag_and_drop.png)
 
 ## What the header dropdown means
 
@@ -93,7 +93,7 @@ The page header warns when:
 
 That warning exists because this is an easy place to get confused.
 
-![Warning that the current build would use a different profile than the one being edited](../assets/current_build_would_use_other_profile.png)
+![Warning that the current build would use a different profile than the one being edited](assets/current_build_would_use_other_profile.png)
 
 Important limit: the current warning path does not resolve `UnityBuildProfileNames` matches. Treat it as a helpful editor-side warning for the common development/CI cases, not as a complete validator for every custom activation strategy.
 
@@ -149,13 +149,13 @@ The profile-creation paths are not all the same:
 - duplicating an existing row copies that row's activation strategy and settings shape
 - `Blank` also starts with activation `Always`
 
-![Creating a new profile from the Profiles page](../assets/create_new_profile.png)
+![Creating a new profile from the Profiles page](assets/create_new_profile.png)
 
 So after creating a new profile from the add menu, always review its activation condition before assuming it behaves like the source profile.
 
 When you configure the new profile, the activation condition is the most important field to verify. It decides whether that profile can match a build at all.
 
-![Choosing an activation condition for a profile](../assets/profile_choose_activation_conditions.png)
+![Choosing an activation condition for a profile](assets/profile_choose_activation_conditions.png)
 
 ## Unity Build Profile name matching
 

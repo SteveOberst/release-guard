@@ -17,6 +17,7 @@ namespace ReleaseGuard.Editor.Config
 
         private static readonly string FastKey =
             $"ReleaseGuard.SuppressedAdvisories.{Application.dataPath.GetHashCode():X8}";
+
         private static readonly string RecordsKey =
             $"ReleaseGuard.SuppressedAdvisoryRecords.{Application.dataPath.GetHashCode():X8}";
 
@@ -115,7 +116,8 @@ namespace ReleaseGuard.Editor.Config
                 {
                     suppressId = record.suppressId,
                     message = string.IsNullOrWhiteSpace(record.message) ? PlaceholderMessage : record.message,
-                    componentId = string.IsNullOrWhiteSpace(record.componentId) ? record.suppressId : record.componentId,
+                    componentId =
+                        string.IsNullOrWhiteSpace(record.componentId) ? record.suppressId : record.componentId,
                     componentDisplayName = string.IsNullOrWhiteSpace(record.componentDisplayName)
                         ? (string.IsNullOrWhiteSpace(record.componentId) ? record.suppressId : record.componentId)
                         : record.componentDisplayName

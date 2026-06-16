@@ -30,7 +30,8 @@ namespace ReleaseGuard.Editor.Builtins.PreBuild
         [Serializable]
         public sealed class Config : ReleaseGuardComponentSettings
         {
-            [Tooltip("Assembly names to exclude from the [ReleaseForbidden] scan. Use this for third-party assemblies you cannot modify. Enter names without the .dll extension; matching is case-insensitive.")]
+            [Tooltip(
+                "Assembly names to exclude from the [ReleaseForbidden] scan. Use this for third-party assemblies you cannot modify. Enter names without the .dll extension; matching is case-insensitive.")]
             public List<string> excludedAssemblies = new List<string>();
         }
 

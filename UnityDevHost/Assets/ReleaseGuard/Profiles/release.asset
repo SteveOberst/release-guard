@@ -26,6 +26,7 @@ MonoBehaviour:
       - rid: 2078117984281559084
       - rid: 2078117984281559085
       - rid: 2078117984281559086
+      - rid: 2078118032330981562
   plugins:
     autoDiscoverPlugins: 0
     disabledPluginIds: []
@@ -56,3 +57,8 @@ MonoBehaviour:
         componentId: release_forbidden
         enabled: 1
         excludedAssemblies: []
+    - rid: 2078118032330981562
+      type: {class: ReleaseGuardComponentSettings, ns: ReleaseGuard.Editor.Core.Components, asm: ReleaseGuard.Editor}
+      data:
+        componentId: com.example.example_auditor
+        enabled: 0

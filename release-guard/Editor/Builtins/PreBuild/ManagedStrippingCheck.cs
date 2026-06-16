@@ -19,7 +19,8 @@ namespace ReleaseGuard.Editor.Builtins.PreBuild
         [Serializable]
         public sealed class Config : ReleaseGuardComponentSettings
         {
-            [Tooltip("Minimum managed code stripping level required (Disabled = don't check). Higher = less metadata/code shipped.")]
+            [Tooltip(
+                "Minimum managed code stripping level required (Disabled = don't check). Higher = less metadata/code shipped.")]
             public ManagedStrippingLevel minLevel = ManagedStrippingLevel.Medium;
         }
 
