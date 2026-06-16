@@ -5,6 +5,29 @@ All notable changes to this package are documented in this file.
 This file is maintained automatically by [release-please](https://github.com/googleapis/release-please)
 from [Conventional Commits](https://www.conventionalcommits.org/). Do not edit it by hand.
 
+## [0.2.0](https://github.com/SteveOberst/release-guard/compare/v0.1.0...v0.2.0) (2026-06-16)
+
+
+### ⚠ BREAKING CHANGES
+
+* Removes ReleaseAuditor, ReleasePostProcessor, ReleaseTransformer and all related context types, fixture bases, and registries. Replace with ReleaseGuardComponent (single class, Register method, OnPreBuild/OnPostBuild binder). All built-in checks have been migrated to the new model.
+
+### Features
+
+* add build profile system with per-profile settings and automatic activation ([17bd158](https://github.com/SteveOberst/release-guard/commit/17bd1587135e408a0e39c4a6b437390e3eeb8d8a))
+* add configurable outputPath to BuildManifestWriter ([#2](https://github.com/SteveOberst/release-guard/issues/2)) ([33a16bf](https://github.com/SteveOberst/release-guard/commit/33a16bf9c823ba566bf00ccdfadeda7c33bfd886))
+* enrich advisory suppression store with context records and dedicated Advisories settings page ([f9662e9](https://github.com/SteveOberst/release-guard/commit/f9662e9fbba22110dc090ba6cb0f3de20fd885a2))
+* replace auditor/post-processor/transformer model with ReleaseGuardComponent lifecycle ([4c3f76f](https://github.com/SteveOberst/release-guard/commit/4c3f76fa8ccc6010978796c18d9449ceea932abb))
+
+
+### Bug Fixes
+
+* apply disabled filter to plugin-contributed registry items ([383e872](https://github.com/SteveOberst/release-guard/commit/383e8726ab2cfc91063a44e419a8730797024bfe))
+* exclude package sub-assemblies from type auto-discovery ([e07e9f5](https://github.com/SteveOberst/release-guard/commit/e07e9f50b7f039fa372d77f88be2cee9351ba686))
+* harden editor lifecycle and profile state handling ([1547724](https://github.com/SteveOberst/release-guard/commit/15477243b86580bed8cabb28560c0c1dc650b3b4))
+* rename package id to io.researchy.release-guard ([cf69c5b](https://github.com/SteveOberst/release-guard/commit/cf69c5bdb396fc99f2593a5d7d4a62ae81604aa9))
+* resolve Unity console errors ([#18](https://github.com/SteveOberst/release-guard/issues/18)) ([e2e876b](https://github.com/SteveOberst/release-guard/commit/e2e876b3e0191c0ae541a73ea9c3988ac89ff109))
+
 ## 0.1.0 (2026-06-11)
 
 ### Added

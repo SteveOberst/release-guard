@@ -1,6 +1,6 @@
 {
   "name": "io.researchy.release-guard",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "displayName": "Release Guard",
   "description": "Build-time release hardening for Unity. Blocks bad release builds, runs profile-selected components across pre-build/build/post-build events, and supports custom components and plugins.",
   "unity": "2022.3",
