@@ -48,7 +48,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: UnityDevHost/Library
-          key: Library-UnityDevHost-${{ hashFiles('Editor/**', 'Runtime/**', 'Tests/**', 'UnityDevHost/Packages/**') }}
+          key: Library-UnityDevHost-${{ hashFiles('release-guard/Editor/**', 'release-guard/Runtime/**', 'release-guard/Tests/**', 'UnityDevHost/Packages/**') }}
           restore-keys: |
             Library-UnityDevHost-
             Library-

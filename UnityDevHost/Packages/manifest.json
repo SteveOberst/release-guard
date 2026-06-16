@@ -1,11 +1,10 @@
 {
   "dependencies": {
     "com.coplaydev.unity-mcp": "https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity#main",
-    "com.unity.asset-store-validation": "0.6.0",
     "com.unity.ugui": "2.0.0",
     "com.unity.ide.rider": "3.0.40",
     "com.unity.test-framework": "1.6.0",
-    "org.researchy.release-guard": "file:../../release-guard",
+    "io.researchy.release-guard": "file:../../release-guard",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",
     "com.unity.modules.animation": "1.0.0",
@@ -39,6 +38,6 @@
     "com.unity.modules.xr": "1.0.0"
   },
   "testables": [
-    "org.researchy.release-guard"
+    "io.researchy.release-guard"
   ]
 }
