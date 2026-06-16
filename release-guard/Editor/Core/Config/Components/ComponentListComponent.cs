@@ -30,6 +30,7 @@ namespace ReleaseGuard.Editor.Core.Config.Components
         private const float FoldoutWidth = 14f;
         private const float BadgeWidth = 160f;
         private const float Pad = 4f;
+        private const float MinNameWidth = 40f;
         private IReadOnlyList<ComponentCatalogEntry> _catalog;
         private SearchField _searchField;
         private string _search = string.Empty;
@@ -136,7 +137,7 @@ namespace ReleaseGuard.Editor.Core.Config.Components
             // Name label
             var nameX = foldoutX + FoldoutWidth + Pad;
             var badgeX = rowRect.xMax - BadgeWidth;
-            var nameWidth = Mathf.Max(40f, badgeX - nameX - Pad);
+            var nameWidth = Mathf.Max(MinNameWidth, badgeX - nameX - Pad);
             var nameRect = new Rect(nameX, centerY, nameWidth, EditorGUIUtility.singleLineHeight);
 
             using (new EditorGUI.DisabledScope(!isEnabled))
